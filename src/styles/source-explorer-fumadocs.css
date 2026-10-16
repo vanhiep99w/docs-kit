@@ -1,0 +1,10 @@
+/* Reserve real reading space instead of covering half of each paragraph. */
+@media (min-width: 1100px) {
+  body[data-source-drawer-open] #nd-docs-layout {
+    width: calc(100% - var(--source-drawer-width));
+    --fd-layout-width: calc(100vw - var(--source-drawer-width));
+    grid-template-columns: 0px var(--fd-sidebar-col) minmax(0, 1fr) 0px 0px !important;
+  }
+  body[data-source-drawer-open] #nd-toc,
+  body[data-source-drawer-open] #nd-toc-placeholder { display: none; }
+}

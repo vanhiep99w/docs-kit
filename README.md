@@ -1,14 +1,15 @@
 # @vanhiep99w/docs-kit
 
-Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 là module đầu tiên; các component tiếp theo sẽ có entry point riêng trong cùng package.
+Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 và Source Explorer có entry point riêng, không kéo build-time renderer vào client bundle.
 
-**Bản phát triển 0.2.0:** có worker pool dùng lại D2/WASM; chưa publish. Bản npm `0.1.0` chưa có tối ưu này. Dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản phát triển 0.2.0:** có worker pool dùng lại D2/WASM và Source Explorer; chưa publish. Bản npm `0.1.0` chưa có tối ưu này. Dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
 ## Mục lục
 
 - [Yêu cầu](#yêu-cầu)
 - [Cài đặt](#cài-đặt)
 - [Tích hợp Fumadocs](#tích-hợp-fumadocs)
+- [Source Explorer](#source-explorer)
 - [Viết diagram](#viết-diagram)
 - [Cấu hình D2](#cấu-hình-d2)
 - [Worker pool và cache CI](#worker-pool-và-cache-ci)
@@ -118,6 +119,114 @@ Trong global CSS, sau stylesheet của Fumadocs:
 
 CSS chỉ tác động `.d2-diagram`, không sửa layout/sidebar của website. Light/dark theo class `.dark` hoặc `[data-theme='dark']` của website, không phụ thuộc riêng vào theme hệ điều hành. Các biến màu Fumadocs có fallback.
 
+## Source Explorer
+
+Drawer đọc source dùng chung cho React 18.3/19, không phụ thuộc Next.js, Fumadocs, Shiki runtime hay editor. Có file tree, snapshot, highlight vùng/dòng, copy, deep link, Back/Forward và lazy-load code/dữ liệu khi mở. Source không được thực thi.
+
+### Tích hợp vào website
+
+Đăng ký một provider ở layout và `SourceRef` trong MDX components:
+
+```tsx
+'use client';
+
+import { SourceExplorerProvider } from '@vanhiep99w/docs-kit/components/source-explorer';
+
+export function Provider({ children }: { children: React.ReactNode }) {
+  return <SourceExplorerProvider>{children}</SourceExplorerProvider>;
+}
+```
+
+```tsx
+import { SourceRef } from '@vanhiep99w/docs-kit/components/source-explorer';
+
+// Giữ các MDX components hiện có.
+const components = { SourceRef };
+```
+
+Import CSS một lần sau stylesheet của website:
+
+```css
+@import '@vanhiep99w/docs-kit/styles/source-explorer.css';
+/* Chỉ với Fumadocs: dành không gian đọc, tạm ẩn TOC trên desktop. */
+@import '@vanhiep99w/docs-kit/styles/source-explorer-fumadocs.css';
+```
+
+CSS chính có fallback màu/font khi không dùng Fumadocs; syntax theme tối theo class `.dark`. Website khác tự định nghĩa layout theo `body[data-source-drawer-open]` và `--source-drawer-width` nếu muốn dành không gian bên cạnh drawer.
+
+Với Next.js App Router, truyền `usePathname()` từ wrapper client của website để reset drawer khi chuyển bài bằng client-side navigation. Không truyền search params làm navigation key vì query source thay đổi ngay khi chọn file:
+
+```tsx
+const pathname = usePathname(); // import từ next/navigation trong website, không phải library
+
+<SourceExplorerProvider
+  navigationKey={pathname}
+  manifestUrl="/source-examples/manifest.json"
+  scrollAnchorSelector="#nd-page .prose > *"
+>
+  {children}
+</SourceExplorerProvider>
+```
+
+| Provider prop | Mặc định | Ý nghĩa |
+| --- | --- | --- |
+| `manifestUrl` | `/source-examples/manifest.json` | Manifest của website; dùng prefix riêng cho base path/CDN |
+| `navigationKey` | Không có | Pathname từ router; đổi key reset trạng thái khi chuyển bài |
+| `scrollAnchorSelector` | Không có | Selector các đoạn bài viết để giữ vị trí đọc lúc layout đổi |
+
+Dùng reference trong MDX:
+
+```mdx
+<SourceRef project="demo" file="src/main.tsx" region="entry" variant="button">
+  Mở source đầy đủ
+</SourceRef>
+```
+
+Props: `project` bắt buộc; `snapshot`, `file`, `region` hoặc `lines="1-4"`, `variant="inline" | "button"`, `children` tùy chọn. Không kết hợp `region` và `lines`. Khi bỏ snapshot/file, viewer chọn default từ dữ liệu. Nhãn UI hiện bằng tiếng Việt. Mỗi trang chỉ cần một provider; `SourceRef` tự đăng ký nút nổi. Query `source`, `snapshot`, `file`, `region`, `lines` dành riêng cho viewer; các query/hash khác được giữ lại.
+
+### Hợp đồng dữ liệu tĩnh
+
+Website chịu trách nhiệm sinh JSON và validate reference lúc build; module này chỉ cung cấp UI, types và URL helpers, **không** tự đọc filesystem hay tạo assets. Có thể dùng pipeline riêng theo types `SourceManifest`, `SourceSnapshot`, `SourceFile` từ `@vanhiep99w/docs-kit/source-explorer`.
+
+Manifest là mảng project:
+
+```json
+[{
+  "id": "demo",
+  "title": "Demo",
+  "defaultSnapshot": "basic",
+  "snapshots": [{ "id": "basic", "title": "Cơ bản", "asset": "demo-basic.json" }]
+}]
+```
+
+Snapshot asset (`asset` tương đối với URL manifest, hoặc URL tuyệt đối):
+
+```json
+{
+  "project": "demo",
+  "snapshot": "basic",
+  "defaultFile": "src/main.tsx",
+  "files": [{
+    "path": "src/main.tsx",
+    "language": "tsx",
+    "code": "console.log('demo');",
+    "html": "<pre><code><span class=\"line\" data-line=\"1\">console.log('demo');</span></code></pre>",
+    "regions": { "entry": [1, 1] }
+  }]
+}
+```
+
+`displayPath` tùy chọn cho tên artifact có hash. HTML highlight cần `.line[data-line]` đánh số từ 1; ranges tính trên `code` hiển thị sau khi bỏ region markers. Với Shiki, sinh dual theme và giữ các biến `--shiki-dark`. Khi fetch cross-origin, cấu hình CORS trên host assets.
+
+**Ranh giới tin cậy:** `html` được nhúng trực tiếp, không sanitize. Chỉ cung cấp HTML đã escape/highlight từ source tin cậy; không dùng manifest hay HTML do người dùng không tin cậy kiểm soát. Assets được publish công khai; không đưa secrets vào source. Pipeline mẫu hiện nằm ở `interview-question/scripts/build-source-examples.mjs` cùng registry/examples của website đó.
+
+Public entry points:
+
+- `@vanhiep99w/docs-kit/components/source-explorer`: client components + props/types.
+- `@vanhiep99w/docs-kit/source-explorer`: types và `readSourceURL` / `writeSourceURL`, dùng được ngoài React.
+- `@vanhiep99w/docs-kit/styles/source-explorer.css`: CSS viewer.
+- `@vanhiep99w/docs-kit/styles/source-explorer-fumadocs.css`: layout adapter tùy chọn.
+
 ## Viết diagram
 
 ````mdx
@@ -224,9 +333,14 @@ src/
 │   ├── pool-worker.mjs  # Instance D2/WASM dùng lại
 │   └── render.mjs       # Render light/dark, đo và fit nhãn
 ├── components/
-│   └── d2.tsx         # Pure React component
+│   ├── d2.tsx                  # Pure React component
+│   └── source-explorer/        # Client provider, SourceRef và lazy drawer
+├── source-explorer/
+│   └── index.ts                # Types và URL helpers, không phụ thuộc React
 └── styles/
-    └── d2.css         # CSS chỉ dành cho diagram
+    ├── d2.css
+    ├── source-explorer.css
+    └── source-explorer-fumadocs.css # Layout adapter tùy chọn
 ```
 
 Public entry points:
@@ -250,7 +364,7 @@ npm run benchmark -- --docs ../angular-learn/content/docs --count 12
 ```
 
 - `npm run benchmark`: so sánh một Node/WASM mới cho mỗi diagram với một worker dùng lại, không dùng disk cache; kiểm tra SVG light/dark giống hệt nhau. Kết quả phụ thuộc máy đo, không phải cam kết tốc độ CI.
-- `npm test`: build và kiểm tra chuyển đổi MDX, config, cache portable, SVG ID, accessibility, label fitting, pool đa tiến trình, crash/timeout/restart, tự đóng và giới hạn bộ nhớ đệm. Các tests cũng chạy từ working directory không chứa code của host.
+- `npm test`: build và kiểm tra chuyển đổi MDX, config, cache portable, SVG ID, accessibility, label fitting, pool đa tiến trình, crash/timeout/restart, tự đóng, giới hạn bộ nhớ đệm; Source Explorer URL helpers, SSR không cần Next.js và các client/lazy/CSS entry points. Các tests cũng chạy từ working directory không chứa code của host.
 - `npm run test:pack`: tạo `.tgz`, cài vào consumer độc lập trong thư mục tạm, compile MDX và render component. Bước này cần registry để cài dependency của consumer.
 - `npm pack`: tự build qua `prepare`; đóng gói `dist`, README, license và package manifest.
 

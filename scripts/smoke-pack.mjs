@@ -18,7 +18,11 @@ try {
   const names = new Set(packed.files.map((file) => file.path));
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
     'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
-    'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css']) {
+    'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
+    'dist/components/source-explorer/index.js', 'dist/components/source-explorer/index.d.ts',
+    'dist/components/source-explorer/provider.js', 'dist/components/source-explorer/explorer.js',
+    'dist/source-explorer/index.js', 'dist/source-explorer/index.d.ts',
+    'dist/styles/source-explorer.css', 'dist/styles/source-explorer-fumadocs.css']) {
     assert.ok(names.has(required), `Missing packed file: ${required}`);
   }
   const consumer = path.join(temporary, 'consumer');
@@ -45,6 +49,9 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { compile } from '@mdx-js/mdx';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement } from 'react';
+import { SourceExplorerProvider, SourceRef } from '@vanhiep99w/docs-kit/components/source-explorer';
+import { readSourceURL, writeSourceURL } from '@vanhiep99w/docs-kit/source-explorer';
 import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
 process.chdir(fileURLToPath(new URL('./workdir', import.meta.url)));
@@ -58,6 +65,15 @@ const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');
 assert.match(css, /\.d2-diagram/);
+const sourceMarkup = renderToStaticMarkup(createElement(SourceExplorerProvider, null,
+  createElement(SourceRef, {project:'demo',file:'src/main.tsx'}, 'Open source')));
+assert.match(sourceMarkup, /source-ref/);
+assert.match(sourceMarkup, /file=src%2Fmain.tsx/);
+assert.equal(readSourceURL(writeSourceURL(new URL('https://docs.test/'), {project:'demo'})).project, 'demo');
+const sourceCss = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/source-explorer.css')), 'utf8');
+assert.match(sourceCss, /\.source-drawer/);
+const layoutCss = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/source-explorer-fumadocs.css')), 'utf8');
+assert.match(layoutCss, /#nd-docs-layout/);
 console.log('Packed package works from an isolated consumer.');
 `);
   const result = await execute(process.execPath, [path.join(consumer, 'check.mjs')], {
