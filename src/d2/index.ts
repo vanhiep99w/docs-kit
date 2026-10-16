@@ -11,7 +11,7 @@ export interface RemarkD2Options {
   /** Relative to the consuming project's working directory. */
   cacheDir?: string;
   sketch?: boolean;
-  layout?: 'elk' | 'dagre';
+  layout?: 'elk' | 'dagre' | 'tala';
   scale?: number;
   padding?: number;
   themes?: { light?: number; dark?: number };
@@ -24,7 +24,7 @@ export interface RemarkD2Options {
 
 interface RendererOptions {
   sketch: boolean;
-  layout: 'elk' | 'dagre';
+  layout: 'elk' | 'dagre' | 'tala';
   scale: number;
   padding: number;
   lightTheme: number;
@@ -74,7 +74,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     lightTheme: options.themes?.light ?? 0,
     darkTheme: options.themes?.dark ?? 200,
   };
-  if (typeof resolved.sketch !== 'boolean' || !['elk', 'dagre'].includes(resolved.layout)) {
+  if (typeof resolved.sketch !== 'boolean' || !['elk', 'dagre', 'tala'].includes(resolved.layout)) {
     throw new Error('docs-kit D2: invalid sketch or layout option.');
   }
   if (!Number.isFinite(resolved.scale) || resolved.scale <= 0 ||

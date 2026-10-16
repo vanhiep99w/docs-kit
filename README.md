@@ -2,7 +2,7 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 và Source Explorer có entry point riêng, không kéo build-time renderer vào client bundle.
 
-**Bản chuẩn bị phát hành 0.3.0:** bổ sung Source Explorer dùng chung; giữ worker pool D2/WASM từ `0.2.0`. Chưa publish `0.3.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.4.0:** bổ sung Source Explorer dùng chung và layout TALA qua `@d2lang/d2@0.1.34`; giữ worker pool D2/WASM từ `0.2.0`. Chưa publish `0.4.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
 ## Mục lục
 
@@ -29,10 +29,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.3.0` được publish:**
+**Cài từ npm sau khi `0.4.0` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.3.0
+npm install @vanhiep99w/docs-kit@0.4.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -57,7 +57,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.3.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.4.0.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:
@@ -272,7 +272,7 @@ remarkPlugins: [[remarkD2, {
 | Option | Mặc định | Ý nghĩa |
 | --- | --- | --- |
 | `sketch` | `true` | Phong cách vẽ tay |
-| `layout` | `'elk'` | Engine mặc định: `elk` hoặc `dagre` |
+| `layout` | `'elk'` | Engine mặc định: `elk`, `dagre` hoặc `tala` |
 | `scale` | `0.75` | Scale SVG, phải lớn hơn 0 |
 | `padding` | `12` | Padding canvas SVG, không âm |
 | `themes.light` / `themes.dark` | `0` / `200` | ID theme D2 cho từng chế độ |
@@ -281,6 +281,14 @@ remarkPlugins: [[remarkD2, {
 | `poolIdleTimeoutMs` | `30000` | Tự đóng pool sau khi rảnh; từ 1000 đến 600000 ms |
 | `defaultCaption` | `'Diagram'` | Caption khi fence không có `title` |
 
+Để dùng TALA cho sơ đồ kiến trúc/nhiều container:
+
+```ts
+remarkPlugins: [[remarkD2, { layout: 'tala' }]],
+```
+
+TALA hỗ trợ khóa vị trí bằng `top`/`left`, `near` trỏ tới node khác và `direction` riêng từng container. Engine được tích hợp trong `@d2lang/d2` (WASM), không cần cài CLI/plugin hay license riêng. ELK vẫn là mặc định; TALA có thể chạy chậm hơn với sơ đồ lớn và thay đổi bố cục nhiều khi sửa source.
+
 Thêm `.cache/` vào `.gitignore` của website. Cache bao gồm source, vị trí tương đối trong project, phiên bản SDK/renderer và options. Đường dẫn checkout tuyệt đối không nằm trong cache key nên cache có thể dùng lại trên máy/CI khác. Lỗi cú pháp hiển thị file và vị trí fence, không bị giấu thành hình trống.
 
 ## Worker pool và cache CI
@@ -288,7 +296,7 @@ Thêm `.cache/` vào `.gitignore` của website. Cache bao gồm source, vị tr
 Bản `0.1.0` khởi động Node/WASM cho từng diagram. Từ `0.2.0`, một broker local điều phối hàng đợi cho các worker giữ sẵn instance D2. Next.js compile MDX ở nhiều tiến trình vẫn dùng chung pool, thay vì mỗi tiến trình tạo thêm một pool riêng.
 
 - Mặc định một worker để ưu tiên RAM khi build trên CI nhỏ. Thử hai worker nếu đã đo thấy phù hợp; không tăng số worker một cách máy móc.
-- Mỗi worker chỉ xử lý một diagram tại một thời điểm, vì SDK không hỗ trợ gọi chồng các tác vụ trên cùng instance.
+- Mỗi worker chỉ xử lý một diagram tại một thời điểm để giới hạn tài nguyên sử dụng.
 - Light/dark, sketch và đo chữ vừa ô vẫn giữ nguyên. Pool tối ưu phần khởi động, không bỏ bước render.
 - Pool tự đóng khi rảnh, không giữ tiến trình build chờ nó. Worker bị treo được dừng sau timeout; tác vụ lỗi được báo rõ và worker được tạo lại cho tác vụ tiếp theo.
 - Socket, khóa khởi động và log nằm trong thư mục tạm riêng của hệ điều hành, không đi vào cache CI. Đây không phải HTTP service công khai hay Cloudflare Worker.

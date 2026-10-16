@@ -15,7 +15,7 @@ const workspace = await mkdtemp(path.join(os.tmpdir(), 'docs-kit-tests-'));
 // relative to the installed module, not to process.cwd().
 process.chdir(workspace);
 after(async () => {
-  await Promise.all(['.cache/docs-kit/d2', 'custom-cache', 'portable-cache'].map((directory) =>
+  await Promise.all(['.cache/docs-kit/d2', 'custom-cache', 'portable-cache', 'layouts-cache'].map((directory) =>
     shutdownPool({ cacheDir: path.join(workspace, directory), concurrency: 1 })));
   process.chdir(originalDirectory);
   await rm(workspace, { recursive: true, force: true });
@@ -50,7 +50,7 @@ test('renders from a foreign working directory with themed sketch SVGs', async (
   assert.match(result.lightSvg, /<pattern id="streaks-/);
   assert.match(result.lightSvg, /<rect\b[^>]*fill="transparent"/);
   assert.doesNotMatch(result.lightSvg, /prefers-color-scheme|<\?xml/);
-  assert.doesNotMatch(compiled, /@terrastruct|child_process|labelLayout/);
+  assert.doesNotMatch(compiled, /@terrastruct|@d2lang|child_process|labelLayout/);
 });
 
 test('reuses disk cache without rewriting it', async () => {
@@ -102,6 +102,25 @@ test('accepts renderer settings and isolates cache entries by settings', async (
   assert.equal((await readdir('custom-cache')).filter((p) => p.endsWith('.json')).length, 2);
 });
 
+test('renders all three layout engines and keeps their disk caches separate', async () => {
+  const options = { cacheDir: './layouts-cache' };
+  for (const layout of ['elk', 'dagre', 'tala']) {
+    const { tree } = await transform(fence, { ...options, layout });
+    const result = props(tree.children[0]);
+    assert.match(result.lightSvg, /^<svg/);
+    assert.match(result.darkSvg, /^<svg/);
+    assert.notEqual(result.lightSvg, result.darkSvg);
+    assert.match(result.lightSvg, /<pattern id="streaks-/);
+    assert.match(result.lightSvg, /<rect\b[^>]*fill="transparent"/);
+  }
+  const files = (await readdir(options.cacheDir)).filter((file) => file.endsWith('.json'));
+  assert.equal(files.length, 3);
+  const before = await Promise.all(files.map((file) => readFile(path.join(options.cacheDir, file), 'utf8')));
+  await transform(fence, { ...options, layout: 'tala' });
+  assert.equal((await readdir(options.cacheDir)).filter((file) => file.endsWith('.json')).length, 3);
+  assert.deepEqual(await Promise.all(files.map((file) => readFile(path.join(options.cacheDir, file), 'utf8'))), before);
+});
+
 test('reports the source filename and position for invalid D2', async () => {
   await assert.rejects(transform('```d2\na: {\n```', {}, 'broken.mdx'), (error) => {
     assert.match(error.message, /D2 diagram failed/);
@@ -133,7 +152,7 @@ test('rejects invalid options before starting a renderer', () => {
 
 test('the component is a pure React entry point with accessible captions', async () => {
   const source = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/components/d2')), 'utf8');
-  assert.doesNotMatch(source, /node:|@terrastruct|child_process|\.wasm/);
+  assert.doesNotMatch(source, /node:|@terrastruct|@d2lang|child_process|\.wasm/);
   const markup = renderToStaticMarkup(D2Diagram({
     id: 'diagram', caption: 'Guard <resolver>', className: 'custom',
     lightSvg: '<svg data-theme="light"></svg>', darkSvg: '<svg data-theme="dark"></svg>',

@@ -56,11 +56,13 @@ import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
 process.chdir(fileURLToPath(new URL('./workdir', import.meta.url)));
 const fence = String.fromCharCode(96).repeat(3);
-const result = await compile({value: fence + 'd2 title="Packed package"\na -> b\n' + fence, path:'page.mdx'}, {
-  remarkPlugins: [remarkD2],
-});
-assert.match(String(result), /D2Diagram/);
-assert.match(String(result), /<svg/);
+for (const layout of ['elk', 'dagre', 'tala']) {
+  const result = await compile({value: fence + 'd2 title="Packed package"\na -> b\n' + fence, path:'page.mdx'}, {
+    remarkPlugins: [[remarkD2, { layout }]],
+  });
+  assert.match(String(result), /D2Diagram/);
+  assert.match(String(result), /<svg/);
+}
 const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package',lightSvg:'<svg/>',darkSvg:'<svg/>'}));
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');

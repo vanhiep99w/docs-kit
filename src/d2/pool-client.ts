@@ -37,7 +37,7 @@ const asset = (name: string) => fileURLToPath(new URL(name, import.meta.url));
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 const transportErrors = new Set(['ENOENT', 'ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'D2_POOL_CLOSED']);
 const metadata = Promise.all([
-  readFile(path.resolve(path.dirname(require.resolve('@terrastruct/d2')), '../../package.json'), 'utf8'),
+  readFile(path.resolve(path.dirname(require.resolve('@d2lang/d2')), '../../package.json'), 'utf8'),
   ...['render.mjs', 'pool-client.js', 'pool-server.mjs', 'pool-worker.mjs'].map((file) => readFile(asset(file), 'utf8')),
 ]).then(([manifest, renderer, ...pool]) => {
   const sdk = JSON.parse(manifest).version;

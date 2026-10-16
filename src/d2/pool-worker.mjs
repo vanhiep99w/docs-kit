@@ -1,8 +1,7 @@
-import { D2 } from '@terrastruct/d2';
+import { D2 } from '@d2lang/d2';
 import { renderDiagram } from './render.mjs';
 
-// One SDK instance per process. SDK calls must never overlap: its worker uses
-// one currentResolve/currentReject pair internally.
+// One SDK instance per process; serialize diagrams to bound memory usage.
 const d2 = new D2();
 process.on('disconnect', () => process.exit(0));
 try {

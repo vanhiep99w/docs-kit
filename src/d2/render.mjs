@@ -1,4 +1,4 @@
-import { D2 } from '@terrastruct/d2';
+import { D2 } from '@d2lang/d2';
 import { pathToFileURL } from 'node:url';
 
 const horizontalPadding = 24;
@@ -93,8 +93,7 @@ export async function renderDiagram(d2, { source, salt, options = {} }) {
   return { lightSvg, darkSvg, labelLayout };
 }
 
-// The SDK owns a long-lived WASM worker and has no public dispose API.
-// Isolate it in a short-lived build subprocess, never in the Next.js runtime.
+// Keep the WASM worker isolated in a build subprocess, never in the Next.js runtime.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     let input = '';
