@@ -1,0 +1,48 @@
+/* Build-time D2 SVGs follow the site's .dark toggle, not OS color preference. */
+.d2-diagram {
+  margin-block: 1rem;
+}
+
+.d2-diagram-scroll {
+  overflow-x: auto;
+  padding-block: 0.25rem;
+}
+
+.d2-diagram-scroll:focus-visible {
+  outline: 2px solid var(--color-fd-ring, #64748b);
+  outline-offset: -2px;
+}
+
+/* Preserve readable labels on narrow screens; scroll instead of shrinking text. */
+.d2-diagram-light,
+.d2-diagram-dark {
+  width: max-content;
+  min-width: 100%;
+}
+
+.d2-diagram-light > svg,
+.d2-diagram-dark > svg {
+  display: block;
+  max-width: none;
+  height: auto;
+  margin-inline: auto;
+}
+
+.d2-diagram-dark {
+  display: none;
+}
+
+:where(.dark, [data-theme='dark']) .d2-diagram-light {
+  display: none;
+}
+
+:where(.dark, [data-theme='dark']) .d2-diagram-dark {
+  display: block;
+}
+
+.d2-diagram figcaption {
+  padding: 0.5rem 0;
+  color: var(--color-fd-muted-foreground, #737373);
+  font-size: 0.875rem;
+  text-align: center;
+}

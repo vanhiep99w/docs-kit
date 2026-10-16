@@ -1,0 +1,53 @@
+{
+  "name": "@vanhiep99w/docs-kit",
+  "version": "0.1.0",
+  "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vanhiep99w/docs-kit.git"
+  },
+  "engines": { "node": ">=22" },
+  "files": ["dist", "README.md"],
+  "sideEffects": ["**/*.css"],
+  "exports": {
+    "./d2": {
+      "types": "./dist/d2/index.d.ts",
+      "default": "./dist/d2/index.js"
+    },
+    "./components/d2": {
+      "types": "./dist/components/d2.d.ts",
+      "default": "./dist/components/d2.js"
+    },
+    "./styles/d2.css": "./dist/styles/d2.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "test:pack": "npm run build && node scripts/smoke-pack.mjs",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run test:pack"
+  },
+  "publishConfig": { "access": "public" },
+  "peerDependencies": { "react": "^18.3.0 || ^19.0.0" },
+  "dependencies": {
+    "@terrastruct/d2": "0.1.33",
+    "@types/mdast": "^4.0.4",
+    "proper-lockfile": "^4.1.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@types/node": "^24.12.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "@types/react": "^19.2.14",
+    "mdast-util-mdx-jsx": "^3.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.9.3"
+  }
+}
