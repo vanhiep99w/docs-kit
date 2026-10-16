@@ -17,6 +17,7 @@ try {
   const [packed] = JSON.parse(stdout);
   const names = new Set(packed.files.map((file) => file.path));
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
+    'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css']) {
     assert.ok(names.has(required), `Missing packed file: ${required}`);
   }

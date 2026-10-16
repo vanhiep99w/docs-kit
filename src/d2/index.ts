@@ -1,15 +1,11 @@
-import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { createRequire } from 'node:module';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { setTimeout } from 'node:timers/promises';
-import lockfile from 'proper-lockfile';
 import type { Code, Root } from 'mdast';
 import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx';
 import type { Plugin } from 'unified';
 import { visit } from 'unist-util-visit';
+import { getEngineFingerprint, renderWithPool } from './pool-client.js';
 
 export interface RemarkD2Options {
   /** Relative to the consuming project's working directory. */
@@ -21,6 +17,8 @@ export interface RemarkD2Options {
   themes?: { light?: number; dark?: number };
   /** Maximum simultaneous WASM renderers per cache directory, across processes. */
   concurrency?: number;
+  /** Stop idle workers automatically; defaults to 30 seconds. */
+  poolIdleTimeoutMs?: number;
   defaultCaption?: string;
 }
 
@@ -47,11 +45,6 @@ interface RenderedDiagram {
   labelLayout: BoxLabelLayout[];
 }
 
-// Resolve package-owned assets and dependencies here, never from the host's
-// lib/ directory or node_modules layout. The renderer stays external to bundlers.
-const renderer = fileURLToPath(new URL('./render.mjs', import.meta.url));
-const require = createRequire(import.meta.url);
-const sdkManifest = path.resolve(path.dirname(require.resolve('@terrastruct/d2')), '../../package.json');
 const pending = new Map<string, Promise<RenderedDiagram>>();
 
 function hash(value: string): string {
@@ -94,34 +87,16 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
   return resolved;
 }
 
-async function acquireRendererSlot(cacheDir: string, concurrency: number): Promise<() => Promise<void>> {
-  await mkdir(cacheDir, { recursive: true });
-  for (;;) {
-    for (let slot = 0; slot < concurrency; slot++) {
-      try {
-        return await lockfile.lock(path.join(cacheDir, `render-slot-${slot}`), {
-          realpath: false,
-          stale: 120_000,
-          update: 10_000,
-        });
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ELOCKED') throw error;
-      }
-    }
-    await setTimeout(100);
-  }
-}
-
 async function render(
   source: string,
   salt: string,
   cacheDir: string,
   concurrency: number,
   options: RendererOptions,
+  idleTimeoutMs: number,
 ): Promise<RenderedDiagram> {
-  const sdkVersion = JSON.parse(await readFile(sdkManifest, 'utf8')).version;
-  const rendererVersion = await readFile(renderer, 'utf8');
-  const key = hash(JSON.stringify([source, salt, sdkVersion, rendererVersion, options]));
+  const engine = await getEngineFingerprint();
+  const key = hash(JSON.stringify([2, source, salt, engine, options]));
   const cacheFile = path.join(cacheDir, `${key}.json`);
   const cached = pending.get(cacheFile);
   if (cached) return cached;
@@ -138,42 +113,23 @@ async function render(
   const task = (async () => {
     const cached = await readCache();
     if (cached) return cached;
-    const release = await acquireRendererSlot(cacheDir, concurrency);
+    const value: unknown = await renderWithPool(key, { source, salt, options }, {
+      cacheDir, concurrency, idleTimeoutMs,
+    });
+    if (!isRenderedDiagram(value)) throw new Error('D2 renderer returned invalid SVG or label layout.');
+    const result = value;
+    await mkdir(cacheDir, { recursive: true });
+    const temporaryFile = `${cacheFile}.${randomUUID()}.tmp`;
     try {
-      // Another MDX process may have populated the cache while this job waited.
-      const cached = await readCache();
-      if (cached) return cached;
-      const result = await new Promise<RenderedDiagram>((resolve, reject) => {
-        const child = execFile(process.execPath, [renderer], {
-          timeout: 60_000,
-          maxBuffer: 20 * 1024 * 1024,
-        }, (error, stdout, stderr) => {
-          if (error) return reject(new Error(stderr.trim() || error.message));
-          try {
-            const value: unknown = JSON.parse(stdout);
-            if (!isRenderedDiagram(value)) throw new Error('D2 renderer returned invalid SVG or label layout.');
-            resolve(value);
-          } catch (error) {
-            reject(error);
-          }
-        });
-        child.stdin?.on('error', reject);
-        child.stdin?.end(JSON.stringify({ source, salt, options }));
-      });
-      const temporaryFile = `${cacheFile}.${randomUUID()}.tmp`;
-      try {
-        await writeFile(temporaryFile, JSON.stringify(result));
-        await rename(temporaryFile, cacheFile);
-      } catch (error) {
-        // Never leave a partial cache entry behind.
-        const { rm } = await import('node:fs/promises');
-        await rm(temporaryFile, { force: true });
-        throw error;
-      }
-      return result;
-    } finally {
-      await release();
+      await writeFile(temporaryFile, JSON.stringify(result));
+      await rename(temporaryFile, cacheFile);
+    } catch (error) {
+      // Never leave a partial cache entry behind.
+      const { rm } = await import('node:fs/promises');
+      await rm(temporaryFile, { force: true });
+      throw error;
     }
+    return result;
   })();
   pending.set(cacheFile, task);
   try {
@@ -205,10 +161,14 @@ function attribute(name: string, value: string): MdxJsxAttribute {
 export const remarkD2: Plugin<[RemarkD2Options?], Root> = (options = {}) => {
   const rendererOptions = resolveOptions(options);
   const cacheDir = path.resolve(options.cacheDir ?? '.cache/docs-kit/d2');
-  const concurrency = options.concurrency ?? 2;
+  const concurrency = options.concurrency ?? 1;
+  const idleTimeoutMs = options.poolIdleTimeoutMs ?? 30_000;
   const defaultCaption = options.defaultCaption ?? 'Diagram';
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 8) {
     throw new Error('docs-kit D2: concurrency must be an integer from 1 to 8.');
+  }
+  if (!Number.isInteger(idleTimeoutMs) || idleTimeoutMs < 1000 || idleTimeoutMs > 600_000) {
+    throw new Error('docs-kit D2: poolIdleTimeoutMs must be from 1000 to 600000.');
   }
   if (typeof defaultCaption !== 'string' || !defaultCaption.trim()) {
     throw new Error('docs-kit D2: defaultCaption must not be empty.');
@@ -220,12 +180,15 @@ export const remarkD2: Plugin<[RemarkD2Options?], Root> = (options = {}) => {
       if (node.lang !== 'd2' || index === undefined || !parent) return;
       blocks.push({ node, replace: (value) => { parent.children[index] = value; } });
     });
+    const fileIdentity = file.path
+      ? path.relative(file.cwd, path.resolve(file.cwd, file.path)).split(path.sep).join('/')
+      : 'document';
     for (const [index, { node, replace }] of blocks.entries()) {
       const title = node.meta?.match(/\btitle=(?:"([^"]*)"|'([^']*)')/);
       const caption = (title?.[1] ?? title?.[2])?.trim() || defaultCaption;
-      const id = `d2-${hash(`${file.path ?? 'document'}:${index}`).slice(0, 16)}`;
+      const id = `d2-${hash(`${fileIdentity}:${index}`).slice(0, 16)}`;
       try {
-        const { lightSvg, darkSvg } = await render(node.value, id, cacheDir, concurrency, rendererOptions);
+        const { lightSvg, darkSvg } = await render(node.value, id, cacheDir, concurrency, rendererOptions, idleTimeoutMs);
         replace({
           type: 'mdxJsxFlowElement',
           name: 'D2Diagram',

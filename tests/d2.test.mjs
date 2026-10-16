@@ -7,6 +7,7 @@ import { compile } from '@mdx-js/mdx';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
+import { shutdownPool } from '../dist/d2/pool-client.js';
 
 const originalDirectory = process.cwd();
 const workspace = await mkdtemp(path.join(os.tmpdir(), 'docs-kit-tests-'));
@@ -14,14 +15,16 @@ const workspace = await mkdtemp(path.join(os.tmpdir(), 'docs-kit-tests-'));
 // relative to the installed module, not to process.cwd().
 process.chdir(workspace);
 after(async () => {
+  await Promise.all(['.cache/docs-kit/d2', 'custom-cache', 'portable-cache'].map((directory) =>
+    shutdownPool({ cacheDir: path.join(workspace, directory), concurrency: 1 })));
   process.chdir(originalDirectory);
   await rm(workspace, { recursive: true, force: true });
 });
 
-async function transform(value, options = {}, file = 'example.mdx') {
+async function transform(value, options = {}, file = 'example.mdx', cwd = process.cwd()) {
   let tree;
   const capture = () => (result) => { tree = result; };
-  const result = await compile({ value, path: file }, {
+  const result = await compile({ value, path: file, cwd }, {
     remarkPlugins: [[remarkD2, options], capture],
   });
   return { tree, compiled: String(result) };
@@ -110,9 +113,20 @@ test('reports the source filename and position for invalid D2', async () => {
   assert.match(props(tree.children[0]).lightSvg, /Fixed/);
 });
 
+test('reuses cache and SVG IDs after moving a checkout to a different absolute path', async () => {
+  const options = { cacheDir: path.join(workspace, 'portable-cache') };
+  const one = path.join(workspace, 'checkout-one');
+  const two = path.join(workspace, 'checkout-two');
+  const first = props((await transform(fence, options, path.join(one, 'content/page.mdx'), one)).tree.children[0]);
+  const second = props((await transform(fence, options, path.join(two, 'content/page.mdx'), two)).tree.children[0]);
+  assert.deepEqual(second, first);
+  const files = (await readdir(options.cacheDir)).filter((file) => file.endsWith('.json'));
+  assert.equal(files.length, 1);
+});
+
 test('rejects invalid options before starting a renderer', () => {
   for (const options of [{ scale: 0 }, { padding: -1 }, { concurrency: 0 },
-    { concurrency: 9 }, { layout: 'unknown' }, { defaultCaption: '' }, { themes: { light: -1 } }]) {
+    { concurrency: 9 }, { poolIdleTimeoutMs: 0 }, { layout: 'unknown' }, { defaultCaption: '' }, { themes: { light: -1 } }]) {
     assert.throws(() => remarkD2(options), /docs-kit D2:/);
   }
 });

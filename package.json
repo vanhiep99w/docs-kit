@@ -1,6 +1,6 @@
 {
   "name": "@vanhiep99w/docs-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
   "type": "module",
   "license": "MIT",
@@ -8,9 +8,16 @@
     "type": "git",
     "url": "git+https://github.com/vanhiep99w/docs-kit.git"
   },
-  "engines": { "node": ">=22" },
-  "files": ["dist", "README.md"],
-  "sideEffects": ["**/*.css"],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     "./d2": {
       "types": "./dist/d2/index.d.ts",
@@ -26,13 +33,18 @@
   "scripts": {
     "build": "node scripts/clean.mjs && tsc -p tsconfig.json && node scripts/copy-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "benchmark": "npm run build && node scripts/benchmark.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:pack": "npm run build && node scripts/smoke-pack.mjs",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run test:pack"
   },
-  "publishConfig": { "access": "public" },
-  "peerDependencies": { "react": "^18.3.0 || ^19.0.0" },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0"
+  },
   "dependencies": {
     "@terrastruct/d2": "0.1.33",
     "@types/mdast": "^4.0.4",
