@@ -62,6 +62,16 @@ for (const layout of ['elk', 'dagre', 'tala']) {
   });
   assert.match(String(result), /D2Diagram/);
   assert.match(String(result), /<svg/);
+  const body = fence + 'd2 title="Packed package"\na -> b\n' + fence;
+  const perPage = await compile({value: '---\nd2Layout: ' + layout + '\n---\n\n' + body, path:'page.mdx'}, {
+    remarkPlugins: [[remarkD2, { layout: 'elk' }]],
+  });
+  assert.equal(String(perPage), String(result));
+  const perBlock = await compile({value: '---\nd2Layout: elk\n---\n\n' +
+    fence + 'd2 layout="' + layout + '" title="Packed package"\na -> b\n' + fence, path:'page.mdx'}, {
+    remarkPlugins: [remarkD2],
+  });
+  assert.equal(String(perBlock), String(result));
 }
 const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package',lightSvg:'<svg/>',darkSvg:'<svg/>'}));
 assert.match(markup, /test-caption/);

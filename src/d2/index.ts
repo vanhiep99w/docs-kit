@@ -4,14 +4,19 @@ import path from 'node:path';
 import type { Code, Root } from 'mdast';
 import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx';
 import type { Plugin } from 'unified';
+import remarkFrontmatter from 'remark-frontmatter';
+import { parseDocument } from 'yaml';
 import { visit } from 'unist-util-visit';
 import { getEngineFingerprint, renderWithPool } from './pool-client.js';
+
+export type D2Layout = 'elk' | 'dagre' | 'tala';
 
 export interface RemarkD2Options {
   /** Relative to the consuming project's working directory. */
   cacheDir?: string;
   sketch?: boolean;
-  layout?: 'elk' | 'dagre' | 'tala';
+  /** Default engine; overridden by page d2Layout and then fence layout. */
+  layout?: D2Layout;
   scale?: number;
   padding?: number;
   themes?: { light?: number; dark?: number };
@@ -24,7 +29,7 @@ export interface RemarkD2Options {
 
 interface RendererOptions {
   sketch: boolean;
-  layout: 'elk' | 'dagre' | 'tala';
+  layout: D2Layout;
   scale: number;
   padding: number;
   lightTheme: number;
@@ -65,6 +70,38 @@ function isRenderedDiagram(value: unknown): value is RenderedDiagram {
     );
 }
 
+function isLayout(value: unknown): value is D2Layout {
+  return value === 'elk' || value === 'dagre' || value === 'tala';
+}
+
+function layoutOverride(value: unknown, name: string): D2Layout {
+  if (!isLayout(value)) {
+    throw new Error(`docs-kit D2: ${name} must be elk, dagre or tala.`);
+  }
+  return value;
+}
+
+function frontmatterLayout(value: unknown): D2Layout | undefined {
+  if (value !== null && typeof value === 'object' && Object.hasOwn(value, 'd2Layout')) {
+    return layoutOverride((value as Record<string, unknown>).d2Layout, 'frontmatter d2Layout');
+  }
+}
+
+function fenceOptions(meta: string | null | undefined): { title?: string; layout?: D2Layout } {
+  const result: { title?: string; layout?: D2Layout } = {};
+  // Consume quoted values as a whole so title="Use layout=tala" is not an override.
+  const attributes = /(?:^|\s)([^\s=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s]*))?(?=\s|$)/g;
+  for (const [, name, raw] of (meta ?? '').matchAll(attributes)) {
+    const value = raw && /^("[^"]*"|'[^']*')$/.test(raw) ? raw.slice(1, -1) : raw;
+    if (name === 'title' && result.title === undefined) result.title = value;
+    if (name === 'layout') {
+      if (result.layout !== undefined) throw new Error('docs-kit D2: duplicate fence layout option.');
+      result.layout = layoutOverride(value, 'fence layout');
+    }
+  }
+  return result;
+}
+
 function resolveOptions(options: RemarkD2Options): RendererOptions {
   const resolved: RendererOptions = {
     sketch: options.sketch ?? true,
@@ -74,7 +111,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     lightTheme: options.themes?.light ?? 0,
     darkTheme: options.themes?.dark ?? 200,
   };
-  if (typeof resolved.sketch !== 'boolean' || !['elk', 'dagre', 'tala'].includes(resolved.layout)) {
+  if (typeof resolved.sketch !== 'boolean' || !isLayout(resolved.layout)) {
     throw new Error('docs-kit D2: invalid sketch or layout option.');
   }
   if (!Number.isFinite(resolved.scale) || resolved.scale <= 0 ||
@@ -158,7 +195,7 @@ function attribute(name: string, value: string): MdxJsxAttribute {
 }
 
 /** Build-time only. Use with trusted, repository-authored MDX, not user input. */
-export const remarkD2: Plugin<[RemarkD2Options?], Root> = (options = {}) => {
+export const remarkD2: Plugin<[RemarkD2Options?], Root> = function (options = {}) {
   const rendererOptions = resolveOptions(options);
   const cacheDir = path.resolve(options.cacheDir ?? '.cache/docs-kit/d2');
   const concurrency = options.concurrency ?? 1;
@@ -173,6 +210,7 @@ export const remarkD2: Plugin<[RemarkD2Options?], Root> = (options = {}) => {
   if (typeof defaultCaption !== 'string' || !defaultCaption.trim()) {
     throw new Error('docs-kit D2: defaultCaption must not be empty.');
   }
+  this.use(remarkFrontmatter);
 
   return async (tree, file) => {
     const blocks: { node: Code; replace: (value: MdxJsxFlowElement) => void }[] = [];
@@ -180,15 +218,31 @@ export const remarkD2: Plugin<[RemarkD2Options?], Root> = (options = {}) => {
       if (node.lang !== 'd2' || index === undefined || !parent) return;
       blocks.push({ node, replace: (value) => { parent.children[index] = value; } });
     });
+    if (!blocks.length) return;
+    const yamlNode = tree.children.find((node) => node.type === 'yaml');
+    let pageLayout = rendererOptions.layout;
+    try {
+      // Hosts such as Fumadocs may strip YAML before remark runs.
+      let override = frontmatterLayout(file.data.frontmatter);
+      if (override === undefined && yamlNode) {
+        const document = parseDocument(yamlNode.value);
+        if (document.errors.length) throw document.errors[0];
+        override = frontmatterLayout(document.toJS());
+      }
+      pageLayout = override ?? pageLayout;
+    } catch (error) {
+      file.fail(`D2 page layout failed: ${error instanceof Error ? error.message : String(error)}`, yamlNode ?? blocks[0].node);
+    }
     const fileIdentity = file.path
       ? path.relative(file.cwd, path.resolve(file.cwd, file.path)).split(path.sep).join('/')
       : 'document';
     for (const [index, { node, replace }] of blocks.entries()) {
-      const title = node.meta?.match(/\btitle=(?:"([^"]*)"|'([^']*)')/);
-      const caption = (title?.[1] ?? title?.[2])?.trim() || defaultCaption;
       const id = `d2-${hash(`${fileIdentity}:${index}`).slice(0, 16)}`;
       try {
-        const { lightSvg, darkSvg } = await render(node.value, id, cacheDir, concurrency, rendererOptions, idleTimeoutMs);
+        const meta = fenceOptions(node.meta);
+        const caption = meta.title?.trim() || defaultCaption;
+        const blockOptions = { ...rendererOptions, layout: meta.layout ?? pageLayout };
+        const { lightSvg, darkSvg } = await render(node.value, id, cacheDir, concurrency, blockOptions, idleTimeoutMs);
         replace({
           type: 'mdxJsxFlowElement',
           name: 'D2Diagram',
