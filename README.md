@@ -2,7 +2,7 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 và Source Explorer có entry point riêng, không kéo build-time renderer vào client bundle.
 
-**Bản phát triển 0.2.0:** có worker pool dùng lại D2/WASM và Source Explorer; chưa publish. Bản npm `0.1.0` chưa có tối ưu này. Dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.3.0:** bổ sung Source Explorer dùng chung; giữ worker pool D2/WASM từ `0.2.0`. Chưa publish `0.3.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
 ## Mục lục
 
@@ -29,10 +29,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài bản phát hành từ npm:**
+**Cài từ npm sau khi `0.3.0` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.1.0
+npm install @vanhiep99w/docs-kit@0.3.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -57,7 +57,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.2.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.3.0.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:
