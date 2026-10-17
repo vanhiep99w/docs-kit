@@ -1,5 +1,7 @@
 # Terminal Session
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 > MVP trong working tree, chưa publish. Đây là transcript được tác giả biên soạn, không phải terminal thật.
 
 Hiển thị lệnh theo bước, ngữ cảnh thực thi, stdout/stderr, chú thích và kết quả kỳ vọng. Chỉ nút copy cần JavaScript; nội dung và thao tác mở/thu output dùng được không JavaScript.
@@ -108,7 +110,7 @@ Fence chứa YAML descriptor. Plugin validate và serialize dữ liệu thành p
 
 `context` ở step là **thay thế hoàn toàn**, không merge với context mặc định. Tránh vô tình hiển thị thư mục local cho một lệnh chạy trong pod/remote host.
 
-Context và prompt không làm thay đổi command. Ví dụ `cwd: /srv/api` không thêm `cd /srv/api`, `kind: remote` không thêm `ssh`, và `kind: container` không thêm `docker exec`. Tác giả phải giải thích cách vào môi trường đó trong bài viết.
+Khi step đổi context rồi step sau trở lại mặc định, transcript hiện lại nhãn context session để tránh hiểu nhầm. Context và prompt không làm thay đổi command. Ví dụ `cwd: /srv/api` không thêm `cd /srv/api`, `kind: remote` không thêm `ssh`, và `kind: container` không thêm `docker exec`. Tác giả phải giải thích cách vào môi trường đó trong bài viết.
 
 ### Step
 
@@ -116,13 +118,13 @@ Context và prompt không làm thay đổi command. Ví dụ `cwd: /srv/api` kh�
 | --- | --- | --- |
 | `id` | Có | Duy nhất trong session; chữ ASCII/số/`_`/`-`, bắt đầu bằng chữ hoặc số |
 | `command` | Có | Chuỗi không rỗng, không bao gồm prompt |
-| `title` | Không | Tên bước; mặc định `Bước N` |
+| `title` | Không | Tên bước nếu tác giả cung cấp; không tạo heading mặc định. Nhãn trợ năng dùng `Bước N` khi thiếu title |
 | `prompt` | Không | Prompt trang trí một dòng; mặc định `$`, chuỗi rỗng để ẩn |
 | `context` | Không | Thay thế context của session cho bước này |
-| `description` | Không | Giải thích trước lệnh |
+| `description` | Không | Giải thích trong “Ghi chú” của lệnh |
 | `warning` | Không | Cảnh báo hiển thị trước lệnh, gắn với nút copy bằng `aria-describedby` |
 | `outputs` | Không | Mảng output theo đúng thứ tự tác giả cung cấp |
-| `expected` | Không | Mô tả kết quả kỳ vọng |
+| `expected` | Không | Kết quả kỳ vọng trong “Ghi chú”, không giả làm stdout |
 | `exitCode` | Không | Số nguyên an toàn không âm, do tác giả cung cấp; không được component tính toán |
 
 Không tự phát hiện lệnh nguy hiểm. `warning` không chặn nút copy hoặc bảo đảm command an toàn. Chỉ đưa command đã kiểm tra và ghi rõ môi trường vào bài viết.
@@ -133,7 +135,7 @@ Các CLI tương tác như Redis CLI không nhất thiết có shell exit code s
 
 - `stream`: `stdout` hoặc `stderr`; được hiển thị bằng nhãn, không chỉ bằng màu.
 - `text`: chuỗi plain text; được phép rỗng.
-- `collapsed?`: boolean, mặc định `false`. Dùng `<details>/<summary>` native, có thể mở/thu bằng bàn phím khi không có JavaScript.
+- `collapsed?`: boolean; khai báo `true` để đóng, `false` để mở native `<details>/<summary>`. Bỏ field: output plain không annotations tối đa 8 dòng hiện trực tiếp; output dài/có annotation vẫn mở bằng native disclosure, không JavaScript vẫn đọc được.
 - `annotations?`: mảng chú thích không rỗng nếu cung cấp. Dùng chung `ExampleAnnotation` và inclusive ranges với [Annotated Example](./annotated-example.md).
 
 Mỗi output có scope annotation ID riêng. Ranges bắt đầu từ **1**, tính trên output đó, không phải command hoặc toàn session. Hỗ trợ nhiều vùng và vùng chồng nhau; tất cả dòng được chú thích được đánh dấu sẵn. Link chú thích trỏ tới dòng đầu của range đầu tiên. MVP chưa có selection tương tác theo từng annotation trong Terminal Session.

@@ -1,5 +1,7 @@
 # State Transition Explorer
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 Khám phá mô hình trạng thái do tác giả khai báo: người đọc chọn một event/nhánh để xem **trước → sau**, điều kiện và giải thích, sau đó quay lại hoặc reset.
 
 Đây là công cụ đọc mô hình, **không** phải XState interpreter, statechart runtime, form/API thật hoặc formal verifier. D2 vẫn phụ trách sơ đồ cấu trúc/graph; component này không sinh graph layout mới.
@@ -95,7 +97,7 @@ Mỗi text field không rỗng, tối đa 16384 UTF-16 code units; tổng title/
 
 1. Khởi đầu tại `initial`, không tự phát event.
 2. Chỉ hiển thị các lựa chọn có `from` bằng trạng thái hiện tại, giữ thứ tự tác giả. Nếu cùng event có nhiều nhánh, người đọc chọn **transition cụ thể**, không có cơ chế first-match hoặc tự tính guard.
-3. Chọn nhánh thêm transition ID vào đường đi. Vùng “Chuyển trạng thái vừa chọn” hiển thị trạng thái trước/sau, event, guard và mô tả effects.
+3. Chọn nhánh thêm transition ID vào đường đi. Vùng “Chuyển trạng thái vừa chọn” hiện route trước/sau và event; mở “Giải thích” để xem description/effects. Guard của từng lựa chọn vẫn luôn hiện trước khi chọn.
 4. Nút quay lại bỏ lựa chọn cuối rồi đọc lại prefix từ initial; reset xóa toàn bộ đường đi. Không có undo side effect thật vì không có effect nào đã chạy.
 5. Self-loop vẫn thêm một bước lựa chọn dù state không đổi. Số bước không phải bộ đếm lỗi, thời gian hoặc log hệ thống.
 6. History tối đa **128** lựa chọn. Khi đầy, các lựa chọn có `aria-disabled`, không thêm bước hoặc cắt lịch sử âm thầm; quay lại/reset để tiếp tục.
@@ -111,7 +113,7 @@ Toàn bộ states, transitions, guards, effects và assumptions đã nằm trong
 
 Không hứa traversal hoạt động khi không JavaScript. Reference có link thật giữa state và transition, không cần modal hoặc fetch dữ liệu. Disclosure đang đóng vẫn có nội dung trong HTML công khai.
 
-Desktop đặt lựa chọn và đường đi cạnh nhau; container hẹp xếp dọc. Reference table cuộn ngang riêng, không đẩy rộng page. Không motion/autoplay cần tắt khi reduced-motion.
+Lựa chọn hiển thị gọn theo hàng; đường đi nằm trong “Lịch sử”. Các nội dung mở rộng xếp dọc khi cần đọc. Reference table cuộn ngang riêng, không đẩy rộng page. Không motion/autoplay cần tắt khi reduced-motion.
 
 ## API ngoài MDX
 

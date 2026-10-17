@@ -1,15 +1,16 @@
 @import './annotated-example.css';
 
 .code-walkthrough {
+  position: relative;
   --walkthrough-bg: var(--color-fd-card, #f8fafb);
   --walkthrough-fg: var(--color-fd-foreground, #23303b);
   --walkthrough-muted: var(--color-fd-muted-foreground, #586775);
   --walkthrough-border: var(--color-fd-border, #dbe1e6);
   --walkthrough-accent: var(--color-fd-primary, #2563a6);
   container-type: inline-size;
-  margin: 1.75rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--walkthrough-border);
-  border-radius: .5rem;
+  border-radius: .375rem;
   background: var(--walkthrough-bg);
   color: var(--walkthrough-fg);
   font: inherit;
@@ -24,33 +25,32 @@
   --walkthrough-border: var(--color-fd-border, #35414e);
   --walkthrough-accent: var(--color-fd-primary, #8ab9ef);
 }
-.code-walkthrough .code-walkthrough-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: 1rem; text-align: left; color: inherit; border-bottom: 1px solid var(--walkthrough-border); }
-.code-walkthrough-header > span { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
-.code-walkthrough-header > small, .code-walkthrough-header > p { color: var(--walkthrough-muted); }
-.code-walkthrough-header > p { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.code-walkthrough-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .8rem 1rem; border-bottom: 1px solid var(--walkthrough-border); }
+.code-walkthrough-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; padding: .25rem .5rem; border-bottom: 1px solid var(--walkthrough-border); }
 .code-walkthrough [hidden] { display: none; }
-.code-walkthrough-controls > p { flex: 1; margin: 0; text-align: center; color: var(--walkthrough-muted); font-size: .75rem; overflow-wrap: anywhere; }
-.code-walkthrough-controls > button { flex-shrink: 0; padding: .35rem .6rem; border: 1px solid var(--walkthrough-border); border-radius: .25rem; color: inherit; background: transparent; font: inherit; font-size: .75rem; cursor: pointer; }
+.code-walkthrough-controls > p { flex: none; margin: 0; text-align: center; color: var(--walkthrough-muted); font-size: .75rem; overflow-wrap: anywhere; }
+.code-walkthrough-controls > button { flex-shrink: 0; min-width: 1.75rem; min-height: 1.75rem; padding: .2rem .4rem; border: 0; border-radius: .25rem; color: inherit; background: transparent; font: inherit; font-size: .75rem; cursor: pointer; }
 .code-walkthrough-controls > button[aria-disabled='true'] { color: var(--walkthrough-muted); cursor: default; }
 .code-walkthrough-controls > button:hover:not([aria-disabled='true']) { background: color-mix(in srgb, var(--walkthrough-accent) 8%, var(--walkthrough-bg)); }
-.code-walkthrough-nav > ol { display: flex; flex-wrap: wrap; list-style: none; margin: 0; padding: .35rem 1rem 0; gap: 0 1.25rem; }
-.code-walkthrough-nav li { flex: 1 1 12rem; min-width: 0; margin: 0; padding: 0; border-bottom: 2px solid transparent; }
+.code-walkthrough-nav { display: flex; align-items: stretch; min-width: 0; }
+.code-walkthrough-controls { flex-shrink: 0; border-bottom: 0; }
+.code-walkthrough-nav > ol { display: flex; overflow: auto; list-style: none; margin: 0; padding: 0 .5rem; gap: .5rem; min-width: 0; }
+.code-walkthrough-nav li { flex: none; margin: 0; padding: 0; border-bottom: 2px solid transparent; }
 .code-walkthrough-nav li[data-selected='true'] { border-color: var(--walkthrough-accent); }
-.code-walkthrough-nav li > a { display: flex; align-items: baseline; gap: .6rem; padding: .7rem 0; color: inherit; font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.code-walkthrough-nav li > a { display: flex; gap: .35rem; padding: .55rem .2rem; font-size: .75rem; color: inherit; text-decoration: none; white-space: nowrap; }
 .code-walkthrough-nav li > a:hover, .code-walkthrough-nav li > a[aria-current='step'] { color: var(--walkthrough-accent); }
-.code-walkthrough-step-number { color: var(--walkthrough-muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
-.code-walkthrough-nav li small { display: block; color: var(--walkthrough-muted); font-size: .6875rem; font-weight: 400; }
+.code-walkthrough-step-number { color: var(--walkthrough-muted); font-variant-numeric: tabular-nums; }
 .code-walkthrough-snapshots > details { border-top: 1px solid var(--walkthrough-border); scroll-margin-top: 5rem; }
-.code-walkthrough-snapshots > details > summary { padding: .85rem 1rem; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
-.code-walkthrough-snapshots > details > summary > small { margin-left: .75rem; color: var(--walkthrough-muted); font-size: .75rem; font-weight: 400; }
+.code-walkthrough-snapshots > details > summary { padding: .35rem .75rem; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
 .code-walkthrough-snapshots > details > .annotated-example { border: 0; border-top: 1px solid var(--walkthrough-border); border-radius: 0; margin: 0; }
 .code-walkthrough .annotated-example-note-number { display: none; }
 .code-walkthrough .annotated-example-notes li > p { margin-left: 0; }
 .code-walkthrough-notice { margin: 0; padding: .7rem 1rem; border-top: 1px solid var(--walkthrough-border); color: var(--walkthrough-muted); font-size: .75rem; }
 .code-walkthrough :focus-visible, .code-walkthrough-snapshots > details:target { outline: 2px solid var(--walkthrough-accent); outline-offset: -2px; }
-@container (max-width: 30rem) {
-  .code-walkthrough-controls > p { order: -1; flex-basis: 100%; text-align: left; }
-  .code-walkthrough-controls > button:last-child { margin-left: auto; }
-  .code-walkthrough-snapshots > details > summary > small { display: block; margin-left: 1rem; }
-}
+
+.code-walkthrough-sr-only, .code-walkthrough-nav li small, .code-walkthrough .annotated-example-title, .code-walkthrough .annotated-example-language { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; min-width: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.code-walkthrough .annotated-example-header { justify-content: flex-end; padding-block: .1rem; }
+.code-walkthrough-info { border-top: 1px solid var(--walkthrough-border); padding: .35rem .75rem; color: var(--walkthrough-muted); font-size: .75rem; }
+.code-walkthrough-info > summary { cursor: pointer; width: fit-content; }
+.code-walkthrough-info > p { margin: .4rem 0; padding: 0; border: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (pointer: coarse) { .code-walkthrough-controls > button { min-width: 2.25rem; min-height: 2.25rem; } }
+.code-walkthrough-info > strong { display: block; margin-top: .4rem; font-weight: 500; }

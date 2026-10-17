@@ -1,6 +1,8 @@
 # Marble Diagram
 
-> Bản phát triển 0.7.0, chưa publish. Chỉ minh họa notification/lifecycle; không chạy RxJS, operator hay TestScheduler.
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
+> Bản chuẩn bị phát hành 0.7.1, chưa publish. Chỉ minh họa notification/lifecycle; không chạy RxJS, operator hay TestScheduler.
 
 Marble dùng chung trục frame cho nhiều lane, hỗ trợ next/complete/error/subscribe/unsubscribe, nhóm cùng frame, legend giá trị và chú thích vùng thời gian. SVG, legend và bảng sự kiện dạng text đều được render trên server. Mặc định không cần client component, ResizeObserver, timer hoặc highlighter. Zoom là wrapper client opt-in, không đổi renderer/parser mặc định.
 

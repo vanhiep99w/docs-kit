@@ -21,6 +21,7 @@ function relationPath(from: ConcurrencyPosition, to: ConcurrencyPosition): strin
 export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
   const layout = useMemo(() => layoutConcurrencyLanes(data), [data]);
   const uid = useId();
+  const reference = useRef<HTMLDetailsElement>(null);
   const details = useRef(new Map<string, HTMLDetailsElement>());
   const [selection, setSelection] = useState<{ data: ConcurrencyLanesData; id: string } | null>(null);
   const selected = selection?.data === data ? selection.id : undefined;
@@ -34,6 +35,7 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
   const ticks = [...new Set([0, 1, 2, 3, 4].map((tick) => data.unit === 'step' ? Math.round(layout.extent * tick / 4) : layout.extent * tick / 4))];
   function reveal(event: MouseEvent, id: string) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (reference.current) reference.current.open = true;
     setSelection({ data, id });
     const target = details.current.get(id);
     if (target) target.open = true;
@@ -43,13 +45,8 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
   }
 
   return <figure className={['concurrency-lanes', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${uid}-title`}>
-    <figcaption className="concurrency-lanes-header"><span id={`${uid}-title`}>{data.title}</span><small>{data.lanes.length} lane · {all.length} mục</small>
-      {data.description && <p>{data.description}</p>}
-    </figcaption>
-    <p className="concurrency-lanes-provenance"><strong>{data.provenance.kind === 'illustrative' ? 'Dữ liệu minh họa' : 'Dữ liệu đo thực tế'}</strong> · {data.provenance.description}</p>
-    <p className="concurrency-lanes-notice">{data.unit === 'step' ? 'Trục bước logic, không phải thời gian vật lý.' : 'Thời gian tương đối từ mốc 0.'} Vị trí trái/phải không tự tạo happens-before. Mũi tên chỉ là quan hệ tác giả khai báo.{layout.end === 0 && ' Tất cả ở mốc 0; miền 0–1 chỉ dùng để hiển thị.'}</p>
+    <figcaption className="concurrency-lanes-header"><span id={`${uid}-title`}>{data.title}</span><small>{data.provenance.kind === 'illustrative' ? 'Dữ liệu minh họa' : 'Dữ liệu đo thực tế'} · {data.unit === 'step' ? 'bước logic' : data.unit}</small></figcaption>
     <div className="concurrency-lanes-legend" aria-label="Ký hiệu timeline"><span>○ Sự kiện</span><span>━ Thực thi</span><span>┄ Chờ</span><span>═ Giữ tài nguyên</span><span>→ Quan hệ khai báo</span></div>
-    <p className="concurrency-lanes-hint">Chọn số để đọc nhãn và giải thích · Cuộn ngang trên màn hình hẹp →</p>
     <div className="concurrency-lanes-scroll" tabIndex={0} role="region" aria-label={`Timeline: ${data.title}`}>
       <div className="concurrency-lanes-chart">
         <div className="concurrency-lanes-ruler"><span>{data.unit === 'step' ? 'Bước logic →' : `${data.unit} →`}</span><svg width={layout.width} height={36} aria-hidden="true">
@@ -85,6 +82,7 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
         </div>
       </div>
     </div>
+    <details className="concurrency-lanes-reference" ref={reference}><summary>Sự kiện và quan hệ</summary>
     {!!data.relations?.length && <section className="concurrency-lanes-relations" aria-labelledby={`${uid}-relations`}><h3 id={`${uid}-relations`}>Quan hệ được khai báo</h3>
       {data.relations.map((relation, index) => <details key={relation.id} id={relationId(relation.id)} data-relation-detail={relation.id} data-selected={selected === relation.id}
         ref={(node) => { if (node) details.current.set(relation.id, node); else details.current.delete(relation.id); }}>
@@ -105,9 +103,13 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
         {!all.some((item) => item.lane === lane.id) && <p className="concurrency-lanes-empty">Không có mục trong lane này.</p>}
       </section>)}
     </section>
+    </details>
     <details className="concurrency-lanes-table"><summary>Bảng timeline đầy đủ</summary><div tabIndex={0} role="region" aria-label="Bảng concurrency lanes">
       <table><caption>{data.title} · {data.unit === 'step' ? 'Bước logic, không phải thời gian vật lý' : data.unit}</caption><thead><tr><th scope="col">Mục</th><th scope="col">Lane</th><th scope="col">Loại</th><th scope="col">Bắt đầu / mốc</th><th scope="col">Kết thúc</th></tr></thead>
         <tbody>{layout.items.map((position) => { const item = byId.get(position.id)!; return <tr key={item.id}><th scope="row">#{position.number} {item.label}<small>{item.id}</small></th><td>{data.lanes.find((lane) => lane.id === item.lane)!.label}</td><td>{'kind' in item ? kindLabels[item.kind] : 'Sự kiện'}</td><td>{time('at' in item ? item.at : item.start)}</td><td>{'end' in item ? time(item.end) : '—'}</td></tr>; })}</tbody>
       </table></div></details>
+    <details className="concurrency-lanes-info"><summary>Về mô hình</summary>{data.description && <p>{data.description}</p>}<p>{data.provenance.description}</p>
+    <p className="concurrency-lanes-notice">{data.unit === 'step' ? 'Trục bước logic, không phải thời gian vật lý.' : 'Thời gian tương đối từ mốc 0.'} Vị trí trái/phải không tự tạo happens-before. Mũi tên chỉ là quan hệ tác giả khai báo.{layout.end === 0 && ' Tất cả ở mốc 0; miền 0–1 chỉ dùng để hiển thị.'}</p>
+    </details>
   </figure>;
 }

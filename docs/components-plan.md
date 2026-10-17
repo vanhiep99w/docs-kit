@@ -1,16 +1,18 @@
 # Kế hoạch mở rộng component cho docs-kit
 
-> Trạng thái: đã triển khai MVP Annotated Example, Terminal Session, Marble, Code Diff, Data Inspector, Protocol Exchange, Span Waterfall, Concurrency Lanes, State Transition Explorer và extension Code Walkthrough trong working tree; chưa publish. Các giai đoạn còn lại vẫn là kế hoạch.
+> Trạng thái: đã triển khai MVP Annotated Example, Terminal Session, Marble, Code Diff, Data Inspector, Protocol Exchange, Span Waterfall, Concurrency Lanes, State Transition Explorer và extension Code Walkthrough trong codebase; bản chuẩn bị phát hành 0.7.1 chưa publish npm. Các giai đoạn còn lại vẫn là kế hoạch.
 >
 > Phạm vi: component phục vụ tài liệu kỹ thuật MDX; không thay đổi D2 Diagram và Source Explorer hiện có nếu không cần thiết.
 
 ## Tiến độ hiện tại
 
+- UI mới đã được tinh gọn đồng bộ: transcript, toolbar nhỏ, metadata native disclosure, không giảm kích thước code/marker hoặc bỏ warning. [Hướng dẫn UI](./compact-ui.md). Đã bump patch 0.7.1 cho đợt UI này, chưa publish npm; D2 và Source Explorer không sửa.
+
 - Annotated Example: component, validator, Shiki build-time helper, remark plugin, adapter Source Explorer và CSS riêng.
 - Đã có 3 fixture MDX: Kubernetes, SQL và RxJS.
 - Hướng dẫn tích hợp và giới hạn: [Annotated Example](./annotated-example.md).
-- Kiểm tra local cho bản 0.7.0 đã đạt: `npm run typecheck`; `npm test` (151 tests); `npx playwright test` (80 tests); `node scripts/smoke-pack.mjs` (consumer độc lập). Chưa kiểm tra deploy trên website thật.
-- Số đo module minified local, React external, chưa gzip: Marble 9,432 bytes; Marble zoom opt-in 11,153 bytes (đã gồm renderer static); Terminal Session 7,515 bytes; Annotated Example 7,078 bytes; Code Walkthrough 13,413 bytes (đã gồm viewer Annotated Example); Code Diff 13,914 bytes (inline/split projection; không có word/line diff engine runtime); Data Inspector 10,437 bytes; Protocol Exchange 20,273 bytes; Span Waterfall 19,594 bytes (Protocol Exchange và Span Waterfall đã gồm Inspector được dùng lại); Concurrency Lanes 12,794 bytes; State Transition Explorer 11,363 bytes; hai component này không kéo Inspector hoặc renderer khác vào client. Marble có thể dùng server-first, không bắt buộc gửi module component xuống browser.
+- Kiểm tra local cho đợt UI gọn 0.7.1 đã đạt: `npm run typecheck`; `npm test` (155 tests); `npx playwright test` (87 tests); `node scripts/smoke-pack.mjs` (consumer độc lập). Chưa kiểm tra deploy trên website thật.
+- Số đo module minified local, React external, chưa gzip: Marble 9,320 bytes; Marble zoom opt-in 11,201 bytes (đã gồm renderer static); Terminal Session 8,441 bytes; Annotated Example 7,466 bytes; Code Walkthrough 13,926 bytes (đã gồm viewer Annotated Example); Code Diff 14,744 bytes (inline/split projection; không có word/line diff engine runtime); Data Inspector 11,187 bytes; Protocol Exchange 21,011 bytes; Span Waterfall 20,520 bytes (Protocol Exchange và Span Waterfall đã gồm Inspector được dùng lại); Concurrency Lanes 12,814 bytes; State Transition Explorer 11,908 bytes; hai component này không kéo Inspector hoặc renderer khác vào client. Marble có thể dùng server-first, không bắt buộc gửi module component xuống browser.
 - Terminal Session: component, validator, YAML parser/remark plugin, CSS riêng và 3 fixture Kubernetes, Docker, Redis CLI. Dùng chung types/range validation với Annotated Example, không kéo component/highlighter của Annotated Example vào terminal.
 - Hướng dẫn tích hợp và giới hạn: [Terminal Session](./terminal-session.md).
 - Marble: zoom opt-in đã bổ sung trong 0.7.0, chỉ đổi spacing 36–96px, không đổi frame/marker/font; đã khảo sát implementation trong `../rxjs-learn`, giữ API JSX và quy tắc cột; có snapshot test 301 chuỗi legacy. Bổ sung parser/validation, remark plugin, SVG server-first, nhóm cùng frame xếp dọc, legend, annotation và bảng sự kiện không JavaScript.

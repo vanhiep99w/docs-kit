@@ -52,6 +52,7 @@ test('history links open full references; inspecting states and transitions does
   await page.goto(url); await choose(page, 'trip').click();
   const reference = page.locator('.state-transition-reference');
   await expect(reference).not.toHaveAttribute('open');
+  await history(page).locator(':scope > details > summary').click();
   await history(page).getByRole('link', { name: 'Chi tiết bước 1: REQUEST_FAILED', exact: true }).click();
   await expect(reference).toHaveAttribute('open', '');
   await expect(page.locator('.state-transition-table-scroll tr:target')).toContainText('Đã đạt ngưỡng');

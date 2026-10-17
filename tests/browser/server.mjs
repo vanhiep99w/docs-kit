@@ -8,6 +8,7 @@ import { renderDiagram } from '../../dist/d2/render.mjs';
 import { parseStateTransitionDescriptor } from '../../dist/state-transition/index.js';
 import { prepareCodeWalkthrough } from '../../dist/annotated-example/walkthrough.js';
 import { prepareAnnotatedExample } from '../../dist/annotated-example/index.js';
+import { parseTerminalSession } from '../../dist/terminal-session/index.js';
 import { parseMarbleDescriptor } from '../../dist/marble/index.js';
 import { prepareCodeDiff, parseCodeDiffDescriptor } from '../../dist/code-diff/index.js';
 import { prepareDataInspector } from '../../dist/data-inspector/index.js';
@@ -84,6 +85,18 @@ data.terminal = { terminal: {
     },
   ],
 } };
+const rollbackMDX = await readFile(new URL('../../examples/terminal-session/rollback.mdx', import.meta.url), 'utf8');
+data['terminal-rollback'] = { terminal: parseTerminalSession(rollbackMDX.split('```terminal-session\n')[1].split('```')[0]) };
+data['terminal-return-context'] = { terminal: { title: 'Đổi môi trường rồi trở lại', context: { kind: 'local', label: 'local-dev' }, steps: [
+  { id: 'remote', command: 'pwd', context: {kind:'remote',label:'remote-demo'}, outputs:[{stream:'stdout',text:'/srv'}] },
+  { id: 'local', command: 'pwd', outputs:[{stream:'stdout',text:'/home/dev'}] },
+] } };
+data['diff-contract'] = { diff: await prepareCodeDiff({
+  title: 'Thêm field khác với đổi tên field trong public contract', view: 'split', wordDiff: true,
+  caption: 'Ví dụ thêm fullName trong khi giữ name. Chỉ tương thích với consumer cho phép unknown fields; consumer dùng strict schema vẫn cần kiểm thử.',
+  language: 'json', before: {label:'Response v1',code:'{\n  "id": 123,\n  "name": "Nguyễn An"\n}'}, after: {label:'Response chuyển tiếp',code:'{\n  "id": 123,\n  "name": "Nguyễn An",\n  "fullName": "Nguyễn An"\n}'},
+  annotations: [{id:'contract',side:'after',title:'Không xóa field cũ ngay',description:'Giữ contract cho consumer cũ trong migration window; tên và ý nghĩa của field cũ phải được giữ ổn định.',ranges:[[3,4]]}],
+}) };
 for (const [key, name] of [['marble', 'switch-map'], ['marble-group', 'lifecycle']]) {
   const mdx = await readFile(new URL('../../examples/marble/' + name + '.mdx', import.meta.url), 'utf8');
   data[key] = { marble: parseMarbleDescriptor(mdx.split('```marble\n')[1].split('```')[0]) };

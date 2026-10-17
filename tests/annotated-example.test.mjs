@@ -58,12 +58,13 @@ test('SSR escapes code/prose, includes every annotation and supports missing pro
   const data = await prepareAnnotatedExample({ ...example, source: { project: 'demo', file: 'src/main.ts' } });
   const html = renderToStaticMarkup(createElement(AnnotatedExample, { data }));
   assert.match(html, /&lt;script&gt;/);
-  assert.doesNotMatch(html, /<script>|<button[^>]*>(?!Sao chép)/);
+  assert.doesNotMatch(html, /<script>/);
+  assert.match(html, /<button[^>]*aria-label="Sao chép code"[^>]*><svg/);
   assert.match(html, /data-line="4"/);
   assert.match(html, /Vùng chồng/);
   assert.match(html, /tiếng Việt/);
   assert.match(html, /Dòng 1, 3/);
-  assert.match(html, /hidden=""[^>]*>Sao chép code/);
+  assert.match(html, /hidden=""[^>]*aria-label="Sao chép code"/);
   assert.match(html, /--annotated-token-light/);
   assert.match(html, /href="\?source=demo&amp;file=src%2Fmain.ts"/);
   const adapter = renderToStaticMarkup(createElement(AnnotatedExampleWithSource, { data }));

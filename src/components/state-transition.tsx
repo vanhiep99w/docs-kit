@@ -59,11 +59,7 @@ export function StateTransitionExplorer({ data, className }: StateTransitionExpl
   }
 
   return <figure className={['state-transition', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${uid}-title`}>
-    <figcaption className="state-transition-header"><span id={`${uid}-title`}>{data.title}</span><small>{data.states.length} trạng thái · {data.transitions.length} chuyển tiếp</small>
-      {data.description && <p>{data.description}</p>}
-    </figcaption>
-    <p className="state-transition-assumptions"><strong>Giả định mô hình</strong> · {data.assumptions}</p>
-    <p className="state-transition-notice">Mô hình tác giả khai báo · Chọn nhánh là giả định điều kiện của nhánh đó thỏa. Không đánh giá guard, chạy side effect hoặc tự phát event theo thời gian.</p>
+    <figcaption className="state-transition-header"><span id={`${uid}-title`}>{data.title}</span><small>Mô hình minh họa</small></figcaption>
     <section className="state-transition-current" aria-labelledby={`${uid}-current`}>
       <div className="state-transition-current-heading"><h3 id={`${uid}-current`} ref={heading} tabIndex={-1}>Hiện tại: {current.label}</h3><span>{current.id === data.initial ? 'Trạng thái đầu' : current.terminal ? 'Kết thúc (khai báo)' : 'Đang khám phá'}{current.id === data.initial && current.terminal ? ' · Kết thúc (khai báo)' : ''}</span></div>
       {current.description && <p>{current.description}</p>}
@@ -74,33 +70,41 @@ export function StateTransitionExplorer({ data, className }: StateTransitionExpl
       </div>
     </section>
     {last && <section className="state-transition-last" aria-labelledby={`${uid}-last`}>
-      <h3 id={`${uid}-last`}>Chuyển trạng thái vừa chọn</h3>
+      <h3 className="state-transition-sr-only" id={`${uid}-last`}>Chuyển trạng thái vừa chọn</h3>
       <p className="state-transition-route"><span>{model.states.get(last.from)!.label}</span><strong>— {last.event} →</strong><span>{model.states.get(last.to)!.label}</span></p>
-      {last.label && <p className="state-transition-branch">{last.label}</p>}{explanation(last)}
+      {last.label && <span className="state-transition-branch">{last.label}</span>}<details className="state-transition-choice-info"><summary>Giải thích</summary>{explanation(last)}</details>
     </section>}
     <div className="state-transition-layout">
       <section className="state-transition-choices" aria-labelledby={`${uid}-choices`}>
-        <h3 id={`${uid}-choices`}>Chọn event / nhánh tiếp theo</h3>
+        <h3 className="state-transition-sr-only" id={`${uid}-choices`}>Chọn event / nhánh tiếp theo</h3>
         {capped && <p className="state-transition-limit" role="status">Đã đạt {STATE_TRANSITION_HISTORY_LIMIT} chuyển. Quay lại hoặc về ban đầu để tiếp tục; lịch sử không bị cắt âm thầm.</p>}
-        {choices.length ? <><p className="state-transition-choice-hint">Nếu cùng event có nhiều nhánh, chọn nhánh cần minh họa; mô hình không tự quyết định.</p>
-          <ul>{choices.map((transition) => <li key={transition.id} data-transition-choice={transition.id}>
-            <div className="state-transition-choice-heading"><span>{transition.event}</span><small>→ {model.states.get(transition.to)!.label}</small></div>
-            {transition.label && <p className="state-transition-branch">{transition.label}</p>}
-            {explanation(transition, `${transitionId(transition.id)}-guard`)}
-            <button type="button" hidden={!ready} aria-disabled={capped} aria-describedby={`${transitionId(transition.id)}-guard`} aria-label={`Chọn ${transition.event} → ${model.states.get(transition.to)!.label} (${transition.id})`} onClick={() => choose(transition)}>Chọn nhánh này →</button>
+        {choices.length ? <><ul>{choices.map((transition) => <li key={transition.id} data-transition-choice={transition.id}>
+            <div className="state-transition-choice-heading">
+              <span hidden={ready}>{transition.event} → {model.states.get(transition.to)!.label}</span>
+              <button type="button" hidden={!ready} aria-disabled={capped} aria-describedby={`${transitionId(transition.id)}-guard`} aria-label={`Chọn ${transition.event} → ${model.states.get(transition.to)!.label} (${transition.id})`} onClick={() => choose(transition)}>{transition.event}<small>→ {model.states.get(transition.to)!.label}</small></button>
+              {transition.label && <span className="state-transition-branch">{transition.label}</span>}
+            </div>
+            <p id={`${transitionId(transition.id)}-guard`} className={transition.guard ? 'state-transition-guard' : 'state-transition-sr-only'}>{transition.guard ? `Giả định: ${transition.guard}` : 'Không khai báo điều kiện.'}</p>
+            <details className="state-transition-choice-info"><summary>Giải thích</summary><p>{transition.description}</p>
+              {!!transition.effects?.length && <ul aria-label="Side effects chỉ mô tả">{transition.effects.map((effect, index) => <li key={index}>{effect}</li>)}</ul>}
+            </details>
           </li>)}</ul></> : <p className="state-transition-empty">{current.terminal ? 'Đây là trạng thái kết thúc do tác giả khai báo.' : 'Không có chuyển tiếp từ trạng thái này; không tự suy ra đây là trạng thái kết thúc.'}</p>}
       </section>
       <section className="state-transition-history" aria-labelledby={`${uid}-history`}>
-        <h3 id={`${uid}-history`}>Đường đi đã chọn</h3>
+        <h3 className="state-transition-sr-only" id={`${uid}-history`}>Đường đi đã chọn</h3><details><summary>Lịch sử · {path.length} chuyển</summary>
         <p className="state-transition-origin">Bắt đầu: {model.states.get(data.initial)!.label}</p>
         {trace.entries.length ? <ol>{trace.entries.map(({ step, transition }) => <li key={step}>
           <a href={`#${transitionId(transition.id)}`} aria-label={`Chi tiết bước ${step}: ${transition.event}`} onClick={reveal}><span>{step}</span><strong>{transition.event}</strong></a>
           <p>{model.states.get(transition.from)!.label} → {model.states.get(transition.to)!.label}</p>
           {transition.label && <small>{transition.label}</small>}
         </li>)}</ol> : <p className="state-transition-empty">Chưa chọn chuyển trạng thái nào.</p>}
-        <p className="state-transition-history-notice">Lịch sử thao tác đọc mô hình, không phải log thực thi hệ thống. Quay lại chỉ bỏ lựa chọn cuối, không hoàn tác side effect thật.</p>
+        <p className="state-transition-history-notice">Lịch sử thao tác đọc mô hình, không phải log thực thi hệ thống. Quay lại chỉ bỏ lựa chọn cuối, không hoàn tác side effect thật.</p></details>
       </section>
     </div>
+    <details className="state-transition-info"><summary>Giả định và cách đọc</summary>
+      {data.description && <p>{data.description}</p>}<p><strong>Giả định mô hình: </strong>{data.assumptions}</p>
+      <p>Chọn nhánh là giả định điều kiện của nhánh đó thỏa. Không đánh giá guard, chạy side effect hoặc tự phát event theo thời gian.</p>
+    </details>
     <details className="state-transition-reference" ref={reference}><summary>Tra cứu toàn bộ trạng thái và chuyển tiếp</summary>
       <dl className="state-transition-states" aria-label="Các trạng thái">{data.states.map((state) => <div key={state.id} id={stateId(state.id)} data-current={state.id === current.id}>
         <dt>{state.label} <small>{state.id === data.initial ? 'Đầu · ' : ''}{state.terminal ? 'Kết thúc · ' : ''}{state.id === current.id ? 'Đang chọn · ' : ''}{state.id}</small></dt>

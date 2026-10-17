@@ -89,7 +89,8 @@ test('selection and disclosure interactions never request data or execute an ext
 test('without JavaScript every event, interval and declared relation is readable through native disclosures', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage(); await page.goto('http://127.0.0.1:4178' + url);
-  await expect(page.getByText('Dữ liệu minh họa', { exact: true })).toBeVisible();
+  await expect(page.locator('.concurrency-lanes-header')).toContainText('Dữ liệu minh họa');
+  await page.locator('.concurrency-lanes-reference > summary').click();
   const relation = page.locator('[data-relation-detail="unlock-then-lock"]');
   await relation.locator(':scope > summary').focus(); await page.keyboard.press('Enter');
   await expect(relation).toContainText('không phải bằng chứng JMM happens-before');

@@ -44,14 +44,12 @@ export function CodeWalkthrough({ data, className, renderSourceLink }: CodeWalkt
   }
 
   return <figure className={['code-walkthrough', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${uid}-title`}>
-    <figcaption className="code-walkthrough-header"><span id={`${uid}-title`}>{data.title}</span><small>{data.steps.length} bước · {data.snapshots.length} snapshot</small>
-      {data.description && <p>{data.description}</p>}
-    </figcaption>
+    <figcaption className="code-walkthrough-sr-only" id={`${uid}-title`}>{data.title}</figcaption>
     <nav className="code-walkthrough-nav" aria-label="Các bước walkthrough">
       <div className="code-walkthrough-controls" hidden={!ready}>
-        <button type="button" aria-disabled={index === 0} onClick={() => navigate(index - 1)}>← Bước trước</button>
-        <p role="status" aria-label="Bước đang chọn" aria-live="polite">Bước {index + 1}/{data.steps.length} · {active.title}</p>
-        <button type="button" aria-disabled={index === data.steps.length - 1} onClick={() => navigate(index + 1)}>Bước sau →</button>
+        <button type="button" aria-disabled={index === 0} onClick={() => navigate(index - 1)} aria-label="← Bước trước" title="Bước trước">←</button>
+        <p role="status" aria-label="Bước đang chọn" aria-live="polite"><span className="code-walkthrough-sr-only">Bước </span>{index + 1}/{data.steps.length}<span className="code-walkthrough-sr-only"> · {active.title}</span></p>
+        <button type="button" aria-disabled={index === data.steps.length - 1} onClick={() => navigate(index + 1)} aria-label="Bước sau →" title="Bước sau">→</button>
       </div>
       <ol>{data.steps.map((step, stepIndex) => <li key={step.id} data-step={step.id} data-selected={index === stepIndex}>
         <a href={`#${snapshotId(step.snapshot)}`} aria-controls={snapshotId(step.snapshot)} aria-current={index === stepIndex ? 'step' : undefined} onClick={(event) => select(event, stepIndex)}>
@@ -61,10 +59,10 @@ export function CodeWalkthrough({ data, className, renderSourceLink }: CodeWalkt
     </nav>
     <div className="code-walkthrough-snapshots">{data.snapshots.map((snapshot, snapshotIndex) => <details key={snapshot.id} id={snapshotId(snapshot.id)} data-snapshot={snapshot.id} open={snapshot.id === firstSnapshot}
       ref={(node) => { if (node) panels.current.set(snapshot.id, node); else panels.current.delete(snapshot.id); }}>
-      <summary>{snapshot.title}<small>{snapshot.language ?? data.language ?? 'text'} · {data.steps.filter((step) => step.snapshot === snapshot.id).length} bước</small></summary>
+      <summary>{snapshot.title}</summary>
       <AnnotatedExample data={examples[snapshotIndex]} activeAnnotation={active.snapshot === snapshot.id ? active.id : null}
         onAnnotationSelect={(id) => navigate(data.steps.findIndex((step) => step.id === id))} sourceLink={renderSourceLink?.(snapshot)} />
     </details>)}</div>
-    <p className="code-walkthrough-notice">Các bước và snapshot do tác giả biên soạn · Không chạy code hoặc tự suy ra thay đổi. Có thể mở từng snapshot để đọc toàn bộ chú thích.</p>
+    <details className="code-walkthrough-info"><summary>Về walkthrough</summary><strong>{data.title}</strong>{data.description && <p>{data.description}</p>}<p className="code-walkthrough-notice">Các bước và snapshot do tác giả biên soạn · Không chạy code hoặc tự suy ra thay đổi. Có thể mở từng snapshot để đọc toàn bộ chú thích.</p></details>
   </figure>;
 }

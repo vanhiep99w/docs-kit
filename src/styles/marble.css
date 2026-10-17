@@ -6,9 +6,9 @@
   --marble-accent: var(--color-fd-primary, #2563a6);
   --marble-error: #b13c35;
   container-type: inline-size;
-  margin: 1.75rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--marble-border);
-  border-radius: .5rem;
+  border-radius: .375rem;
   overflow: hidden;
   background: var(--marble-bg);
   color: var(--marble-fg);
@@ -24,9 +24,9 @@
   --marble-accent: var(--color-fd-primary, #8ab9ef);
   --marble-error: #f49a9a;
 }
-.marble-diagram .marble-header { display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; margin: 0; padding: .9rem 1rem; border-bottom: 1px solid var(--marble-border); color: inherit; text-align: left; }
-.marble-title { font-weight: 600; overflow-wrap: anywhere; }
-.marble-scale { color: var(--marble-muted); font-size: .75rem; overflow-wrap: anywhere; }
+.marble-diagram .marble-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .3rem; margin: 0; padding: .45rem .75rem; border-bottom: 1px solid var(--marble-border); color: inherit; text-align: left; }
+.marble-title { font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
+.marble-scale { font-size: .6875rem; color: var(--marble-muted); font-size: .75rem; overflow-wrap: anywhere; }
 .marble-header > p { margin: .25rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--marble-muted); }
 .marble-scroll-hint { margin: .5rem 1rem; font-size: .75rem; color: var(--marble-muted); }
 .marble-scroller { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
@@ -56,24 +56,24 @@
 .marble-token--unsubscribe { color: var(--marble-error); }
 .marble-unsubscribe-dot { fill: currentColor; }
 .marble-annotation-band { fill: color-mix(in srgb, var(--marble-accent) 8%, transparent); stroke: var(--marble-border); stroke-dasharray: 3 3; }
-.marble-syntax { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: .75rem 1rem; border-top: 1px solid var(--marble-border); color: var(--marble-muted); font-size: .75rem; }
+.marble-syntax { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: .35rem .75rem; border-top: 1px solid var(--marble-border); color: var(--marble-muted); font-size: .75rem; }
 .marble-syntax > span { display: inline-flex; align-items: baseline; gap: .4rem; }
 .marble-syntax code, .marble-values dt { color: var(--marble-fg); font-weight: 600; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Consolas, monospace); }
-.marble-values { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin: 0; padding: .75rem 1rem; border-top: 1px solid var(--marble-border); }
+.marble-values { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin: 0; padding: .35rem .75rem; border-top: 1px solid var(--marble-border); }
 .marble-values > div { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: .5rem; max-width: 100%; }
 .marble-values dt, .marble-values dd { margin: 0; overflow-wrap: anywhere; font-size: .8125rem; }
 .marble-values dd { color: var(--marble-muted); white-space: pre-wrap; }
-.marble-annotations { margin: 0; padding: .75rem 1rem .75rem 2.25rem; border-top: 1px solid var(--marble-border); }
+.marble-annotations { margin: 0; list-style: none; padding: .4rem .75rem; border-top: 1px solid var(--marble-border); }
 .marble-annotations li { margin: 0; padding: .25rem 0; }
-.marble-annotations span { display: block; color: var(--marble-muted); font-size: .75rem; }
+.marble-annotations span { display: inline; margin-left: .5rem; color: var(--marble-muted); font-size: .75rem; }
 .marble-annotations p { margin: .25rem 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--marble-muted); }
 .marble-annotations strong { overflow-wrap: anywhere; }
 .marble-text { border-top: 1px solid var(--marble-border); }
-.marble-text > summary { padding: .75rem 1rem; cursor: pointer; font-weight: 500; }
+.marble-text > summary { padding: .35rem .75rem; cursor: pointer; font-weight: 500; }
 .marble-text > p { margin: 0; padding: 0 1rem .75rem; color: var(--marble-muted); font-size: .8125rem; }
 .marble-table-scroll { max-width: 100%; overflow: auto; }
 .marble-diagram .marble-table-scroll table { border-collapse: collapse; margin: 0; width: 100%; font-size: .8125rem; }
-.marble-table-scroll caption { padding: .75rem 1rem; color: var(--marble-muted); text-align: left; }
+.marble-table-scroll caption { padding: .35rem .75rem; color: var(--marble-muted); text-align: left; }
 .marble-table-scroll th, .marble-table-scroll td { border: 1px solid var(--marble-border); padding: .6rem .8rem; vertical-align: top; text-align: left; }
 .marble-table-scroll th { font-weight: 600; }
 .marble-table-scroll td > code { white-space: pre; font-size: .75rem; }
@@ -87,12 +87,16 @@
   .marble-annotation-band { fill: none; stroke: Highlight; }
 }
 
-.marble-zoom { margin: 1.75rem 0; min-width: 0; }
+.marble-zoom { margin: 1.25rem 0; min-width: 0; }
 .marble-zoom > .marble-diagram { margin: 0; }
 .marble-zoom-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .6rem; color: var(--color-fd-foreground, #23303b); font: inherit; font-size: .75rem; }
 .dark .marble-zoom-controls, [data-theme='dark'] .marble-zoom-controls { color: var(--color-fd-foreground, #e3e9ef); }
 .marble-zoom-controls[hidden] { display: none; }
-.marble-zoom-controls button { padding: .35rem .6rem; border: 1px solid currentColor; border-radius: .25rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.marble-zoom-controls button { min-width: 1.75rem; min-height: 1.75rem; padding: .2rem .4rem; border: 0; border-radius: .25rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .marble-zoom-controls button[aria-disabled='true'] { opacity: .6; cursor: default; }
 .marble-zoom-controls small { flex-basis: 100%; font: inherit; }
 .marble-zoom-controls :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+.marble-caption { margin: 0; padding: .4rem .75rem; font-size: .8125rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.marble-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (pointer: coarse) { .marble-zoom-controls button { min-width: 2.25rem; min-height: 2.25rem; } }

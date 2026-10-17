@@ -101,7 +101,7 @@ test('SSR exposes annotated ancestors, all node types and native raw source with
   assert.match(html, /data-pointer="\/items\/0\/name"/);
   assert.match(html, /data-pointer="\/items\/0"[^>]*><details open=""/);
   assert.match(html, /JSON gốc/); assert.match(html, /JSON Pointer/);
-  assert.match(html, /hidden=""[^>]*>Sao chép value/);
+  assert.match(html, /hidden=""[^>]*aria-label="Sao chép value"/);
   assert.match(html, /Tên sản phẩm/);
   const markup = renderToStaticMarkup(createElement('div', null, createElement(DataInspector, { data }), createElement(DataInspector, { data })));
   const ids = [...markup.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
@@ -138,7 +138,8 @@ test('escapes payloads, keys and annotations without treating strings as links o
   const result = await compile(fence(JSON.stringify({ ...data, nodes: undefined })), { remarkPlugins: [remarkDataInspector], outputFormat: 'function-body' });
   const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
   const html = renderToStaticMarkup(createElement(Content, { components: { DataInspector } }));
-  assert.doesNotMatch(html, /<script|<img|<svg|<b>|href="javascript/);
+  assert.doesNotMatch(html, /<script|<img|<svg\s+onload|<b>|href="javascript/);
+  assert.equal([...html.matchAll(/<svg /g)].length, 2); // Only the two decorative, authored copy icons.
   assert.match(html, /&lt;b&gt;not HTML&lt;\/b&gt;/);
   assert.match(html, /javascript:alert/);
 });

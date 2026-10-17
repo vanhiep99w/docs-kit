@@ -1,5 +1,7 @@
 # Annotated Example
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 > MVP trong bản phát triển local; chưa publish. Không cần thay đổi cấu hình D2 hoặc Source Explorer đang có.
 
 Ví dụ code, config hoặc output có chú thích gắn với vùng dòng. Chọn chú thích để highlight; tất cả code và lời giải thích vẫn hiển thị khi không có JavaScript.

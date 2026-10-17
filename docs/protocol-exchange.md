@@ -1,5 +1,7 @@
 # Protocol Exchange
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 > MVP local, chưa publish. Component mô tả các cặp request/response kiểu HTTP tĩnh; không phải API client hoặc bộ phát HTTP wire format.
 
 Mỗi tình huống có method, URL, status, headers có thứ tự, body và chú thích. JSON body dùng lại [Data Inspector](./data-inspector.md), giữ nguyên số lớn và JSON source. Không có Send/Try it, credential storage, auto-redirect, cURL execution hoặc network request.

@@ -1,6 +1,7 @@
 @import './data-inspector.css';
 
 .span-waterfall {
+  position: relative;
   --waterfall-bg: var(--color-fd-card, #f8fafb);
   --waterfall-fg: var(--color-fd-foreground, #23303b);
   --waterfall-muted: var(--color-fd-muted-foreground, #586775);
@@ -13,9 +14,9 @@
   --waterfall-service-4: #477e80;
   --waterfall-service-5: #8b674c;
   container-type: inline-size;
-  margin: 1.75rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--waterfall-border);
-  border-radius: .5rem;
+  border-radius: .375rem;
   background: var(--waterfall-bg);
   color: var(--waterfall-fg);
   font: inherit;
@@ -36,8 +37,8 @@
   --waterfall-service-4: #82b7b9;
   --waterfall-service-5: #bca08a;
 }
-.span-waterfall .span-waterfall-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: 1rem; text-align: left; color: inherit; border-bottom: 1px solid var(--waterfall-border); }
-.span-waterfall-header > span { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
+.span-waterfall .span-waterfall-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: .45rem .75rem; text-align: left; color: inherit; border-bottom: 1px solid var(--waterfall-border); }
+.span-waterfall-header > span { flex: 1; font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
 .span-waterfall-header > small, .span-waterfall-header > p { color: var(--waterfall-muted); }
 .span-waterfall-header > p { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .span-waterfall-provenance { margin: 0; padding: .8rem 1rem .25rem; overflow-wrap: anywhere; }
@@ -47,18 +48,18 @@
 .span-waterfall-legend li { display: flex; align-items: center; gap: .4rem; min-width: 0; overflow-wrap: anywhere; }
 .span-waterfall-legend i { width: .6rem; height: .6rem; flex-shrink: 0; background: var(--span-service); }
 .span-waterfall-scroll, .span-waterfall-table-scroll { overflow: auto; }
-.span-waterfall-chart { min-width: 44rem; padding: .8rem 1rem 1rem; }
+.span-waterfall-chart { min-width: 44rem; padding: .5rem .75rem; }
 .span-waterfall-axis, .span-waterfall-rows > li { display: grid; grid-template-columns: 15rem minmax(0, 1fr) 6rem; column-gap: 1rem; align-items: center; }
 .span-waterfall-axis { color: var(--waterfall-muted); font-size: .6875rem; margin-bottom: .5rem; }
-.span-waterfall-axis > div { position: relative; height: 2rem; }
+.span-waterfall-axis > div { position: relative; height: 1.5rem; }
 .span-waterfall-axis > div > span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .span-waterfall-axis > div > span:first-child { transform: none; }
 .span-waterfall-axis > div > span:last-child { transform: translateX(-100%); }
 .span-waterfall-axis > span:last-child { text-align: right; }
 .span-waterfall-rows { list-style: none; margin: 0; padding: 0; }
-.span-waterfall-rows > li { position: relative; border-top: 1px solid var(--waterfall-border); min-height: 3.5rem; }
+.span-waterfall-rows > li { position: relative; border-top: 1px solid var(--waterfall-border); min-height: 2.5rem; }
 .span-waterfall-rows > li[data-selected='true'] { background: color-mix(in srgb, var(--waterfall-accent) 8%, var(--waterfall-bg)); }
-.span-waterfall-label { display: block; min-width: 0; padding: .55rem .35rem .55rem min(calc(.4rem + var(--span-depth) * .7rem), 7rem); color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.span-waterfall-label { display: block; min-width: 0; padding: .25rem .35rem .25rem min(calc(.4rem + var(--span-depth) * .7rem), 7rem); color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 .span-waterfall-label > span:first-child { display: block; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--waterfall-border); }
 .span-waterfall-label:hover > span:first-child { text-decoration-color: var(--waterfall-accent); }
 .span-waterfall-label small { display: block; color: var(--waterfall-muted); font-size: .6875rem; }
@@ -67,14 +68,14 @@
 .span-waterfall-bar[data-zero='true'] { min-width: 0; width: 0 !important; border-left: 2px solid var(--span-service); transform: translateX(-1px); border-radius: 0; }
 .span-waterfall-rows > li[data-status='error'] .span-waterfall-bar { background: repeating-linear-gradient(135deg, var(--span-service) 0 4px, var(--waterfall-bg) 4px 6px); border: 1px solid var(--span-service); }
 .span-waterfall-duration { padding-right: .25rem; text-align: right; font-size: .75rem; font-variant-numeric: tabular-nums; }
-.span-waterfall-annotations { margin: 0; padding: .75rem 1rem .75rem 2.25rem; border-top: 1px solid var(--waterfall-border); }
+.span-waterfall-annotations { margin: 0; list-style: none; padding: .4rem .75rem; border-top: 1px solid var(--waterfall-border); }
 .span-waterfall-annotations li { padding: .3rem 0; }
 .span-waterfall a:not(.span-waterfall-label) { color: var(--waterfall-accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
 .span-waterfall-annotations p { margin: .2rem 0 0; color: var(--waterfall-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .span-waterfall-details { border-top: 1px solid var(--waterfall-border); }
 .span-waterfall .span-waterfall-details > h3 { margin: 0; padding: .85rem 1rem; font: inherit; font-weight: 600; }
 .span-waterfall-details > details, .span-waterfall-table-disclosure { border-top: 1px solid var(--waterfall-border); scroll-margin-top: 5rem; }
-.span-waterfall summary { padding: .75rem 1rem; cursor: pointer; overflow-wrap: anywhere; }
+.span-waterfall summary { padding: .4rem .75rem; cursor: pointer; overflow-wrap: anywhere; }
 .span-waterfall summary small { color: var(--waterfall-muted); margin-left: .5rem; font-size: .75rem; }
 .span-waterfall-details > details[data-selected='true'] > summary { background: color-mix(in srgb, var(--waterfall-accent) 8%, var(--waterfall-bg)); }
 .span-waterfall-details dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem 1rem; margin: 0; padding: 0 1rem .75rem; }
@@ -94,3 +95,14 @@
   .span-waterfall summary small { display: block; margin-left: 1rem; }
   .span-waterfall-details dl { grid-template-columns: minmax(0, 1fr); }
 }
+
+.span-waterfall-detail-list, .span-waterfall-info { border-top: 1px solid var(--waterfall-border); }
+.span-waterfall-info > p { margin: .4rem .75rem; font-size: .75rem; color: var(--waterfall-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.span-waterfall-info .span-waterfall-notice { padding: 0; }
+.span-waterfall-details .data-inspector { border: 0; border-radius: 0; }
+.span-waterfall-details .data-inspector-header { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); }
+.span-waterfall-header > small { font-size: .6875rem; }
+.span-waterfall-details dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container (max-width: 30rem) { .span-waterfall-details dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.span-waterfall .span-waterfall-details > .span-waterfall-sr-only { padding: 0; margin: -1px; }

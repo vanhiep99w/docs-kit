@@ -1,5 +1,7 @@
 # Code Walkthrough
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 Chế độ theo bước của [Annotated Example](./annotated-example.md): mỗi bước chọn một snapshot và một hoặc nhiều vùng dòng để giải thích. **Không có code viewer thứ hai**: copy, syntax tokens, range highlight, code viewport và chú thích vẫn do `AnnotatedExample` render.
 
 Snapshot do tác giả cung cấp sẵn. Đây không phải playground, diff engine, Git history hoặc runtime kiểm chứng code.

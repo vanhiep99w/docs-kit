@@ -1,5 +1,7 @@
 # Structured Data Inspector
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 > MVP local, chưa publish. Chỉ khám phá một JSON document tĩnh; không fetch API, decode JWT hoặc xác minh payload theo schema.
 
 Cây JSON có kiểu dữ liệu, mở/thu nhánh, tìm kiếm literal, chọn field để copy JSON Pointer/value và chú thích theo field. JSON source được giữ nguyên, kể cả số nguyên lớn hoặc exponent ngoài miền JavaScript Number.
@@ -141,7 +143,7 @@ Clipboard cần được browser cho phép. Nếu thất bại có thông báo m
 - Chỉ preview được rút gọn, không cắt dữ liệu nguồn. JSON gốc giữ toàn bộ payload trong HTML; thu gọn không phải cơ chế giữ bí mật.
 - JSON gốc rộng cuộn ngang; cây sâu/đặc có scroll riêng. Không thu nhỏ font để ép vừa mobile.
 - CSS kế thừa font/màu Fumadocs, có fallback ngoài Fumadocs. Dark mode theo `.dark` hoặc `[data-theme='dark']` của host, không tự theo hệ điều hành.
-- Có nhãn type cho object, array, string, number, boolean và null; không chỉ dựa vào màu.
+- Type text của mỗi node vẫn có cho trình đọc màn hình; type của field đang chọn nằm trong thanh path. Cây không lặp nhãn type nhìn thấy ở mọi value; cấu trúc, syntax và metadata giữ ý nghĩa ngoài màu.
 - Không autoplay, animation bắt buộc, editor hoặc virtualization trong MVP.
 
 ## 8. API ngoài remark
@@ -162,7 +164,7 @@ const data = prepareDataInspector({
 
 `prepareDataInspector(input)` là **sync**, validate JSON và tạo index source spans. `parseDataInspectorDescriptor(yamlSource)` parse cả descriptor rồi chuẩn bị dữ liệu. Không tự đọc filesystem, nhận URL, decode JWT hoặc gọi API.
 
-`DataInspectorProps`: `data: PreparedDataInspector`, `className?`. Component chỉ nhận artifact đã chuẩn bị, không import parser JSONC/YAML xuống browser. Metadata node gồm pointer, key, type, offset/length và children; không serialize numeric `.value` của parser.
+`DataInspectorProps`: `data: PreparedDataInspector`, `className?`, `embedded?: boolean` (mặc định false). Embedded mode không có card/header lặp; tools search/copy đặt trong native disclosure và tự mở khi chọn field. Component chỉ nhận artifact đã chuẩn bị, không import parser JSONC/YAML xuống browser. Metadata node gồm pointer, key, type, offset/length và children; không serialize numeric `.value` của parser.
 
 Module `/data-inspector/data` cung cấp types và các helper nhẹ:
 

@@ -49,11 +49,11 @@ export function MarbleZoomDiagram(props: MarbleZoomDiagramProps) {
 
   return <div className="marble-zoom" ref={root}>
     <div className="marble-zoom-controls" role="group" aria-label={`Thu phóng: ${data.title}`} hidden={!ready}>
-      <button type="button" aria-disabled={index === 0} onClick={() => change(index - 1)}>Thu nhỏ</button>
-      <span role="status" aria-label="Khoảng cách frame">{frameWidth / 48 * 100}% · {frameWidth}px/frame</span>
-      <button type="button" aria-disabled={index === SPACING.length - 1} onClick={() => change(index + 1)}>Phóng to</button>
+      <button type="button" aria-disabled={index === 0} onClick={() => change(index - 1)} aria-label="Thu nhỏ" title="Thu nhỏ">−</button>
+      <span role="status" aria-label="Khoảng cách frame">{frameWidth / 48 * 100}%<span className="marble-sr-only"> · {frameWidth}px/frame</span></span>
+      <button type="button" aria-disabled={index === SPACING.length - 1} onClick={() => change(index + 1)} aria-label="Phóng to" title="Phóng to">+</button>
       <button type="button" aria-disabled={index === 1} onClick={() => change(1)}>Đặt lại</button>
-      <small>Chỉ đổi khoảng cách frame, không đổi thời điểm hoặc kích thước marker.</small>
+      <small className="marble-sr-only">Chỉ đổi khoảng cách frame, không đổi thời điểm hoặc kích thước marker.</small>
     </div>
     <MarbleDiagram data={data} className={props.className} frameWidth={frameWidth} />
   </div>;

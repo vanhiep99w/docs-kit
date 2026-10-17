@@ -9,9 +9,9 @@
   --concurrency-color-2: #9d6d2e;
   --concurrency-color-3: #8c5c7c;
   container-type: inline-size;
-  margin: 1.75rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--concurrency-border);
-  border-radius: .5rem;
+  border-radius: .375rem;
   background: var(--concurrency-bg);
   color: var(--concurrency-fg);
   font: inherit;
@@ -30,14 +30,14 @@
   --concurrency-color-2: #d3ac71;
   --concurrency-color-3: #c499b7;
 }
-.concurrency-lanes .concurrency-lanes-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: 1rem; text-align: left; color: inherit; border-bottom: 1px solid var(--concurrency-border); }
-.concurrency-lanes-header > span { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
+.concurrency-lanes .concurrency-lanes-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: .45rem .75rem; text-align: left; color: inherit; border-bottom: 1px solid var(--concurrency-border); }
+.concurrency-lanes-header > span { flex: 1; font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
 .concurrency-lanes-header > small, .concurrency-lanes-header > p { color: var(--concurrency-muted); }
 .concurrency-lanes-header > p { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .concurrency-lanes-provenance { margin: 0; padding: .8rem 1rem .25rem; overflow-wrap: anywhere; }
 .concurrency-lanes-provenance strong { font-weight: 600; }
 .concurrency-lanes-notice { margin: 0; padding: 0 1rem .8rem; font-size: .75rem; color: var(--concurrency-muted); }
-.concurrency-lanes-legend { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding: .6rem 1rem; font-size: .75rem; border-block: 1px solid var(--concurrency-border); }
+.concurrency-lanes-legend { display: flex; flex-wrap: wrap; gap: .2rem .75rem; padding: .3rem .75rem; font-size: .75rem; border-block: 1px solid var(--concurrency-border); }
 .concurrency-lanes-hint { padding: .6rem 1rem 0; margin: 0; color: var(--concurrency-muted); font-size: .75rem; }
 .concurrency-lanes-scroll { overflow: auto; padding: .5rem 1rem 1rem; }
 .concurrency-lanes-chart { width: max-content; }
@@ -66,12 +66,12 @@
 .concurrency-lanes :focus-visible, .concurrency-lanes :target { outline: 2px solid var(--concurrency-accent); outline-offset: -2px; }
 .concurrency-lanes-svg a:focus-visible { outline: none; }
 .concurrency-lanes-relations, .concurrency-lanes-details, .concurrency-lanes-table { border-top: 1px solid var(--concurrency-border); }
-.concurrency-lanes .concurrency-lanes-relations > h3, .concurrency-lanes .concurrency-lanes-details > h3 { margin: 0; padding: .85rem 1rem; font: inherit; font-weight: 600; }
+.concurrency-lanes .concurrency-lanes-relations > h3, .concurrency-lanes .concurrency-lanes-details > h3 { margin: 0; padding: .45rem .75rem; font: inherit; font-weight: 600; }
 .concurrency-lanes .concurrency-lanes-details h4 { margin: 0; padding: .6rem 1rem; color: var(--concurrency-muted); font: inherit; font-size: .75rem; border-top: 1px solid var(--concurrency-border); overflow-wrap: anywhere; }
 .concurrency-lanes-lane-description, .concurrency-lanes-empty { padding: 0 1rem .75rem; margin: 0; color: var(--concurrency-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .concurrency-lanes details { scroll-margin-top: 5rem; }
 .concurrency-lanes-relations > details, .concurrency-lanes-details details { border-top: 1px solid var(--concurrency-border); }
-.concurrency-lanes summary { cursor: pointer; padding: .75rem 1rem; overflow-wrap: anywhere; }
+.concurrency-lanes summary { cursor: pointer; padding: .4rem .75rem; overflow-wrap: anywhere; }
 .concurrency-lanes summary > small { display: inline-block; margin-left: .5rem; color: var(--concurrency-muted); font-size: .75rem; }
 .concurrency-lanes-number { display: inline-block; min-width: 1.5rem; margin-right: .5rem; text-align: center; border: 1px solid var(--concurrency-border); border-radius: 3px; font-size: .75rem; font-variant-numeric: tabular-nums; }
 .concurrency-lanes details[data-selected='true'] > summary { background: color-mix(in srgb, var(--concurrency-accent) 8%, var(--concurrency-bg)); }
@@ -87,3 +87,8 @@
 @container (max-width: 30rem) {
   .concurrency-lanes summary > small { display: block; margin-left: 1rem; }
 }
+
+.concurrency-lanes-reference, .concurrency-lanes-info { border-top: 1px solid var(--concurrency-border); }
+.concurrency-lanes-info > p { margin: .4rem .75rem; color: var(--concurrency-muted); font-size: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.concurrency-lanes-info .concurrency-lanes-notice { padding: 0; }
+.concurrency-lanes-header > small { font-size: .6875rem; }

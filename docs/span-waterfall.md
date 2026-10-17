@@ -1,5 +1,7 @@
 # Span Waterfall
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 Timeline tĩnh cho tài liệu về latency, cache/database và distributed tracing. Mỗi span có một dòng riêng, chung mốc 0 và một thang thời gian; không phải tracing dashboard hoặc OpenTelemetry importer.
 
 ## Tích hợp MDX / Fumadocs
@@ -120,7 +122,7 @@ Các export:
 
 ## Tương tác và fallback
 
-Chọn tên span bằng chuột hoặc Enter để mở và đi tới chi tiết. Dòng được chọn có `aria-current`; chi tiết dùng `<details>` native, không ép các mục khác đóng lại. Tại đó, Data Inspector cung cấp search và copy pointer/value cho attributes.
+Mặc định “Chi tiết span” đóng và không mở sẵn attributes của root. Chọn tên span bằng chuột hoặc Enter để mở cả danh sách lẫn đúng span, rồi đi tới chi tiết. Dòng được chọn có `aria-current`; chi tiết dùng `<details>` native, không ép các mục khác đóng lại. Tại đó, Data Inspector cung cấp search và copy pointer/value cho attributes.
 
 Khi không JavaScript, timeline/timing vẫn SSR đầy đủ; người đọc mở từng chi tiết và bảng thời gian bằng `<summary>`. Link vẫn có anchor thật, nhưng trạng thái chọn/mở tự động là progressive enhancement. Mọi span và attributes đều có trong HTML, không bị giấu chỉ vì chưa được chọn.
 

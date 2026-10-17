@@ -6,9 +6,9 @@
   --state-accent: var(--color-fd-primary, #2563a6);
   --state-selected: color-mix(in srgb, var(--state-accent) 8%, var(--state-bg));
   container-type: inline-size;
-  margin: 1.75rem 0;
+  margin: 1.25rem 0;
   border: 1px solid var(--state-border);
-  border-radius: .5rem;
+  border-radius: .375rem;
   background: var(--state-bg);
   color: var(--state-fg);
   font: inherit;
@@ -23,14 +23,14 @@
   --state-border: var(--color-fd-border, #35414e);
   --state-accent: var(--color-fd-primary, #8ab9ef);
 }
-.state-transition .state-transition-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: 1rem; text-align: left; color: inherit; border-bottom: 1px solid var(--state-border); }
-.state-transition-header > span { flex: 1; font-weight: 600; overflow-wrap: anywhere; }
+.state-transition .state-transition-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: .45rem .75rem; text-align: left; color: inherit; border-bottom: 1px solid var(--state-border); }
+.state-transition-header > span { flex: 1; font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
 .state-transition-header > small, .state-transition-header > p { color: var(--state-muted); }
 .state-transition-header > p { flex-basis: 100%; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .state-transition-assumptions { margin: 0; padding: .8rem 1rem .25rem; overflow-wrap: anywhere; white-space: pre-wrap; }
 .state-transition-assumptions > strong { font-weight: 600; }
 .state-transition-notice { margin: 0; padding: 0 1rem .85rem; color: var(--state-muted); font-size: .75rem; }
-.state-transition-current { padding: 1rem; background: var(--state-selected); border-block: 1px solid var(--state-border); }
+.state-transition-current { padding: .6rem .75rem; background: var(--state-selected); border-block: 1px solid var(--state-border); }
 .state-transition-current-heading { display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline; }
 .state-transition .state-transition-current h3 { flex: 1; margin: 0; padding: 0; font: inherit; font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
 .state-transition-current-heading > span { color: var(--state-muted); font-size: .75rem; }
@@ -42,7 +42,7 @@
 .state-transition button[aria-disabled='true'] { color: var(--state-muted); cursor: default; }
 .state-transition-controls [role='status'] { margin-left: auto; font-size: .75rem; color: var(--state-muted); overflow-wrap: anywhere; }
 .state-transition .state-transition-last > h3, .state-transition .state-transition-choices > h3, .state-transition .state-transition-history > h3 { margin: 0; padding: 0; font: inherit; font-weight: 600; }
-.state-transition-last { padding: 1rem; border-bottom: 1px solid var(--state-border); }
+.state-transition-last { padding: .6rem .75rem; border-bottom: 1px solid var(--state-border); }
 .state-transition-last > p { margin: .5rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .state-transition-route { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem .7rem; }
 .state-transition-route > strong { color: var(--state-accent); font-weight: 500; font-size: .8125rem; }
@@ -54,7 +54,7 @@
 .state-transition-effects ul { margin: .25rem 0 0; padding-left: 1.2rem; }
 .state-transition-effects li { white-space: pre-wrap; }
 .state-transition-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
-.state-transition-choices, .state-transition-history { min-width: 0; padding: 1rem; }
+.state-transition-choices, .state-transition-history { min-width: 0; padding: .6rem .75rem; }
 .state-transition-choice-hint, .state-transition-history-notice { margin: .4rem 0 .75rem; color: var(--state-muted); font-size: .75rem; }
 .state-transition-choices > ul { list-style: none; padding: 0; margin: 0; }
 .state-transition-choices > ul > li { margin: 0; padding: 1rem 0; border-top: 1px solid var(--state-border); }
@@ -65,8 +65,8 @@
 .state-transition-choices li > button { margin-top: .75rem; }
 .state-transition-history { border-top: 1px solid var(--state-border); }
 .state-transition-origin { margin: .4rem 0 .75rem; color: var(--state-muted); font-size: .75rem; overflow-wrap: anywhere; }
-.state-transition-history > ol { list-style: none; margin: 0; padding: 0; }
-.state-transition-history > ol > li { padding: .65rem 0; border-top: 1px solid var(--state-border); }
+.state-transition-history ol { list-style: none; margin: 0; padding: 0; }
+.state-transition-history ol > li { padding: .65rem 0; border-top: 1px solid var(--state-border); }
 .state-transition-history li > a { display: flex; align-items: baseline; gap: .65rem; text-decoration: none; overflow-wrap: anywhere; }
 .state-transition-history li > a > span { color: var(--state-muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
 .state-transition-history li > a > strong { font-weight: 500; }
@@ -77,11 +77,11 @@
 .state-transition-limit { padding: .5rem 0; font-weight: 500; }
 .state-transition a { color: var(--state-accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
 .state-transition-reference { border-top: 1px solid var(--state-border); }
-.state-transition-reference > summary { padding: .85rem 1rem; cursor: pointer; overflow-wrap: anywhere; }
+.state-transition-reference > summary { padding: .4rem .75rem; cursor: pointer; overflow-wrap: anywhere; }
 .state-transition-states { margin: 0; padding: 0 1rem 1rem; }
 .state-transition-states > div { padding: .65rem; border-top: 1px solid var(--state-border); scroll-margin-top: 5rem; }
 .state-transition-states > div[data-current='true'] { background: var(--state-selected); }
-.state-transition-states dt { font-weight: 600; overflow-wrap: anywhere; }
+.state-transition-states dt { font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
 .state-transition-states dt > small { display: block; font-size: .6875rem; color: var(--state-muted); font-weight: 400; }
 .state-transition-states dd { margin: .3rem 0 0; color: var(--state-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .state-transition-table-scroll { overflow: auto; }
@@ -94,9 +94,27 @@
 .state-transition td > p:last-child { margin-bottom: 0; }
 .state-transition :focus-visible, .state-transition :target { outline: 2px solid var(--state-accent); outline-offset: -2px; }
 @container (min-width: 48rem) {
-  .state-transition-layout { grid-template-columns: minmax(0, 1.45fr) minmax(14rem, 1fr); }
-  .state-transition-history { border-top: 0; border-left: 1px solid var(--state-border); }
+
+
 }
 @container (max-width: 30rem) {
   .state-transition-controls [role='status'] { flex-basis: 100%; margin-left: 0; }
 }
+
+.state-transition .state-transition-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.state-transition-header > small { font-size: .6875rem; color: var(--state-muted); }
+.state-transition-choices > ul > li { padding: .4rem 0; border-top: 0; }
+.state-transition-choice-heading { gap: .4rem; }
+.state-transition-choice-heading > button { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; border: 0; background: transparent; padding: .2rem 0; font-size: .8125rem; color: var(--state-accent); text-align: left; overflow-wrap: anywhere; }
+.state-transition-choice-heading > button > small { color: var(--state-muted); font-size: .75rem; }
+.state-transition-choice-heading .state-transition-branch { font-size: .75rem; }
+.state-transition-choice-info { margin-top: .2rem; color: var(--state-muted); font-size: .75rem; }
+.state-transition-choice-info > summary { cursor: pointer; width: fit-content; }
+.state-transition-choice-info p { margin: .3rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.state-transition-choice-info ul { margin: .3rem 0; padding-left: 1rem; }
+.state-transition-last { padding: .4rem .75rem; }
+.state-transition-last .state-transition-route { margin: 0; font-size: .75rem; }
+.state-transition-history { padding: .4rem .75rem; }
+.state-transition-history > details > summary, .state-transition-info > summary { cursor: pointer; width: fit-content; font-size: .75rem; }
+.state-transition-info { border-top: 1px solid var(--state-border); padding: .4rem .75rem; color: var(--state-muted); font-size: .75rem; }
+.state-transition-info p { margin: .4rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }

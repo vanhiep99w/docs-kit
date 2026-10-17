@@ -10,7 +10,8 @@ test('keyboard span selection opens the matching detail and preserves other disc
   await expect(query).toHaveAttribute('aria-current', 'true');
   await expect(page.locator('[data-span="query"]')).toHaveAttribute('data-selected', 'true');
   await expect(page.locator('[data-detail="query"]')).toHaveAttribute('open', '');
-  await expect(page.locator('[data-detail="request"]')).toHaveAttribute('open', '');
+  await expect(page.locator('[data-detail="request"]')).not.toHaveAttribute('open');
+  await expect(page.locator('.span-waterfall-detail-list')).toHaveAttribute('open', '');
   const id = await page.locator('[data-detail="query"]').getAttribute('id');
   expect(new URL(page.url()).hash).toBe('#' + encodeURI(id));
   await page.getByRole('link', { name: 'Cache miss vẫn là OK', exact: true }).click();
@@ -79,7 +80,8 @@ test('no-JavaScript fallback exposes timing table and every span attribute via n
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:4178' + url);
-  await expect(page.getByText('Trace minh họa', { exact: true })).toBeVisible();
+  await expect(page.locator('.span-waterfall-header')).toContainText('Trace minh họa');
+  await page.locator('.span-waterfall-detail-list > summary').click();
   const query = page.locator('[data-detail="query"]');
   await query.locator(':scope > summary').focus(); await page.keyboard.press('Enter');
   await expect(query).toHaveAttribute('open', '');

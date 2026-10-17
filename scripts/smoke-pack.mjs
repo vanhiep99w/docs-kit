@@ -28,6 +28,7 @@ try {
     'dist/components/annotated-example.js', 'dist/components/annotated-example.d.ts',
     'dist/components/annotated-example-source.js', 'dist/components/annotated-example-source.d.ts',
     'dist/styles/annotated-example.css',
+    'dist/components/copy-icon.js', 'dist/components/copy-icon.d.ts', 'docs/compact-ui.md', 'examples/terminal-session/rollback.mdx',
     'docs/code-walkthrough.md', 'examples/annotated-example/walkthrough-guard.mdx', 'examples/annotated-example/walkthrough-dockerfile.mdx',
     'dist/annotated-example/walkthrough.js', 'dist/annotated-example/walkthrough.d.ts',
     'dist/annotated-example/walkthrough-data.js', 'dist/annotated-example/walkthrough-data.d.ts',

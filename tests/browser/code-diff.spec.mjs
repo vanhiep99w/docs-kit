@@ -12,7 +12,9 @@ test('copies complete originals exactly, without gutters, folded summaries or di
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(data[side].code);
     await expect(button).toBeFocused();
   }
-  await expect(page.locator('.code-diff-no-newline').first()).toBeVisible();
+  await expect(page.locator('.code-diff-no-newline')).toHaveCount(0); // Both sides omit the final newline: no redundant inline note.
+  await page.locator('.code-diff-info > summary').click();
+  await expect(page.locator('.code-diff-info')).toContainText('Không có newline cuối');
   expect(errors).toEqual([]);
 });
 

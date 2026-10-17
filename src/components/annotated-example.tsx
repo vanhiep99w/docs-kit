@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { codeLines, validateAnnotatedExample, type AnnotatedExampleData, type ExampleAnnotation } from '../annotated-example/data.js';
+import { CopyIcon } from './copy-icon.js';
 import { codeTokenStyle } from './code-token-style.js';
 import { writeSourceURL } from '../source-explorer/index.js';
 
@@ -77,7 +78,7 @@ export function AnnotatedExample({ data, className, sourceLink, activeAnnotation
       <figcaption className="annotated-example-header" id={captionId}>
         <span className="annotated-example-title">{example.title}</span>
         <span className="annotated-example-language">{example.language ?? 'text'}</span>
-        <button type="button" hidden={!ready} onClick={copy}>Sao chép code</button>
+        <button type="button" hidden={!ready} aria-label="Sao chép code" title="Sao chép code" onClick={copy}><CopyIcon /></button>
       </figcaption>
       <div className="annotated-example-layout">
         <pre ref={codeRef} className="annotated-example-code" tabIndex={0} role="region" aria-label={`Code: ${example.title}`}>

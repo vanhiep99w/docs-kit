@@ -2,7 +2,9 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Annotated Example (kèm Code Walkthrough), Terminal Session, Marble, Code Diff, Data Inspector, Protocol Exchange, Span Waterfall, Concurrency Lanes và State Transition Explorer có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.7.0:** bổ sung bộ component tài liệu MDX, Code Diff inline/split + word detail build-time và Marble zoom opt-in; giữ các API D2/Source Explorer hiện có. Chưa publish `0.7.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.7.1:** tinh gọn giao diện bộ component tài liệu: transcript Terminal liền mạch, Diff ưu tiên code, toolbar nhỏ và metadata mở rộng native. Giữ dữ liệu/API hiện có, copy nguyên bản, keyboard và fallback không JavaScript. Chưa publish `0.7.1`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+
+**Giao diện 0.7.1:** ưu tiên code/dữ liệu thay cho nhiều lớp header. [Thay đổi UI và vị trí thông tin mở rộng →](./docs/compact-ui.md).
 
 ## Mục lục
 
@@ -40,10 +42,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.7.0` được publish:**
+**Cài từ npm sau khi `0.7.1` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.7.0
+npm install @vanhiep99w/docs-kit@0.7.1
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -68,7 +70,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.7.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.7.1.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:

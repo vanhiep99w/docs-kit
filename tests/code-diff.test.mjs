@@ -110,7 +110,7 @@ test('annotation ranges stay on their original side and pinned unchanged lines n
   const html = renderToStaticMarkup(createElement(CodeDiff, { data }));
   assert.match(html, /data-before-line="2"/); assert.match(html, /data-after-line="3"/);
   assert.match(html, /Bản sau · Dòng 3/);
-  assert.match(html, /hidden=""[^>]*>Sao chép bản trước/);
+  assert.match(html, /hidden=""[^>]*aria-label="Sao chép bản trước"/);
 });
 
 test('highlighting runs on whole files, SSR escapes all prose and source adapter is optional', async () => {

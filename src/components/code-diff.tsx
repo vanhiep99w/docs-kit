@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { diffBlocks, diffCodeLines, diffLineEndings, splitDiffRows, validatePreparedCodeDiff, type DiffSide, type DiffView, type DiffWordRange, type DiffSplitRow, type PreparedCodeDiff } from '../code-diff/data.js';
+import { CopyIcon } from './copy-icon.js';
 import { writeSourceURL } from '../source-explorer/index.js';
 import { codeTokenStyle } from './code-token-style.js';
 
@@ -35,6 +36,7 @@ export function CodeDiff({ data, className, sourceLinks }: CodeDiffProps) {
   useEffect(() => { setStatus(''); }, [data]);
   const added = data.rows.filter((row) => row.type === 'add').length;
   const removed = data.rows.filter((row) => row.type === 'remove').length;
+  const showNewline = view.before.at(-1)?.ending !== view.after.at(-1)?.ending;
 
   async function copy(side: DiffSide) {
     try {
@@ -83,7 +85,7 @@ export function CodeDiff({ data, className, sourceLinks }: CodeDiffProps) {
       {splitSide !== 'before' && <span className="code-diff-number" aria-hidden="true" id={newNumber !== undefined ? lineId('after', newNumber) : undefined} data-after-line={newNumber}>{newNumber ?? ''}</span>}
       <span className="code-diff-sign" aria-hidden="true">{row.type === 'remove' ? '−' : row.type === 'add' ? '+' : ' '}</span>
       <code className="code-diff-content">{renderCode(side, number, ranges)}</code>
-      {!line.ending && <span className="code-diff-no-newline">Không có newline cuối</span>}
+      {!line.ending && showNewline && <span className="code-diff-no-newline" title="Không có newline cuối"><span aria-hidden="true">∅↵</span><span className="code-diff-sr-only">Không có newline cuối</span></span>}
     </div>;
   }
   function renderPair(pair: DiffSplitRow, index: number) {
@@ -93,25 +95,15 @@ export function CodeDiff({ data, className, sourceLinks }: CodeDiffProps) {
   }
 
   return <figure className={['code-diff', 'not-prose', className].filter(Boolean).join(' ')} data-view={displayView} aria-labelledby={titleId}>
-    <figcaption className="code-diff-header">
-      <span id={titleId} className="code-diff-title">{data.title}</span>
-      <span className="code-diff-statistics">+{added} thêm · −{removed} xóa</span>
-      {data.caption && <p>{data.caption}</p>}
-    </figcaption>
-    <div className="code-diff-files">
-      {(['before', 'after'] as const).map((side) => {
-        const file = data[side];
-        const name = side === 'before' ? 'Trước' : 'Sau';
-        const sourceHref = file.source ? writeSourceURL(new URL('https://source.invalid/'), file.source).search : undefined;
-        return <div key={side}>
-          <span><strong>{name}</strong>{file.label && <> · {file.label}</>}<small>{diffLineEndings(file.code)}</small></span>
-          <button type="button" hidden={!ready} onClick={() => copy(side)}>Sao chép bản {side === 'before' ? 'trước' : 'sau'}</button>
-          {sourceLinks?.[side] ?? (sourceHref && <a href={sourceHref}>Source {side === 'before' ? 'trước' : 'sau'} ↗</a>)}
-        </div>;
-      })}
+    <figcaption id={titleId} className="code-diff-sr-only">{data.title}</figcaption>
+    <div className="code-diff-toolbar">
+      <div className="code-diff-view-controls" hidden={!ready} role="group" aria-label="Chế độ diff">{(['inline', 'split'] as const).map((mode) => <button type="button" key={mode} aria-pressed={displayView === mode} onClick={() => setLayout({ data, view: mode })}>{mode === 'inline' ? 'Inline' : 'Song song'}</button>)}</div>
+      <div className="code-diff-copy-controls">{(['before', 'after'] as const).map((side) => {
+        const sourceHref = data[side].source ? writeSourceURL(new URL('https://source.invalid/'), data[side].source!).search : undefined;
+        return <span key={side}><button type="button" hidden={!ready} aria-label={`Sao chép bản ${side === 'before' ? 'trước' : 'sau'}`} title={`Sao chép bản ${side === 'before' ? 'trước' : 'sau'}`} onClick={() => copy(side)}><CopyIcon /><span>{side === 'before' ? 'Trước' : 'Sau'}</span></button>
+          {sourceLinks?.[side] ?? (sourceHref && <a href={sourceHref}>Source {side === 'before' ? 'trước' : 'sau'} ↗</a>)}</span>;
+      })}</div>
     </div>
-    <div className="code-diff-view-controls" hidden={!ready} role="group" aria-label="Chế độ diff">{(['inline', 'split'] as const).map((mode) => <button type="button" key={mode} aria-pressed={displayView === mode} onClick={() => setLayout({ data, view: mode })}>{mode === 'inline' ? 'Inline' : 'Song song'}</button>)}</div>
-    <p className="code-diff-guide">{displayView === 'split' ? 'Trái: trước · Phải: sau. Ô trống không phải dòng của file. ' : 'Số dòng: trước / sau. '}Dấu − là xóa; dấu + là thêm.{data.wordDiff && ' Vùng gạch chân là chi tiết từ trong các dòng thay thế đã ghép theo vị trí.'}</p>
     {added === 0 && removed === 0 && <p className="code-diff-identical">Nội dung hai bản giống nhau.{!data.before.code && ' Cả hai file rỗng.'}</p>}
     <div className="code-diff-scroll" tabIndex={0} role="region" aria-label={`Diff: ${data.title}`}>
       <div className="code-diff-lines" data-view={displayView} key={displayView}>
@@ -132,6 +124,12 @@ export function CodeDiff({ data, className, sourceLinks }: CodeDiffProps) {
         <p>{annotation.description}</p>
       </li>)}
     </ol>}
+    <details className="code-diff-info"><summary>Chi tiết</summary>
+      <strong>{data.title}</strong>{data.caption && <p>{data.caption}</p>}
+      <p>+{added} thêm · −{removed} xóa</p>
+      {(['before', 'after'] as const).map((side) => <p key={side}>{side === 'before' ? 'Trước' : 'Sau'}{data[side].label ? ` · ${data[side].label}` : ''} · {diffLineEndings(data[side].code)}{view[side].length && !view[side].at(-1)!.ending ? ' · Không có newline cuối' : ''}</p>)}
+      <p>{displayView === 'split' ? 'Trái: trước · Phải: sau. Ô trống không phải dòng của file. ' : 'Số dòng: trước / sau. '}Dấu − là xóa; dấu + là thêm.{data.wordDiff && ' Vùng gạch chân là chi tiết từ trong các dòng thay thế đã ghép theo vị trí.'}</p>
+    </details>
     <div className="code-diff-status" role="status" aria-live="polite">{status}</div>
   </figure>;
 }

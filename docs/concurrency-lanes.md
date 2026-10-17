@@ -1,5 +1,7 @@
 # Concurrency Lanes
 
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
 Timeline cho nhiều transaction/thread/actor: sự kiện tại một mốc, khoảng thực thi/chờ/giữ tài nguyên, và mũi tên tham chiếu các sự kiện. Dành cho giải thích lịch thực thi được biên soạn hoặc trace đã lọc; **không phải scheduler, SQL/JVM simulator hay công cụ chứng minh happens-before**.
 
 ## Tích hợp MDX / Fumadocs
@@ -129,7 +131,7 @@ Public entry points:
 
 ## Tương tác và fallback
 
-Chọn số hoặc mũi tên bằng chuột/Enter để mở và đi tới `<details>` tương ứng. Chọn event highlight cạnh liên quan; chọn relation highlight hai endpoint. Mở/thu summary bằng bàn phím vẫn là native disclosure; không ép các mục khác đóng lại.
+“Sự kiện và quan hệ” mặc định đóng; chọn số hoặc mũi tên bằng chuột/Enter để mở nhóm và `<details>` tương ứng rồi đi tới nội dung. Chọn event highlight cạnh liên quan; chọn relation highlight hai endpoint. Mở/thu summary bằng bàn phím vẫn là native disclosure; không ép các mục khác đóng lại.
 
 SVG anchors có tên truy cập được và tham chiếu HTML thật. Khi không JavaScript, toàn bộ diagram, chi tiết, quan hệ và bảng vẫn SSR; người đọc mở từng summary để đọc. Auto-open/selection của ứng dụng là progressive enhancement, không phải điều kiện truy cập nội dung.
 

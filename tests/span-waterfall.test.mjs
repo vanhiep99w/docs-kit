@@ -63,7 +63,7 @@ test('multiple roots, zero durations, very small times and out-of-parent async s
   assert.equal(waterfallExtent([{ start: 0, duration: 0 }]), 1);
   const zero = prepareSpanWaterfall({ ...input, spans: [{ id: 'r', name: 'Zero', service: 'api', start: 0, duration: 0 }], annotations: undefined });
   const zeroHTML = renderToStaticMarkup(createElement(SpanWaterfall, { data: zero }));
-  assert.match(zeroHTML, /mốc cuối 0 ms/); assert.match(zeroHTML, /chỉ là scale hiển thị/);
+  assert.match(zeroHTML, /Trace minh họa · 0 ms/); assert.match(zeroHTML, /chỉ là scale hiển thị/);
   assert.equal(waterfallExtent([{ start: 0, duration: 1e-15 }]), 1e-15);
   const html = renderToStaticMarkup(createElement(SpanWaterfall, { data }));
   assert.match(html, /data-zero="true"/); assert.doesNotMatch(html, /NaN|Infinity/);

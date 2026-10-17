@@ -1,6 +1,8 @@
 # Code / Config Diff
 
-> Bản phát triển 0.7.0, chưa publish. Có inline/split view và word diff opt-in, giữ mặc định inline và line diff cũ.
+**Giao diện 0.7.1 đã được tinh gọn:** xem [nội dung chính và thông tin mở rộng](./compact-ui.md). API/data cũ vẫn dùng được.
+
+> Bản chuẩn bị phát hành 0.7.1, chưa publish. Có inline/split view và word diff opt-in, giữ mặc định inline và line diff cũ.
 
 Hiển thị thay đổi trước–sau kèm lý do, số dòng riêng của mỗi phiên bản và copy nguyên bản. Diff và highlighting được chuẩn bị lúc build; browser chỉ nhận code, token an toàn và danh sách dòng đã tính.
 
@@ -111,8 +113,8 @@ File rỗng có **0 dòng vật lý** nên không có range hợp lệ để ch�
 - So sánh chính xác từng dòng, **bao gồm line ending**. Không trim whitespace, chuẩn hóa EOL hoặc bỏ qua dòng trống.
 - File rỗng là 0 dòng; `a` và `a` kèm newline là hai nội dung khác nhau.
 - Newline cuối kết thúc dòng, không tạo thêm một dòng diff giả. Ví dụ `a\n` là 1 dòng vật lý, `\n` là 1 dòng trống, chuỗi rỗng là 0 dòng.
-- CRLF, CR và LF được nhận diện riêng. Chuyển cả file từ CRLF sang LF có thể hiện thành xóa/thêm mọi dòng; metadata từng bên ghi kiểu EOL để giúp hiểu nguyên nhân.
-- Dòng cuối không có newline được ghi chú trong viewer. EOL note và gutters không thuộc code được copy.
+- CRLF, CR và LF được nhận diện riêng. Chuyển cả file từ CRLF sang LF có thể hiện thành xóa/thêm mọi dòng; metadata trong “Chi tiết” ghi kiểu EOL từng bên để giúp hiểu nguyên nhân.
+- Dòng cuối thiếu newline chỉ có ký hiệu `∅↵` khi khác biệt giữa hai bản; nếu cả hai đều thiếu newline thì không lặp note. “Chi tiết” giữ trạng thái newline từng bên. EOL note và gutters không thuộc code được copy.
 - Copy lấy **toàn bộ chuỗi code gốc** của bên được chọn, gồm cả phần đang thu gọn; không lấy dấu +/−, số dòng hoặc chú thích.
 - YAML `|-`, `|`, `|+` vẫn có quy tắc giữ/bỏ newline cuối trước khi dữ liệu đến component. Dùng `|-` khi không muốn vô tình đưa newline cuối vào ví dụ.
 - Clipboard cần được browser cho phép. Nút copy chỉ xuất hiện sau hydrate; nếu thất bại có thông báo. Không gửi code tới server để copy.

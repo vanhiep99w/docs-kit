@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { CopyIcon } from './copy-icon.js';
 import { inspectorInitialExpanded, inspectorParent, inspectorPreview, inspectorValue, searchInspector, validatePreparedDataInspector, type InspectorNode, type PreparedDataInspector } from '../data-inspector/data.js';
 
 export type { DataInspectorInput, PreparedDataInspector, InspectorNode, InspectorNodeType, InspectorAnnotation } from '../data-inspector/data.js';
-export type DataInspectorProps = { data: PreparedDataInspector; className?: string };
+export type DataInspectorProps = { data: PreparedDataInspector; className?: string; /** Quiet chrome when nested in another viewer. */ embedded?: boolean };
 
 /** A static JSON document explorer. Native details and complete source survive without JS. */
-export function DataInspector({ data, className }: DataInspectorProps) {
+export function DataInspector({ data, className, embedded = false }: DataInspectorProps) {
   const view = useMemo(() => {
     validatePreparedDataInspector(data);
     return { nodes: new Map(data.nodes.map((node) => [node.pointer, node])), indices: new Map(data.nodes.map((node, index) => [node.pointer, index])), initial: inspectorInitialExpanded(data) };
   }, [data]);
   const uid = useId();
+  const tools = useRef<HTMLDetailsElement>(null);
   const titleId = `${uid}-title`;
   const searchId = `${uid}-search`;
   const nodeId = (pointer: string) => `${uid}-node-${view.indices.get(pointer)}`;
@@ -32,7 +34,7 @@ export function DataInspector({ data, className }: DataInspectorProps) {
 
   function reveal(event: MouseEvent<HTMLAnchorElement>, pointer: string) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    setQuery(''); setSelected(pointer);
+    setQuery(''); selectNode(pointer);
     setExpanded((previous) => {
       const next = new Set(previous);
       let parent = inspectorParent(pointer);
@@ -40,6 +42,11 @@ export function DataInspector({ data, className }: DataInspectorProps) {
       return next;
     });
     // Keep the native fragment link so annotation references also work without JS.
+  }
+
+  function selectNode(pointer: string) {
+    setSelected(pointer);
+    if (tools.current) tools.current.open = true;
   }
 
   async function copy(kind: 'path' | 'value') {
@@ -67,27 +74,31 @@ export function DataInspector({ data, className }: DataInspectorProps) {
         <ul>{node.children.filter((pointer) => visible.has(pointer)).map((pointer) => renderNode(view.nodes.get(pointer)!))}</ul>
       </details> : <div className="data-inspector-leaf">{content}</div>}
       <button type="button" className="data-inspector-select" hidden={!ready} aria-label={`Chọn ${node.pointer || 'root'}`}
-        aria-pressed={selectedNode.pointer === node.pointer} aria-describedby={descriptionIds} onClick={() => setSelected(node.pointer)}>Chọn</button>
+        aria-pressed={selectedNode.pointer === node.pointer} aria-describedby={descriptionIds} title={`Chọn ${node.pointer || 'root'}`} onClick={() => selectNode(node.pointer)}><span aria-hidden="true">◎</span></button>
     </li>;
   }
 
-  return <figure className={['data-inspector', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={titleId}>
-    <figcaption className="data-inspector-header"><span id={titleId}>{data.title}</span><small>JSON · {data.nodes.length} node</small>
-      {data.description && <p>{data.description}</p>}
-    </figcaption>
+  const controls = <>
     <div className="data-inspector-controls" hidden={!ready}>
       <label htmlFor={searchId}>Tìm field, path hoặc giá trị</label>
-      <div><input id={searchId} type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ví dụ: /user/id hoặc trạng thái…" />
-        <button type="button" onClick={() => setExpanded(new Set(data.nodes.filter((node) => node.children.length).map((node) => node.pointer)))} disabled={searching}>Mở tất cả</button>
-        <button type="button" onClick={() => setExpanded(new Set())} disabled={searching}>Thu tất cả</button>
+      <div><input id={searchId} type="search" maxLength={200} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm field hoặc giá trị…" />
+        <button type="button" aria-label="Mở tất cả" onClick={() => setExpanded(new Set(data.nodes.filter((node) => node.children.length).map((node) => node.pointer)))} disabled={searching}>Mở</button>
+        <button type="button" aria-label="Thu tất cả" onClick={() => setExpanded(new Set())} disabled={searching}>Thu</button>
       </div>
-      <span role="status" aria-label="Kết quả tìm kiếm">{searching ? `${search.matches.length} kết quả; hiện cả field cha.` : 'Tìm literal, không chạy JSONPath hoặc regex.'}</span>
+      <span role="status" aria-label="Kết quả tìm kiếm">{searching ? `${search.matches.length} kết quả` : ''}</span>
     </div>
     <div className="data-inspector-selection">
-      <span>JSON Pointer: <code>{selectedNode.pointer || '(root: "")'}</code><small>{selectedNode.type}</small></span>
-      <button type="button" hidden={!ready} onClick={() => copy('path')}>Sao chép path</button>
-      <button type="button" hidden={!ready} onClick={() => copy('value')}>Sao chép value</button>
+      <span><span className="data-inspector-sr-only">JSON Pointer: </span><code>{selectedNode.pointer || '(root: "")'}</code><small>{selectedNode.type}</small></span>
+      <button type="button" hidden={!ready} aria-label="Sao chép path" title="Sao chép JSON Pointer" onClick={() => copy('path')}><CopyIcon /> Path</button>
+      <button type="button" hidden={!ready} aria-label="Sao chép value" title="Sao chép value" onClick={() => copy('value')}><CopyIcon /> Value</button>
     </div>
+  </>;
+
+  return <figure className={['data-inspector', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={titleId} data-embedded={embedded}>
+    <figcaption className="data-inspector-header"><span id={titleId}>{data.title}</span>
+      {data.description && <p>{data.description}</p>}
+    </figcaption>
+    {embedded ? <details className="data-inspector-tools" ref={tools} hidden={!ready}><summary>Tìm / sao chép field</summary>{controls}</details> : controls}
     <div className="data-inspector-tree-region" tabIndex={0} role="region" aria-label={`Cây JSON: ${data.title}`}>
       {searching && !search.matches.length ? <p className="data-inspector-empty">Không tìm thấy field phù hợp.</p>
         : <ul className="data-inspector-tree">{renderNode(data.nodes[0])}</ul>}

@@ -50,9 +50,7 @@ export function MarbleDiagram(props: MarbleDiagramProps) {
     <figcaption className="marble-header">
       <span id={titleId} className="marble-title">{data.title}</span>
       <span className="marble-scale">{data.frameLabel ?? 'Cột minh họa · 1 khoảng = 1 frame, không mặc định là ms'}</span>
-      {data.caption && <p>{data.caption}</p>}
     </figcaption>
-    <p className="marble-scroll-hint">Cuộn ngang để đọc theo cùng trục thời gian →</p>
     <div className="marble-scroller" tabIndex={0} role="region" aria-label={`Sơ đồ: ${data.title}`}>
       <div className="marble-grid">
         <div className="marble-lane marble-ruler">
@@ -67,7 +65,7 @@ export function MarbleDiagram(props: MarbleDiagramProps) {
           const groups = new Map<number, MarbleToken[]>();
           row.tokens.forEach((token) => groups.set(token.frame, [...(groups.get(token.frame) ?? []), token]));
           const depth = Math.max(1, ...Array.from(groups.values(), (group) => group.length));
-          const height = Math.max(68, depth * STACK_HEIGHT + 24);
+          const height = Math.max(52, depth * STACK_HEIGHT + 16);
           const baseline = height / 2;
           const annotations = data.annotations?.filter((annotation) => annotation.row === row.id) ?? [];
           return <div className={`marble-lane marble-lane--${row.kind ?? 'inner'}`} key={rowIndex} data-row={row.id ?? rowIndex + 1}>
@@ -89,6 +87,7 @@ export function MarbleDiagram(props: MarbleDiagramProps) {
         })}
       </div>
     </div>
+    {data.caption && <p className="marble-caption">{data.caption}</p>}
     {(data.showLegend ?? true) && used.size > 0 && <div className="marble-syntax" aria-label="Chú thích ký hiệu">
       {legendOrder.filter((type) => used.has(type)).map((type) => <span key={type}><code>{marbleSymbols[type]}</code>{marbleSyntaxLabels[type]}</span>)}
     </div>}

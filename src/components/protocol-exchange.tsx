@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useState } from 'react';
+import { CopyIcon } from './copy-icon.js';
 import { DataInspector } from './data-inspector.js';
 import { formatProtocolMessage, protocolBodySource, validatePreparedProtocolExchange, type PreparedProtocolExchange, type PreparedProtocolBody, type ProtocolVariant } from '../protocol-exchange/data.js';
 
@@ -43,10 +44,10 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
     </>;
     return <section className="protocol-exchange-message" aria-labelledby={headingId}>
       <div className="protocol-exchange-message-heading">
-        <h3 id={headingId}>{label}</h3>
-        <button type="button" hidden={!ready} aria-label={`Sao chép ${side} — ${variant.title}`} onClick={() => copy(variant, side)}>Sao chép {side}</button>
+        <h3 id={headingId} className="protocol-exchange-sr-only">{label}</h3>
+        <div className="protocol-exchange-start" id={targetId(variant.id, side, 'start')}>{start}</div>
+        <button type="button" hidden={!ready} aria-label={`Sao chép ${side} — ${variant.title}`} title={`Sao chép ${side}`} onClick={() => copy(variant, side)}><CopyIcon /></button>
       </div>
-      <div className="protocol-exchange-start" id={targetId(variant.id, side, 'start')}>{start}</div>
       {value.headers?.length ? <div className="protocol-exchange-headers-scroll" tabIndex={0} role="region" aria-label={`Headers ${side} — ${variant.title}`}>
         <table className="protocol-exchange-headers">
           <caption>Headers</caption>
@@ -55,12 +56,12 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
             <th scope="row"><code>{header.name}</code></th><td><code>{header.value || '(rỗng)'}</code></td>
           </tr>)}</tbody>
         </table>
-      </div> : <p className="protocol-exchange-empty">Không khai báo header.</p>}
+      </div> : null}
       {value.body !== undefined ? <div className="protocol-exchange-body" id={targetId(variant.id, side, 'body')}>
-        <div className="protocol-exchange-body-heading"><span>Body · {value.body.kind}</span>
-          <button type="button" hidden={!ready} aria-label={`Sao chép body ${side} — ${variant.title}`} onClick={() => copy(variant, side, true)}>Sao chép body</button>
+        <div className="protocol-exchange-body-heading"><span>Body</span>
+          <button type="button" hidden={!ready} aria-label={`Sao chép body ${side} — ${variant.title}`} title="Sao chép body" onClick={() => copy(variant, side, true)}><CopyIcon /></button>
         </div>
-        {value.body.kind === 'json' ? <DataInspector data={value.body.data} />
+        {value.body.kind === 'json' ? <DataInspector embedded data={value.body.data} />
           : <>{!value.body.text && <p className="protocol-exchange-empty">Body rỗng.</p>}<pre tabIndex={0} role="region" aria-label={`Body ${side} — ${variant.title}`}><code>{value.body.text}</code></pre></>}
       </div> : <p className="protocol-exchange-empty">Không có body.</p>}
     </section>;
@@ -68,10 +69,8 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
 
   return <figure className={['protocol-exchange', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={titleId}>
     <figcaption className="protocol-exchange-header">
-      <span id={titleId}>{data.title}</span><small>{data.variants.length} tình huống</small>
-      {data.description && <p>{data.description}</p>}
+      <span id={titleId}>{data.title}</span>
     </figcaption>
-    <p className="protocol-exchange-notice">Ví dụ tĩnh · Không gửi request. Bản sao là transcript đọc được, không phải HTTP wire format.</p>
     <div className="protocol-exchange-variants">
       {data.variants.map((variant, index) => <details key={variant.id} className="protocol-exchange-variant" open={index === 0} data-variant={variant.id}>
         <summary><span>{variant.title}</span><small>{variant.request.method} → {variant.response.status}</small></summary>
@@ -89,6 +88,7 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
         </ol>}
       </details>)}
     </div>
+    <details className="protocol-exchange-info"><summary>Về ví dụ</summary>{data.description && <p>{data.description}</p>}<p>Ví dụ tĩnh · Không gửi request. Bản sao là transcript đọc được, không phải HTTP wire format.</p></details>
     <div className="protocol-exchange-copy-status" role="status" aria-label="Sao chép trao đổi" aria-live="polite">{status}</div>
   </figure>;
 }
