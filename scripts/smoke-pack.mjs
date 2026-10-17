@@ -19,6 +19,10 @@ try {
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
     'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
+    'dist/components/d2-interactive.js', 'dist/components/d2-interactive.d.ts', 'dist/components/d2-viewer.js',
+    'dist/components/d2-types.d.ts', 'dist/d2/resources.js', 'dist/d2/resources.d.ts',
+    'docs/d2.md', 'examples/d2/transaction.d2',
+    'dist/components/source-explorer/d2-source-links.js',
     'dist/components/source-explorer/index.js', 'dist/components/source-explorer/index.d.ts',
     'dist/components/source-explorer/provider.js', 'dist/components/source-explorer/explorer.js',
     'dist/source-explorer/index.js', 'dist/source-explorer/index.d.ts',
@@ -54,6 +58,7 @@ import { SourceExplorerProvider, SourceRef } from '@vanhiep99w/docs-kit/componen
 import { readSourceURL, writeSourceURL } from '@vanhiep99w/docs-kit/source-explorer';
 import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
+import { D2InteractiveDiagram } from '@vanhiep99w/docs-kit/components/d2-interactive';
 process.chdir(fileURLToPath(new URL('./workdir', import.meta.url)));
 const fence = String.fromCharCode(96).repeat(3);
 for (const layout of ['elk', 'dagre', 'tala']) {
@@ -86,6 +91,12 @@ const sourceCss = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-k
 assert.match(sourceCss, /\.source-drawer/);
 const layoutCss = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/source-explorer-fumadocs.css')), 'utf8');
 assert.match(layoutCss, /#nd-docs-layout/);
+const interactive = await compile({value: fence + 'd2 mode=steps\na: base\nsteps: { next: {a: next} }\n' + fence, path:'steps.mdx'}, {
+  remarkPlugins: [remarkD2],
+});
+assert.match(String(interactive), /D2InteractiveDiagram/);
+assert.match(String(interactive), /JSON.parse/);
+assert.match(renderToStaticMarkup(createElement(D2InteractiveDiagram, {id:'interactive',caption:'Steps',lightSvg:'<svg/>',darkSvg:'<svg/>',source:'a -> b'})), /Explore diagram/);
 console.log('Packed package works from an isolated consumer.');
 `);
   const result = await execute(process.execPath, [path.join(consumer, 'check.mjs')], {

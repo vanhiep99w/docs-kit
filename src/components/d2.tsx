@@ -1,10 +1,5 @@
-export interface D2DiagramProps {
-  id: string;
-  caption: string;
-  lightSvg: string;
-  darkSvg: string;
-  className?: string;
-}
+import type { D2DiagramProps } from './d2-types.js';
+export type { D2DiagramProps, D2Board, D2Mode } from './d2-types.js';
 
 // Only pass SVGs generated at build time from trusted, repository-authored MDX.
 // Keep this a server component: no D2/WASM or theme JavaScript in the browser.
@@ -21,13 +16,13 @@ export function D2Diagram({ id, caption, lightSvg, darkSvg, className }: D2Diagr
       >
         <div
           className="d2-diagram-light"
-          role="img"
+          role="group"
           aria-label={caption}
           dangerouslySetInnerHTML={{ __html: lightSvg }}
         />
         <div
           className="d2-diagram-dark"
-          role="img"
+          role="group"
           aria-label={caption}
           dangerouslySetInnerHTML={{ __html: darkSvg }}
         />

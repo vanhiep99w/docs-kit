@@ -1,0 +1,12 @@
+# Use with mode=explorer. Internal board links enable drill-down.
+direction: right
+client -> api -> database
+api.link: layers.implementation
+layers: {
+  implementation: {
+    direction: right
+    controller -> service -> repository
+    back: "← Overview" {link: _}
+    controller.tooltip: "Validate the request before calling the service."
+  }
+}

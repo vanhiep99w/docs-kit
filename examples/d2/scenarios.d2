@@ -1,0 +1,14 @@
+# Use with mode=tabs. Scenarios inherit the base, not one another.
+direction: right
+client -> api: Request
+api -> database: Query
+scenarios: {
+  "Cache hit": {
+    api -> cache: Lookup
+    (api -> database)[0]: null
+  }
+  "Database timeout": {
+    (api -> database)[0].style.stroke-dash: 4
+    api -> client: Retry later
+  }
+}

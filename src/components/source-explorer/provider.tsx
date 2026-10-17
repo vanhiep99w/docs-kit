@@ -106,6 +106,11 @@ export function SourceExplorerProvider({
   );
 }
 
+/** Optional bridge for diagram links and other integrations. Null outside a provider. */
+export function useSourceExplorer() {
+  return useContext(SourceContext);
+}
+
 export type SourceRefProps = SourceRequest & {
   children?: ReactNode;
   variant?: 'inline' | 'button';

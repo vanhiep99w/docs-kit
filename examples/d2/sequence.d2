@@ -1,0 +1,16 @@
+# Use a normal fence, optionally interactive. All actors are declared before groups.
+shape: sequence_diagram
+tx1: TX1
+database: Database
+tx2: TX2
+
+database."Số dư ban đầu: 10M"
+uncommitted: "Dữ liệu chưa commit" {
+  tx1 -> database: UPDATE balance = 0
+  tx2 -> database: SELECT balance
+  database -> tx2: 0 — dirty read
+  tx1 -> database: ROLLBACK
+}
+database."Số dư trở lại 10M"
+tx2."Đã đọc dữ liệu chưa được xác nhận"
+# This outcome requires a database/isolation level that permits dirty reads.

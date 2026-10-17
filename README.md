@@ -2,7 +2,7 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 và Source Explorer có entry point riêng, không kéo build-time renderer vào client bundle.
 
-**Bản chuẩn bị phát hành 0.5.0:** bổ sung chọn layout D2 theo page/block, Source Explorer dùng chung và layout TALA qua `@d2lang/d2@0.1.34`; giữ worker pool D2/WASM từ `0.2.0`. Chưa publish `0.5.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.6.0:** bổ sung D2 viewer opt-in (zoom/pan/expand, steps, scenarios, layers, animation SVG, source/copy/download), adapter diagram → Source Explorer, imports/icons local/fonts và sửa label/theme; giữ layout theo page/block, TALA và worker pool qua `@d2lang/d2@0.1.34`. Chưa publish `0.6.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
 ## Mục lục
 
@@ -12,6 +12,7 @@ Bộ component và tích hợp build-time dùng chung cho các website tài li�
 - [Source Explorer](#source-explorer)
 - [Viết diagram](#viết-diagram)
 - [Cấu hình D2](#cấu-hình-d2)
+- [D2 nâng cao: viewer, nhiều board và tài nguyên](./docs/d2.md)
 - [Worker pool và cache CI](#worker-pool-và-cache-ci)
   - [Số đo local](#số-đo-local)
   - [Cloudflare Pages](#cloudflare-pages)
@@ -29,10 +30,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.5.0` được publish:**
+**Cài từ npm sau khi `0.6.0` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.5.0
+npm install @vanhiep99w/docs-kit@0.6.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -57,7 +58,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.5.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.6.0.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:
@@ -316,6 +317,36 @@ Override chỉ tác động page/block tương ứng; các page khác vẫn dùn
 
 Thêm `.cache/` vào `.gitignore` của website. Cache bao gồm source, vị trí tương đối trong project, phiên bản SDK/renderer và options. Đường dẫn checkout tuyệt đối không nằm trong cache key nên cache có thể dùng lại trên máy/CI khác. Lỗi cú pháp hiển thị file và vị trí fence, không bị giấu thành hình trống.
 
+## D2 nâng cao
+
+Diagram cũ vẫn server-first, không tự thêm toolbar/JavaScript. Đăng ký thêm component khi cần:
+
+```tsx
+import { D2InteractiveDiagram } from '@vanhiep99w/docs-kit/components/d2-interactive';
+// Thêm D2InteractiveDiagram vào MDX components bên cạnh D2Diagram.
+```
+
+````mdx
+```d2 mode=steps title="Rollback"
+account: "10M"
+steps: {
+  update: {account: "0 — chưa commit"}
+  rollback: {account: "10M — đã rollback"}
+}
+```
+````
+
+- `interactive`: toolbar fit/zoom/pan/expand, xem/copy D2, tải SVG.
+- `mode=steps`: bước trước/sau; `mode=tabs`: scenarios; `mode=explorer`: layers/drill-down.
+- `mode=animation`: phát có điều khiển và tải animated SVG. Không autoplay khi mở trang.
+- Source Explorer adapter mở implementation khi click node, không reload.
+- Imports `.d2`, icon local và TTF tùy chỉnh chạy lúc build, có giới hạn tài nguyên và cache theo nội dung.
+- Giữ fallback đọc source/các board không cần JS, dark mode, keyboard và reduced-motion.
+
+**[Hướng dẫn, API, ví dụ và giới hạn →](./docs/d2.md)** · **[Bộ mẫu D2 →](./examples/d2/)**
+
+Không thêm D2 CLI hoặc WASM vào browser. Viewer chỉ lazy-load khi bấm Explore. ELK algorithms nâng cao và export PNG/PDF/PPTX không nằm trong API này.
+
 ## Worker pool và cache CI
 
 Bản `0.1.0` khởi động Node/WASM cho từng diagram. Từ `0.2.0`, một broker local điều phối hàng đợi cho các worker giữ sẵn instance D2. Next.js compile MDX ở nhiều tiến trình vẫn dùng chung pool, thay vì mỗi tiến trình tạo thêm một pool riêng.
@@ -380,7 +411,8 @@ Public entry points:
 
 - `@vanhiep99w/docs-kit/d2`: **build-time / Node.js**, không import trong client component.
 - `@vanhiep99w/docs-kit/components/d2`: React component + `D2DiagramProps`.
-- `@vanhiep99w/docs-kit/styles/d2.css`: stylesheet.
+- `@vanhiep99w/docs-kit/components/d2-interactive`: optional client launcher + lazy viewer.
+- `@vanhiep99w/docs-kit/styles/d2.css`: stylesheet cho static và viewer.
 
 Không có barrel export gom plugin và component. Khi thêm tính năng, tạo module/component/CSS và subpath export tương ứng; không cần tạo package mới ngay. Giữ default an toàn và thêm tests trước khi đưa component mới vào API công khai.
 
@@ -391,6 +423,7 @@ npm ci
 npm run typecheck
 npm test
 npm run test:pack
+npm run test:browser # Chrome local hoặc Chromium của Playwright
 npm run benchmark -- --count 12
 # Hoặc lấy mẫu từ tài liệu thực tế:
 npm run benchmark -- --docs ../angular-learn/content/docs --count 12

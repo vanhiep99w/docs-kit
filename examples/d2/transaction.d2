@@ -1,0 +1,20 @@
+# Use with mode=steps. Each step inherits the previous one.
+account: "Số dư: 10M"
+tx1: TX1
+tx2: TX2
+
+steps: {
+  "1 · UPDATE": {
+    account: "Số dư: 0 — chưa commit"
+    tx1 -> account: UPDATE
+  }
+  "2 · Dirty read": {
+    tx2 -> account: SELECT → 0
+    account.tooltip: "Chỉ xảy ra khi DB/isolation level cho phép dirty read."
+  }
+  "3 · ROLLBACK": {
+    account: "Số dư: 10M — đã rollback"
+    tx1 -> account: ROLLBACK
+    tx2.tooltip: "TX2 đã đọc dữ liệu chưa được xác nhận."
+  }
+}

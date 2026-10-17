@@ -3,3 +3,5 @@ dist/
 .cache/
 *.tgz
 *.tsbuildinfo
+test-results/
+playwright-report/
