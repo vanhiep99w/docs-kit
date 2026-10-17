@@ -1,0 +1,24 @@
+# Phân biệt complete, error và unsubscribe
+
+Các lane dưới là các execution độc lập. Nhóm (a|) có hai sự kiện cùng frame; đây không phải frame-counting syntax của TestScheduler.
+
+```marble
+title: Những cách kết thúc khác nhau
+frameLabel: Frame minh họa · bắt đầu từ 0
+rows:
+  - label: next + complete
+    kind: source
+    marble: '--(a|)'
+  - label: error
+    kind: source
+    marble: '--a-#'
+  - label: subscription
+    kind: subscription
+    marble: '^--!'
+  - label: vẫn mở
+    kind: source
+    marble: '--a--'
+values:
+  a: Giá trị được phát
+caption: Next và complete của lane đầu cùng ở frame 2, xếp dọc để không che nhau. Unsubscribe ở frame 3 không phải complete.
+```

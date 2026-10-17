@@ -1,0 +1,29 @@
+# Lọc và đổi giá trị
+
+Đọc theo cột để thấy output giữ thời điểm của giá trị đi qua filter. Đây là các frame minh họa, không phải lịch chạy của of() đồng bộ.
+
+```marble
+title: filter(even) → map(×10)
+frameLabel: Cột minh họa, không phải ms
+rows:
+  - id: source
+    label: source$
+    kind: source
+    marble: '-a-b-c-|'
+  - id: output
+    label: output$
+    kind: output
+    marble: '---x---|'
+values:
+  a: '1'
+  b: '2'
+  c: '3'
+  x: '20'
+caption: b và x cùng ở frame 3; a/c bị loại. Source và output cùng complete ở frame 7.
+annotations:
+  - id: mapping
+    row: output
+    frames: [3, 3]
+    title: Giữ frame, đổi giá trị
+    description: filter giữ số 2, map đổi thành 20 mà không thêm delay.
+```

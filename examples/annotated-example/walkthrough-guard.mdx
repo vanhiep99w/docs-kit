@@ -1,0 +1,42 @@
+# Walkthrough — thêm guard cho input nullable
+
+Hai snapshot độc lập do tác giả biên soạn, không chạy TypeScript để kiểm chứng kết quả.
+Sau khi đổi signature, `name === null` phải được xử lý trước khi gọi `trim()`.
+
+```code-walkthrough
+title: Từ string sang input nullable
+language: typescript
+description: Đọc bản trước, thêm guard, rồi xem nhánh xử lý string. Một snapshot có thể được dùng lại ở nhiều bước.
+snapshots:
+  - id: before
+    title: Trước — chỉ nhận string
+    code: |-
+      function greet(name: string) {
+        return `Hello, ${name.trim()}`;
+      }
+  - id: after
+    title: Sau — thêm guard cho null
+    code: |-
+      function greet(name: string | null) {
+        if (name === null) {
+          return 'Hello, guest';
+        }
+        return `Hello, ${name.trim()}`;
+      }
+steps:
+  - id: contract
+    snapshot: before
+    title: Hợp đồng ban đầu
+    description: Signature yêu cầu string. Đây không phải runtime validation cho dữ liệu từ mạng.
+    ranges: [[1, 2]]
+  - id: guard
+    snapshot: after
+    title: Xử lý null trước
+    description: Signature mới chấp nhận null; guard trả sớm ở nhánh này để tránh gọi trim trên null.
+    ranges: [[1, 4]]
+  - id: string-path
+    snapshot: after
+    title: Giữ nhánh string
+    description: Sau guard, ví dụ này chỉ còn nhánh string. Copy luôn lấy toàn bộ snapshot, không chỉ các dòng được highlight.
+    ranges: [[1, 1], [5, 5]]
+```

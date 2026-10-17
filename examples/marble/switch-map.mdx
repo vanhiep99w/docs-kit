@@ -1,0 +1,42 @@
+# Hủy inner cũ khi input mới đến
+
+Đọc các lane theo cùng trục frame tuyệt đối. Dấu ! là unsubscribe, không gọi complete handler.
+
+```marble
+title: switchMap(project)
+frameLabel: 1 khoảng = 1 frame minh họa
+rows:
+  - id: outer
+    label: outer
+    kind: source
+    marble: '-a---b----|'
+  - id: inner-a
+    label: inner A
+    kind: inner
+    marble: '-^-x-!'
+  - id: inner-b
+    label: inner B
+    kind: inner
+    marble: '-----^-x---y|'
+  - id: output
+    label: output
+    kind: output
+    marble: '---x---x---y|'
+values:
+  a: Input A
+  b: Input B
+  x: Kết quả đầu của inner
+  y: Kết quả sau của inner B
+caption: B ở frame 5 hủy A. Outer complete ở 10 nhưng output chờ inner B complete ở 12.
+annotations:
+  - id: cancel
+    row: inner-a
+    frames: [5, 5]
+    title: Teardown inner A
+    description: Giá trị x ở frame 3 vẫn được giữ; các giá trị tương lai của inner A không đi xuống output.
+  - id: wait
+    row: output
+    frames: [10, 12]
+    title: Chờ inner hiện tại
+    description: Outer complete không tự hủy inner B đang chạy.
+```

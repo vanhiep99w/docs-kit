@@ -1,0 +1,37 @@
+# Split view và chi tiết từ
+
+Hai bản khai báo do tác giả biên soạn, không chạy code hoặc apply patch. Chi tiết từ dùng ghép dòng theo vị trí trong hunk, không phải semantic diff.
+
+```code-diff
+title: Thay giới hạn retry
+language: typescript
+view: split
+wordDiff: true
+contextLines: 1
+before:
+  label: before.ts
+  code: |-
+    // Giá trị minh họa
+    const retries = 3;
+    const message = 'xin chào 👋';
+    console.log(retries, message);
+after:
+  label: after.ts
+  code: |-
+    // Giá trị minh họa
+    const retries = 5;
+    const message = 'xin chào 🌏';
+    const timeout = 1000;
+    console.log(retries, message, timeout);
+annotations:
+  - id: retry
+    side: after
+    title: Giới hạn mới
+    description: Chi tiết từ nhấn mạnh token thay đổi; copy vẫn lấy toàn bộ source nguyên bản.
+    ranges: [[2, 2]]
+  - id: extra
+    side: after
+    title: Thêm cấu hình
+    description: Ô trống ở bên trước không phải một dòng của file; số dòng vẫn thuộc từng source gốc.
+    ranges: [[4, 5]]
+```

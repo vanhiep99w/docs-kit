@@ -1,0 +1,54 @@
+# API → cache miss → database
+
+Trace **minh họa**, thời gian do tác giả biên soạn; không phải benchmark Redis/PostgreSQL.
+Hai span cache/database nối tiếp trong request, phần thời gian còn lại có thể là công việc chưa instrument.
+
+```span-waterfall
+title: Đọc sản phẩm khi cache miss
+unit: ms
+provenance:
+  kind: illustrative
+  description: Dữ liệu tổng hợp để giải thích cache-aside; mọi span dùng chung mốc 0.
+spans:
+  - id: request
+    name: GET /products/demo
+    service: catalog-api
+    start: 0
+    duration: 120
+    status: ok
+    attributes: '{"http.request.method":"GET","http.response.status_code":200,"demo":true}'
+  - id: cache
+    parent: request
+    name: GET product:demo
+    service: redis
+    start: 10
+    duration: 8
+    status: ok
+    description: Cache miss không phải lỗi của Redis.
+    attributes: '{"db.system.name":"redis","cache.hit":false}'
+  - id: query
+    parent: request
+    name: SELECT product
+    service: postgres
+    start: 22
+    duration: 70
+    status: ok
+    description: Câu truy vấn giả lập, không có dữ liệu production.
+    attributes: '{"db.system.name":"postgresql","demo.sequence":9007199254740993,"db.operation.name":"SELECT"}'
+  - id: fill
+    parent: request
+    name: SET product:demo
+    service: redis
+    start: 96
+    duration: 6
+    status: ok
+annotations:
+  - id: miss
+    span: cache
+    title: Cache miss vẫn là OK
+    description: Span thành công về mặt giao tiếp; hit/miss nằm trong attributes do tác giả cung cấp.
+  - id: query-cost
+    span: query
+    title: Quan sát thời gian truy vấn
+    description: Span này dài nhất trong các span con; không đồng nghĩa tự động là critical path.
+```

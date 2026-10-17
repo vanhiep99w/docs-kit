@@ -1,0 +1,34 @@
+# Giới hạn quyền đọc object
+
+Identity policy minh họa, không phải policy đủ cho mọi ứng dụng S3. Bucket/prefix phải khớp tài nguyên thực; policy này không cấp ListBucket.
+
+```code-diff
+title: Từ quyền rộng sang một thao tác trên prefix
+language: json
+before:
+  code: |-
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Action": "s3:*",
+        "Resource": "*"
+      }]
+    }
+after:
+  code: |-
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::example-bucket/reports/*"
+      }]
+    }
+annotations:
+  - id: narrow
+    side: after
+    title: Scope theo thao tác và tài nguyên
+    description: Chỉ minh họa đọc object dưới reports/. Còn cần xét các policy, condition và deny khác của môi trường thực tế.
+    ranges: [[5, 6]]
+```

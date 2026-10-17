@@ -1,8 +1,8 @@
 # @vanhiep99w/docs-kit
 
-Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2 và Source Explorer có entry point riêng, không kéo build-time renderer vào client bundle.
+Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Annotated Example (kèm Code Walkthrough), Terminal Session, Marble, Code Diff, Data Inspector, Protocol Exchange, Span Waterfall, Concurrency Lanes và State Transition Explorer có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.6.0:** bổ sung D2 viewer opt-in (zoom/pan/expand, steps, scenarios, layers, animation SVG, source/copy/download), adapter diagram → Source Explorer, imports/icons local/fonts và sửa label/theme; giữ layout theo page/block, TALA và worker pool qua `@d2lang/d2@0.1.34`. Chưa publish `0.6.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.7.0:** bổ sung bộ component tài liệu MDX, Code Diff inline/split + word detail build-time và Marble zoom opt-in; giữ các API D2/Source Explorer hiện có. Chưa publish `0.7.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
 ## Mục lục
 
@@ -10,6 +10,16 @@ Bộ component và tích hợp build-time dùng chung cho các website tài li�
 - [Cài đặt](#cài-đặt)
 - [Tích hợp Fumadocs](#tích-hợp-fumadocs)
 - [Source Explorer](#source-explorer)
+- [Annotated Example](#annotated-example)
+- [Code Walkthrough](#code-walkthrough)
+- [Terminal Session](#terminal-session)
+- [Marble Diagram](#marble-diagram)
+- [Code / Config Diff](#code--config-diff)
+- [Structured Data Inspector](#structured-data-inspector)
+- [Protocol Exchange](#protocol-exchange)
+- [Span Waterfall](#span-waterfall)
+- [Concurrency Lanes](#concurrency-lanes)
+- [State Transition Explorer](#state-transition-explorer)
 - [Viết diagram](#viết-diagram)
 - [Cấu hình D2](#cấu-hình-d2)
 - [D2 nâng cao: viewer, nhiều board và tài nguyên](./docs/d2.md)
@@ -30,10 +40,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.6.0` được publish:**
+**Cài từ npm sau khi `0.7.0` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.6.0
+npm install @vanhiep99w/docs-kit@0.7.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -58,7 +68,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.6.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.7.0.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:
@@ -227,6 +237,112 @@ Public entry points:
 - `@vanhiep99w/docs-kit/source-explorer`: types và `readSourceURL` / `writeSourceURL`, dùng được ngoài React.
 - `@vanhiep99w/docs-kit/styles/source-explorer.css`: CSS viewer.
 - `@vanhiep99w/docs-kit/styles/source-explorer-fumadocs.css`: layout adapter tùy chọn.
+
+## Annotated Example
+
+MVP local cho code/config/output có chú thích theo vùng dòng: highlight nhiều range khi chọn chú thích, copy code gốc, light/dark và layout responsive. Code cùng toàn bộ chú thích vẫn đọc được khi không có JavaScript. Shiki chỉ chạy lúc build, component nhận token đã escape thay vì HTML thô.
+
+- Plugin: `remarkAnnotatedExample` từ `@vanhiep99w/docs-kit/annotated-example`.
+- Component: `AnnotatedExample` từ `@vanhiep99w/docs-kit/components/annotated-example`.
+- CSS: `@vanhiep99w/docs-kit/styles/annotated-example.css`.
+- Adapter Source Explorer tùy chọn: `AnnotatedExampleWithSource` từ `@vanhiep99w/docs-kit/components/annotated-example-source`.
+
+**[Tích hợp, cú pháp MDX và API →](./docs/annotated-example.md)** · **[Ví dụ →](./examples/annotated-example/)** · **[Kế hoạch component tiếp theo →](./docs/components-plan.md)**
+
+## Code Walkthrough
+
+Chế độ theo bước của Annotated Example: snapshot code trước/sau, highlight nhiều range, nút trước/sau và lời giải thích do tác giả biên soạn. Dùng lại viewer, copy và Shiki tokens của Annotated Example, không tạo renderer thứ hai; mỗi snapshot chỉ render code một lần. Native disclosure giữ mọi code/chú thích đọc được khi không JavaScript. Không chạy code, tính diff hoặc đồng bộ D2.
+
+- Plugin/helper: `remarkCodeWalkthrough`, `prepareCodeWalkthrough` từ `@vanhiep99w/docs-kit/annotated-example/walkthrough`.
+- Component: `CodeWalkthrough` từ `@vanhiep99w/docs-kit/components/code-walkthrough`.
+- Adapter tùy chọn: `CodeWalkthroughWithSource` từ `@vanhiep99w/docs-kit/components/code-walkthrough-source`.
+- CSS: `@vanhiep99w/docs-kit/styles/code-walkthrough.css` (đã import CSS Annotated Example).
+
+**[Tích hợp, snapshots/steps, API và giới hạn →](./docs/code-walkthrough.md)** · **[Ví dụ guard](./examples/annotated-example/walkthrough-guard.mdx)** · **[Ví dụ Dockerfile](./examples/annotated-example/walkthrough-dockerfile.mdx)**
+
+## Terminal Session
+
+MVP local cho transcript lệnh theo bước: context local/container/pod/remote, stdout/stderr có nhãn, copy riêng command gốc, cảnh báo, kết quả kỳ vọng và exit code do tác giả khai báo. Output dài dùng disclosure native; không JavaScript vẫn đọc/mở được nội dung. Không thực thi shell, không kết nối dịch vụ ngoài và không có ANSI parser.
+
+- Plugin: `remarkTerminalSession` từ `@vanhiep99w/docs-kit/terminal-session`.
+- Component: `TerminalSession` từ `@vanhiep99w/docs-kit/components/terminal-session`.
+- CSS: `@vanhiep99w/docs-kit/styles/terminal-session.css`.
+
+**[Tích hợp, cú pháp MDX và API →](./docs/terminal-session.md)** · **[Ví dụ Kubernetes, Docker, Redis CLI →](./examples/terminal-session/)**
+
+## Marble Diagram
+
+MVP local cho timeline notification/lifecycle: chung trục frame, next/complete/error/subscribe/unsubscribe, legend, chú thích vùng và bảng sự kiện native đọc được khi không có JavaScript. Marker cùng frame xếp dọc, không đổi thời điểm để né chồng. SVG server-first mặc định, có zoom opt-in thay khoảng cách frame nhưng giữ marker/font; không có RxJS runtime hoặc ResizeObserver; giữ API JSX từ `rxjs-learn` bên cạnh `data` props.
+
+- Plugin: `remarkMarble` từ `@vanhiep99w/docs-kit/marble`.
+- Component: `MarbleDiagram` từ `@vanhiep99w/docs-kit/components/marble`.
+- Zoom opt-in: `MarbleZoomDiagram` từ `@vanhiep99w/docs-kit/components/marble-zoom` hoặc `zoom: true` trong fence.
+- CSS: `@vanhiep99w/docs-kit/styles/marble.css`.
+
+**Ký pháp visual-column không phải parser TestScheduler**: group chiếm một cột, `^` không reset frame, không hỗ trợ time progression. Component không tự suy ra hoặc chạy operator để kiểm chứng output.
+
+**[Tích hợp, ký pháp, API và migration RxJS →](./docs/marble.md)** · **[Ví dụ →](./examples/marble/)**
+
+## Code / Config Diff
+
+MVP local cho inline/split diff trước/sau, với word detail opt-in: số dòng từng bên, dấu thêm/xóa, chú thích theo side/range, phần không đổi thu gọn native và copy nguyên bản. Xử lý file rỗng, Unicode, CRLF và newline cuối file; diff engine và Shiki chỉ chạy lúc build, không kéo vào browser. Source Explorer adapter mở đúng snapshot/file của từng bên khi host đã tích hợp provider.
+
+- Plugin/helper: `remarkCodeDiff`, `prepareCodeDiff` từ `@vanhiep99w/docs-kit/code-diff`.
+- Component: `CodeDiff` từ `@vanhiep99w/docs-kit/components/code-diff`.
+- Adapter tùy chọn: `CodeDiffWithSource` từ `@vanhiep99w/docs-kit/components/code-diff-source`.
+- CSS: `@vanhiep99w/docs-kit/styles/code-diff.css`.
+
+**[Tích hợp, ngữ nghĩa newline, API và giới hạn →](./docs/code-diff.md)** · **[Ví dụ Dockerfile, IAM, SQL →](./examples/code-diff/)**
+
+## Structured Data Inspector
+
+MVP local cho cây JSON có search, copy JSON Pointer/value và chú thích theo field. Giữ nguyên số lớn/number lexeme và JSON source; không chuyển payload qua JavaScript Number. Cây và source disclosure đọc được khi không có JavaScript. Parser JSONC/YAML chỉ dùng lúc build, không chạy API, decode JWT hoặc evaluate payload.
+
+- Plugin/helper: `remarkDataInspector`, `prepareDataInspector` từ `@vanhiep99w/docs-kit/data-inspector`.
+- Component: `DataInspector` từ `@vanhiep99w/docs-kit/components/data-inspector`.
+- CSS: `@vanhiep99w/docs-kit/styles/data-inspector.css`.
+
+**[Tích hợp, JSON Pointer, số lớn và giới hạn →](./docs/data-inspector.md)** · **[Ví dụ GraphQL, Kafka, JWT →](./examples/data-inspector/)**
+
+## Protocol Exchange
+
+MVP local cho request/response HTTP tĩnh: method/URL/status, header có thứ tự và trùng tên, text/JSON body, chú thích theo từng bên và các tình huống mở/thu native. JSON body dùng lại Data Inspector; copy giữ source và số lớn. Không gửi request, follow redirect hoặc lưu credential; bản copy chỉ là transcript đọc được, không phải cURL/wire format.
+
+- Plugin/helper: `remarkProtocolExchange`, `prepareProtocolExchange` từ `@vanhiep99w/docs-kit/protocol-exchange`.
+- Component: `ProtocolExchange` từ `@vanhiep99w/docs-kit/components/protocol-exchange`.
+- CSS: `@vanhiep99w/docs-kit/styles/protocol-exchange.css` (đã import CSS Inspector).
+
+**[Tích hợp, headers/body, API và giới hạn →](./docs/protocol-exchange.md)** · **[Ví dụ REST/Auth, GraphQL, OAuth redirect →](./examples/protocol-exchange/)**
+
+## Span Waterfall
+
+MVP local cho timeline latency phân cấp: span có start/duration/parent/service, chung mốc 0 và thang thời gian; chọn span xem attributes bằng Data Inspector. Có nhãn trace minh họa/đo thực tế, chú thích, trạng thái lỗi không chỉ dựa vào màu và bảng thời gian native đọc được khi tắt JavaScript. Không kết nối tracing backend, sửa clock skew hoặc suy ra critical path.
+
+- Plugin/helper: `remarkSpanWaterfall`, `prepareSpanWaterfall` từ `@vanhiep99w/docs-kit/span-waterfall`.
+- Component: `SpanWaterfall` từ `@vanhiep99w/docs-kit/components/span-waterfall`.
+- CSS: `@vanhiep99w/docs-kit/styles/span-waterfall.css` (đã import CSS Inspector).
+
+**[Tích hợp, thời gian/parent, API và giới hạn →](./docs/span-waterfall.md)** · **[Ví dụ API/cache/database và fan-out microservices →](./examples/span-waterfall/)**
+
+## Concurrency Lanes
+
+MVP local cho timeline transaction/thread/actor: event, khoảng thực thi/chờ/giữ tài nguyên và mũi tên do tác giả khai báo. Các mục chồng nhau xếp dọc, không dịch tọa độ thời gian; có bước logic hoặc thời gian tương đối, provenance, chọn mục/quan hệ và bảng native khi tắt JavaScript. Không suy ra happens-before từ vị trí, không mô phỏng SQL/JVM hoặc xác minh quan hệ.
+
+- Plugin/parser: `remarkConcurrencyLanes`, `parseConcurrencyLanesDescriptor` từ `@vanhiep99w/docs-kit/concurrency-lanes`.
+- Component: `ConcurrencyLanes` từ `@vanhiep99w/docs-kit/components/concurrency-lanes`.
+- CSS: `@vanhiep99w/docs-kit/styles/concurrency-lanes.css`.
+
+**[Tích hợp, tọa độ/quan hệ, API và giới hạn →](./docs/concurrency-lanes.md)** · **[Ví dụ SQL row lock và Java volatile publication →](./examples/concurrency-lanes/)**
+
+## State Transition Explorer
+
+MVP local cho mô hình trạng thái do tác giả khai báo: người đọc chọn event/nhánh để xem trước → sau, điều kiện và giải thích; có quay lại/reset, self-loop, terminal state và lịch sử tối đa 128 lựa chọn. Guard/effects chỉ là text, không được evaluate hoặc thực thi; không có timer/cooldown, statechart runtime hay request mạng. Native reference giữ toàn bộ states/transitions đọc được khi tắt JavaScript.
+
+- Plugin/parser: `remarkStateTransition`, `parseStateTransitionDescriptor` từ `@vanhiep99w/docs-kit/state-transition`.
+- Component: `StateTransitionExplorer` từ `@vanhiep99w/docs-kit/components/state-transition`.
+- CSS: `@vanhiep99w/docs-kit/styles/state-transition.css`.
+
+**[Tích hợp, chọn nhánh/guard, API và giới hạn →](./docs/state-transition.md)** · **[Ví dụ circuit breaker và form workflow →](./examples/state-transition/)**
 
 ## Viết diagram
 

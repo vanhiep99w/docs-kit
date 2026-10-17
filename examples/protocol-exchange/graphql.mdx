@@ -1,0 +1,53 @@
+# HTTP status không thay thế kiểm tra GraphQL body
+
+Response giả lập cho field nullable, không phải quy tắc mọi lỗi GraphQL luôn trả 200.
+
+```protocol-exchange
+title: GraphQL với dữ liệu một phần
+variants:
+  - id: partial
+    title: Một field nullable lỗi
+    request:
+      method: POST
+      url: /graphql
+      headers:
+        - id: content
+          name: Content-Type
+          value: application/json
+      body:
+        kind: json
+        json: |-
+          {
+            "query": "query User($id: ID!) { user(id: $id) { id name email } }",
+            "variables": {"id": "u_demo"}
+          }
+        annotations:
+          - id: variable
+            pointer: /variables/id
+            title: Biến của query
+            description: Viewer không chạy query hoặc kiểm chứng schema.
+    response:
+      status: 200
+      headers:
+        - id: content
+          name: Content-Type
+          value: application/json
+      body:
+        kind: json
+        json: |-
+          {
+            "data": {"user": {"id": "u_demo", "name": "Nguyễn An", "email": null}},
+            "errors": [{"message": "Email unavailable", "path": ["user", "email"]}]
+          }
+        annotations:
+          - id: email
+            pointer: /data/user/email
+            title: Field null có thể đi cùng phần dữ liệu khác
+            description: Đối chiếu errors và schema; không coi 200 là không có GraphQL error.
+    annotations:
+      - id: inspect-body
+        side: response
+        target: body
+        title: Đọc body cùng status
+        description: Đây là một response minh họa có data và errors, không chứng minh query đã được thực thi.
+```

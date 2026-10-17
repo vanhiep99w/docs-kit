@@ -1,0 +1,45 @@
+# Kiểm tra pod chưa Ready
+
+Transcript được biên soạn để minh họa. Tên namespace và pod phải khớp cluster thực tế.
+
+```terminal-session
+title: Khoanh vùng readiness probe thất bại
+description: Không thay đổi cấu hình cluster trong phiên kiểm tra này.
+context:
+  kind: local
+  label: kubectl context dev
+  cwd: ~/work/api
+steps:
+  - id: list
+    title: Kiểm tra trạng thái
+    command: kubectl get pods -n demo
+    outputs:
+      - stream: stdout
+        text: |-
+          NAME                   READY   STATUS    RESTARTS   AGE
+          api-7d8c9b6f5d-demo     0/1     Running   0          2m
+        annotations:
+          - id: not-ready
+            title: Running chưa có nghĩa là Ready
+            description: Container đang chạy nhưng chưa đáp ứng điều kiện nhận traffic.
+            ranges: [[2, 2]]
+    expected: Tìm pod chưa Ready trước khi đọc Events.
+    exitCode: 0
+  - id: describe
+    title: Đọc nguyên nhân
+    command: kubectl describe pod api-7d8c9b6f5d-demo -n demo
+    outputs:
+      - stream: stdout
+        collapsed: true
+        text: |-
+          Conditions:
+            Ready: False
+          Events:
+            Warning Unhealthy Readiness probe failed: HTTP probe failed with statuscode: 503
+        annotations:
+          - id: readiness-event
+            title: Probe nhận HTTP 503
+            description: Kiểm tra endpoint readiness và dependency của ứng dụng; không suy ra nguyên nhân chỉ từ trạng thái Running.
+            ranges: [[4, 4]]
+    exitCode: 0
+```

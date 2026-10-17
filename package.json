@@ -1,6 +1,6 @@
 {
   "name": "@vanhiep99w/docs-kit",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
   "type": "module",
   "license": "MIT",
@@ -15,7 +15,16 @@
     "dist",
     "README.md",
     "docs",
-    "examples/d2"
+    "examples/d2",
+    "examples/annotated-example",
+    "examples/terminal-session",
+    "examples/marble",
+    "examples/code-diff",
+    "examples/data-inspector",
+    "examples/protocol-exchange",
+    "examples/span-waterfall",
+    "examples/concurrency-lanes",
+    "examples/state-transition"
   ],
   "sideEffects": [
     "**/*.css"
@@ -44,6 +53,152 @@
     "./components/d2-interactive": {
       "types": "./dist/components/d2-interactive.d.ts",
       "default": "./dist/components/d2-interactive.js"
+    },
+    "./annotated-example": {
+      "types": "./dist/annotated-example/index.d.ts",
+      "default": "./dist/annotated-example/index.js"
+    },
+    "./annotated-example/data": {
+      "types": "./dist/annotated-example/data.d.ts",
+      "default": "./dist/annotated-example/data.js"
+    },
+    "./components/annotated-example": {
+      "types": "./dist/components/annotated-example.d.ts",
+      "default": "./dist/components/annotated-example.js"
+    },
+    "./components/annotated-example-source": {
+      "types": "./dist/components/annotated-example-source.d.ts",
+      "default": "./dist/components/annotated-example-source.js"
+    },
+    "./styles/annotated-example.css": "./dist/styles/annotated-example.css",
+    "./terminal-session": {
+      "types": "./dist/terminal-session/index.d.ts",
+      "default": "./dist/terminal-session/index.js"
+    },
+    "./terminal-session/data": {
+      "types": "./dist/terminal-session/data.d.ts",
+      "default": "./dist/terminal-session/data.js"
+    },
+    "./components/terminal-session": {
+      "types": "./dist/components/terminal-session.d.ts",
+      "default": "./dist/components/terminal-session.js"
+    },
+    "./styles/terminal-session.css": "./dist/styles/terminal-session.css",
+    "./marble": {
+      "types": "./dist/marble/index.d.ts",
+      "default": "./dist/marble/index.js"
+    },
+    "./marble/data": {
+      "types": "./dist/marble/data.d.ts",
+      "default": "./dist/marble/data.js"
+    },
+    "./components/marble": {
+      "types": "./dist/components/marble.d.ts",
+      "default": "./dist/components/marble.js"
+    },
+    "./styles/marble.css": "./dist/styles/marble.css",
+    "./code-diff": {
+      "types": "./dist/code-diff/index.d.ts",
+      "default": "./dist/code-diff/index.js"
+    },
+    "./code-diff/data": {
+      "types": "./dist/code-diff/data.d.ts",
+      "default": "./dist/code-diff/data.js"
+    },
+    "./components/code-diff": {
+      "types": "./dist/components/code-diff.d.ts",
+      "default": "./dist/components/code-diff.js"
+    },
+    "./components/code-diff-source": {
+      "types": "./dist/components/code-diff-source.d.ts",
+      "default": "./dist/components/code-diff-source.js"
+    },
+    "./styles/code-diff.css": "./dist/styles/code-diff.css",
+    "./data-inspector": {
+      "types": "./dist/data-inspector/index.d.ts",
+      "default": "./dist/data-inspector/index.js"
+    },
+    "./data-inspector/data": {
+      "types": "./dist/data-inspector/data.d.ts",
+      "default": "./dist/data-inspector/data.js"
+    },
+    "./components/data-inspector": {
+      "types": "./dist/components/data-inspector.d.ts",
+      "default": "./dist/components/data-inspector.js"
+    },
+    "./styles/data-inspector.css": "./dist/styles/data-inspector.css",
+    "./protocol-exchange": {
+      "types": "./dist/protocol-exchange/index.d.ts",
+      "default": "./dist/protocol-exchange/index.js"
+    },
+    "./protocol-exchange/data": {
+      "types": "./dist/protocol-exchange/data.d.ts",
+      "default": "./dist/protocol-exchange/data.js"
+    },
+    "./components/protocol-exchange": {
+      "types": "./dist/components/protocol-exchange.d.ts",
+      "default": "./dist/components/protocol-exchange.js"
+    },
+    "./styles/protocol-exchange.css": "./dist/styles/protocol-exchange.css",
+    "./span-waterfall": {
+      "types": "./dist/span-waterfall/index.d.ts",
+      "default": "./dist/span-waterfall/index.js"
+    },
+    "./span-waterfall/data": {
+      "types": "./dist/span-waterfall/data.d.ts",
+      "default": "./dist/span-waterfall/data.js"
+    },
+    "./components/span-waterfall": {
+      "types": "./dist/components/span-waterfall.d.ts",
+      "default": "./dist/components/span-waterfall.js"
+    },
+    "./styles/span-waterfall.css": "./dist/styles/span-waterfall.css",
+    "./concurrency-lanes": {
+      "types": "./dist/concurrency-lanes/index.d.ts",
+      "default": "./dist/concurrency-lanes/index.js"
+    },
+    "./concurrency-lanes/data": {
+      "types": "./dist/concurrency-lanes/data.d.ts",
+      "default": "./dist/concurrency-lanes/data.js"
+    },
+    "./components/concurrency-lanes": {
+      "types": "./dist/components/concurrency-lanes.d.ts",
+      "default": "./dist/components/concurrency-lanes.js"
+    },
+    "./styles/concurrency-lanes.css": "./dist/styles/concurrency-lanes.css",
+    "./annotated-example/walkthrough": {
+      "types": "./dist/annotated-example/walkthrough.d.ts",
+      "default": "./dist/annotated-example/walkthrough.js"
+    },
+    "./annotated-example/walkthrough-data": {
+      "types": "./dist/annotated-example/walkthrough-data.d.ts",
+      "default": "./dist/annotated-example/walkthrough-data.js"
+    },
+    "./components/code-walkthrough": {
+      "types": "./dist/components/code-walkthrough.d.ts",
+      "default": "./dist/components/code-walkthrough.js"
+    },
+    "./components/code-walkthrough-source": {
+      "types": "./dist/components/code-walkthrough-source.d.ts",
+      "default": "./dist/components/code-walkthrough-source.js"
+    },
+    "./styles/code-walkthrough.css": "./dist/styles/code-walkthrough.css",
+    "./state-transition": {
+      "types": "./dist/state-transition/index.d.ts",
+      "default": "./dist/state-transition/index.js"
+    },
+    "./state-transition/data": {
+      "types": "./dist/state-transition/data.d.ts",
+      "default": "./dist/state-transition/data.js"
+    },
+    "./components/state-transition": {
+      "types": "./dist/components/state-transition.d.ts",
+      "default": "./dist/components/state-transition.js"
+    },
+    "./styles/state-transition.css": "./dist/styles/state-transition.css",
+    "./components/marble-zoom": {
+      "types": "./dist/components/marble-zoom.d.ts",
+      "default": "./dist/components/marble-zoom.js"
     }
   },
   "scripts": {
@@ -65,8 +220,10 @@
   "dependencies": {
     "@d2lang/d2": "0.1.34",
     "@types/mdast": "^4.0.4",
+    "jsonc-parser": "^3.3.1",
     "proper-lockfile": "^4.1.2",
     "remark-frontmatter": "^5.0.0",
+    "shiki": "^4.5.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
     "yaml": "^2.9.1"

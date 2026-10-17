@@ -1,0 +1,49 @@
+# Walkthrough — sắp xếp lại Dockerfile
+
+Giả định context có `package.json`, `package-lock.json` phù hợp cho `npm ci` và `server.js`;
+`.dockerignore` đã loại `node_modules`, secrets và output không cần thiết.
+Không build image thật hoặc cam kết mức tăng tốc; cache còn phụ thuộc builder và các input khác.
+
+```code-walkthrough
+title: Tách dependency layer khỏi source
+language: dockerfile
+snapshots:
+  - id: initial
+    title: Trước — copy toàn bộ context sớm
+    code: |-
+      FROM node:22-alpine
+      WORKDIR /app
+      COPY . .
+      RUN npm ci
+      CMD ["node", "server.js"]
+  - id: layered
+    title: Sau — copy manifests trước
+    code: |-
+      FROM node:22-alpine
+      WORKDIR /app
+      COPY package*.json ./
+      RUN npm ci
+      COPY . .
+      CMD ["node", "server.js"]
+steps:
+  - id: invalidation
+    snapshot: initial
+    title: Quan sát thứ tự cũ
+    description: COPY toàn bộ context đứng trước RUN npm ci, nên thay đổi source có thể làm mất cache của bước cài dependencies.
+    ranges: [[3, 4]]
+  - id: manifests
+    snapshot: layered
+    title: Tách manifests
+    description: Copy manifests trước rồi cài dependencies. Ví dụ giả định lockfile có trong build context và image nền phù hợp ứng dụng.
+    ranges: [[3, 4]]
+  - id: application
+    snapshot: layered
+    title: Copy source sau
+    description: Source được đưa vào sau bước dependencies. Không thực thi Docker hoặc tự tính diff khi người đọc chuyển bước.
+    ranges: [[5, 6]]
+  - id: revisit
+    snapshot: initial
+    title: Quay lại kiểm tra nguyên nhân
+    description: Walkthrough cho phép quay lại snapshot cũ theo thứ tự tác giả; số bước không đồng nghĩa với version hoặc Git history.
+    ranges: [[3, 3]]
+```

@@ -1,0 +1,24 @@
+# Tổng hợp doanh thu
+
+Ví dụ PostgreSQL; đơn vị và trạng thái đơn hàng chỉ mang tính minh họa.
+
+```annotated
+title: Lọc trước và sau khi nhóm
+language: sql
+code: |
+  SELECT customer_id, SUM(total) AS revenue
+  FROM orders
+  WHERE status = 'paid'
+  GROUP BY customer_id
+  HAVING SUM(total) > 1000
+  ORDER BY revenue DESC;
+annotations:
+  - id: where
+    title: Chọn dòng đầu vào
+    description: WHERE loại đơn chưa thanh toán trước khi tính tổng theo khách hàng.
+    ranges: [[2, 3]]
+  - id: aggregate
+    title: Giữ nhóm thỏa điều kiện
+    description: GROUP BY tạo nhóm, HAVING lọc tổng của từng nhóm; đây là thứ tự xử lý logic, không phải execution plan vật lý.
+    ranges: [[1, 1], [4, 5]]
+```

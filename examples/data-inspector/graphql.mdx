@@ -1,0 +1,33 @@
+# GraphQL response có data và errors
+
+Payload được biên soạn, không gọi GraphQL server. Một field nullable có thể là null trong khi các field khác vẫn có dữ liệu; hành vi thực phụ thuộc schema và lỗi.
+
+```data-inspector
+title: Đọc data cùng errors
+json: |-
+  {
+    "data": {
+      "user": {
+        "id": "u_001",
+        "name": "Nguyễn An",
+        "email": null,
+        "active": true
+      }
+    },
+    "errors": [
+      {
+        "message": "Email is not available",
+        "path": ["user", "email"]
+      }
+    ]
+  }
+annotations:
+  - id: nullable
+    pointer: /data/user/email
+    title: Field null không đồng nghĩa toàn bộ response rỗng
+    description: Đối chiếu errors và schema để hiểu vì sao email là null.
+  - id: error-path
+    pointer: /errors/0/path
+    title: Path của GraphQL error
+    description: Đây là dữ liệu path do GraphQL trả về, khác với JSON Pointer dùng để điều hướng viewer.
+```

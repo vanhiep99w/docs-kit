@@ -1,0 +1,33 @@
+# Kiểm tra sức khỏe container
+
+Ví dụ minh họa; đường dẫn và port phải khớp ứng dụng thực tế.
+
+```annotated
+title: Phân biệt readiness và liveness
+language: yaml
+code: |
+  containers:
+    - name: api
+      image: example/api:1.0
+      ports:
+        - containerPort: 8080
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8080
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        periodSeconds: 10
+annotations:
+  - id: readiness
+    title: Khi nào có thể nhận traffic?
+    description: Readiness thất bại khiến pod bị đánh dấu chưa sẵn sàng; không tự restart container.
+    ranges: [[6, 10]]
+  - id: liveness
+    title: Khi nào cần restart?
+    description: Liveness liên tục thất bại đến ngưỡng cấu hình có thể khiến kubelet restart container.
+    ranges: [[11, 15]]
+```

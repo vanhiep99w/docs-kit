@@ -1,0 +1,40 @@
+# Build image với output rõ ràng
+
+Transcript minh họa, không phải kết quả benchmark hoặc build được chạy bởi website.
+
+```terminal-session
+title: Build và kiểm tra image
+context:
+  kind: local
+  cwd: ~/work/api
+steps:
+  - id: build
+    title: Build bằng BuildKit
+    command: |-
+      docker build \
+        --progress=plain \
+        --tag docs-kit-demo:local \
+        .
+    description: Tùy phiên bản và driver, BuildKit có thể ghi tiến trình vào stderr dù build thành công.
+    outputs:
+      - stream: stderr
+        text: |-
+          #1 [internal] load build definition from Dockerfile
+          #1 DONE 0.0s
+          #2 exporting to image
+          #2 naming to docker.io/library/docs-kit-demo:local done
+        annotations:
+          - id: image-name
+            title: Image được gắn tag
+            description: Đây là tiến trình trên stderr, không phải bằng chứng build thất bại.
+            ranges: [[3, 4]]
+    expected: Có image với tag docs-kit-demo:local trên Docker daemon đang dùng.
+    exitCode: 0
+  - id: inspect
+    title: Kiểm tra tag
+    command: docker image inspect docs-kit-demo:local --format '{{.RepoTags}}'
+    outputs:
+      - stream: stdout
+        text: '[docs-kit-demo:local]'
+    exitCode: 0
+```

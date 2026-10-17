@@ -1,0 +1,35 @@
+# Quan sát key trong Redis CLI
+
+Giả sử đã mở redis-cli trong container redis-dev của môi trường thử nghiệm. SET/GET/DEL bên dưới là Redis commands, không phải shell commands. Không có lệnh nào được website thực thi.
+
+```terminal-session
+title: Vòng đời một key thử nghiệm
+context:
+  kind: container
+  label: redis-dev / redis-cli
+steps:
+  - id: set
+    title: Ghi key demo
+    prompt: '127.0.0.1:6379>'
+    command: SET docs-kit:demo "xin chào"
+    outputs:
+      - stream: stdout
+        text: OK
+  - id: get
+    title: Đọc giá trị
+    prompt: '127.0.0.1:6379>'
+    command: GET docs-kit:demo
+    outputs:
+      - stream: stdout
+        text: '"xin chào"'
+    expected: Giá trị đọc lại khớp giá trị đã ghi.
+  - id: delete
+    title: Dọn key thử nghiệm
+    prompt: '127.0.0.1:6379>'
+    warning: DEL xóa key được chỉ định. Chỉ dùng key demo trong môi trường thử nghiệm; xác nhận đúng Redis instance trước khi copy.
+    command: DEL docs-kit:demo
+    outputs:
+      - stream: stdout
+        text: (integer) 1
+    expected: Một key được xóa nếu key vẫn tồn tại.
+```

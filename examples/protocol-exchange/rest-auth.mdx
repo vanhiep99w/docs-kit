@@ -1,0 +1,65 @@
+# Thành công và lỗi xác thực
+
+Các tình huống độc lập được biên soạn cho endpoint giả lập. Không dùng credential thật hoặc gửi request từ trang docs.
+
+```protocol-exchange
+title: Đọc profile qua HTTP
+description: Viewer mô tả dữ liệu, không kiểm chứng token hoặc hành vi của server.
+variants:
+  - id: allowed
+    title: Token được chấp nhận
+    request:
+      method: GET
+      url: https://api.example.invalid/me
+      headers:
+        - id: bearer
+          name: Authorization
+          value: Bearer DEMO_NOT_A_REAL_TOKEN
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - id: content-type
+          name: Content-Type
+          value: application/json
+      body:
+        kind: json
+        json: '{"id":"u_demo","name":"Nguyễn An","sequence":9007199254740993}'
+        annotations:
+          - id: sequence
+            pointer: /sequence
+            title: Giữ nguyên số lớn
+            description: JSON source được copy nguyên lexeme, không qua JavaScript Number.
+    annotations:
+      - id: authentication
+        side: request
+        target: header
+        header: bearer
+        title: Header xác thực minh họa
+        description: Đây chỉ là placeholder; server mới chịu trách nhiệm kiểm chứng token.
+  - id: missing-token
+    title: Không gửi token
+    request:
+      method: GET
+      url: https://api.example.invalid/me
+    response:
+      status: 401
+      statusText: Unauthorized
+      headers:
+        - id: challenge
+          name: WWW-Authenticate
+          value: Bearer realm="demo"
+        - id: content-type
+          name: Content-Type
+          value: application/json
+      body:
+        kind: json
+        json: '{"error":"authentication_required"}'
+    annotations:
+      - id: challenge
+        side: response
+        target: header
+        header: challenge
+        title: Server công bố challenge
+        description: Không suy ra 403 hay quyền truy cập chỉ từ hình thức token; đây là một ví dụ 401 cụ thể.
+```

@@ -1,0 +1,25 @@
+# Viết điều kiện khoảng thời gian
+
+Ví dụ PostgreSQL với cột timestamp without time zone. Khả năng sử dụng index còn phụ thuộc schema và execution plan; không khẳng định query chắc chắn nhanh hơn.
+
+```code-diff
+title: Điều kiện năm thành khoảng nửa mở
+language: sql
+before:
+  code: |-
+    SELECT id, created_at
+    FROM orders
+    WHERE EXTRACT(YEAR FROM created_at) = 2025;
+after:
+  code: |-
+    SELECT id, created_at
+    FROM orders
+    WHERE created_at >= TIMESTAMP '2025-01-01'
+      AND created_at < TIMESTAMP '2026-01-01';
+annotations:
+  - id: range
+    side: after
+    title: Biên đầu gồm, biên cuối không gồm
+    description: Khoảng nửa mở tránh phải đoán độ chính xác của giây cuối năm. Với timestamptz cần xác định múi giờ và biên thời gian tương ứng.
+    ranges: [[3, 4]]
+```

@@ -1,0 +1,38 @@
+# Tách dependency layer khỏi source
+
+Ví dụ Dockerfile cho ứng dụng Node.js có lockfile và build script. Không phải benchmark; hiệu quả cache phụ thuộc build context và thay đổi thực tế.
+
+```code-diff
+title: Không cài lại dependencies chỉ vì sửa source
+language: dockerfile
+before:
+  label: Dockerfile ban đầu
+  code: |-
+    FROM node:22
+    WORKDIR /app
+    COPY . .
+    RUN npm ci
+    RUN npm run build
+    CMD ["node", "dist/main.js"]
+after:
+  label: Dockerfile tách layer
+  code: |-
+    FROM node:22
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm ci
+    COPY . .
+    RUN npm run build
+    CMD ["node", "dist/main.js"]
+annotations:
+  - id: old-copy
+    side: before
+    title: Source làm thay đổi dependency layer
+    description: COPY toàn bộ context trước npm ci khiến thay đổi source có thể làm mất cache của bước cài đặt.
+    ranges: [[3, 4]]
+  - id: dependency-layer
+    side: after
+    title: Tách manifest và source
+    description: Copy manifest/lockfile trước npm ci; copy source sau đó. Cần .dockerignore phù hợp và đủ file cho lifecycle scripts nếu project dùng chúng.
+    ranges: [[3, 5]]
+```

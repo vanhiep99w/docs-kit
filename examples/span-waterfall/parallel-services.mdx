@@ -1,0 +1,67 @@
+# Microservices gọi song song
+
+Trace **minh họa**: checkout gọi inventory và pricing đồng thời, rồi trả lỗi do inventory hết thời gian chờ.
+Parent thể hiện quan hệ được khai báo, không phải chứng minh happens-before.
+
+```span-waterfall
+title: Checkout — fan-out với timeout
+unit: ms
+provenance:
+  kind: illustrative
+  description: Dữ liệu tổng hợp, không kết nối tracing backend và không mô phỏng timeout thật.
+spans:
+  - id: checkout
+    name: POST /checkout
+    service: gateway
+    start: 0
+    duration: 240
+    status: error
+    attributes: '{"http.response.status_code":504,"demo":true}'
+  - id: inventory
+    parent: checkout
+    name: Reserve inventory
+    service: inventory
+    start: 20
+    duration: 200
+    status: error
+    description: Timeout minh họa; không suy ra retry hoặc nguyên nhân lỗi từ độ dài span.
+    attributes: '{"error.type":"timeout","demo.timeout_ms":200}'
+  - id: stock-query
+    parent: inventory
+    name: Read stock
+    service: postgres
+    start: 30
+    duration: 120
+    status: ok
+  - id: pricing
+    parent: checkout
+    name: Calculate price
+    service: pricing
+    start: 20
+    duration: 90
+    status: ok
+    attributes: '{"demo.currency":"VND","demo.total":125000}'
+  - id: promotion
+    parent: pricing
+    name: Read promotion
+    service: redis
+    start: 35
+    duration: 20
+    status: ok
+  - id: timeout-event
+    parent: checkout
+    name: Ghi nhận timeout (span 0 ms)
+    service: gateway
+    start: 220
+    duration: 0
+    description: Được biên soạn như một span thời lượng 0, không phải API span event của OpenTelemetry.
+annotations:
+  - id: parallel
+    span: pricing
+    title: Fan-out cùng mốc bắt đầu
+    description: Inventory và pricing đều bắt đầu ở 20 ms. Không cộng 200 + 90 ms thành latency request.
+  - id: timeout
+    span: inventory
+    title: Lỗi có nhãn và họa tiết
+    description: Không dùng màu đơn độc để biểu diễn trạng thái lỗi; service vẫn có nhãn riêng.
+```

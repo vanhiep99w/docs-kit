@@ -1,0 +1,56 @@
+# Redirect trong authorization flow
+
+Chỉ mô tả một bước điều hướng giả lập. Không có token thật, exchange code, xác minh state hoặc HTTP request từ viewer.
+
+```protocol-exchange
+title: Authorization response và cache validation
+variants:
+  - id: redirect
+    title: Redirect về callback
+    request:
+      method: GET
+      url: /authorize?response_type=code&client_id=demo&state=DEMO_STATE
+    response:
+      status: 302
+      statusText: Found
+      headers:
+        - id: location
+          name: Location
+          value: https://client.example.invalid/callback?code=DEMO_CODE&state=DEMO_STATE
+        - id: session
+          name: Set-Cookie
+          value: demo_session=FAKE; Path=/; Secure; HttpOnly; SameSite=Lax
+        - id: preference
+          name: Set-Cookie
+          value: demo_pref=compact; Path=/; Secure; SameSite=Lax
+    annotations:
+      - id: location
+        side: response
+        target: header
+        header: location
+        title: Location chỉ được hiển thị
+        description: Viewer không follow redirect và không biến URL thành link điều hướng tự động.
+      - id: cookies
+        side: response
+        target: header
+        header: preference
+        title: Header trùng tên vẫn là các field riêng
+        description: Giữ thứ tự và từng dòng Set-Cookie; không gộp bằng dấu phẩy.
+  - id: cached
+    title: Not Modified không có body
+    description: Tình huống cache độc lập, không phải bước tiếp theo của OAuth flow.
+    request:
+      method: GET
+      url: /static/app.js
+      headers:
+        - id: conditional
+          name: If-None-Match
+          value: '"demo-v1"'
+    response:
+      status: 304
+      statusText: Not Modified
+      headers:
+        - id: etag
+          name: ETag
+          value: '"demo-v1"'
+```
