@@ -1,6 +1,6 @@
 {
   "name": "@vanhiep99w/docs-kit",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
   "type": "module",
   "license": "MIT",
@@ -20,7 +20,6 @@
     "examples/code-diff",
     "examples/protocol-exchange",
     "examples/span-waterfall",
-    "examples/concurrency-lanes",
     "examples/code-walkthrough"
   ],
   "sideEffects": [
@@ -107,19 +106,6 @@
       "default": "./dist/components/span-waterfall.js"
     },
     "./styles/span-waterfall.css": "./dist/styles/span-waterfall.css",
-    "./concurrency-lanes": {
-      "types": "./dist/concurrency-lanes/index.d.ts",
-      "default": "./dist/concurrency-lanes/index.js"
-    },
-    "./concurrency-lanes/data": {
-      "types": "./dist/concurrency-lanes/data.d.ts",
-      "default": "./dist/concurrency-lanes/data.js"
-    },
-    "./components/concurrency-lanes": {
-      "types": "./dist/components/concurrency-lanes.d.ts",
-      "default": "./dist/components/concurrency-lanes.js"
-    },
-    "./styles/concurrency-lanes.css": "./dist/styles/concurrency-lanes.css",
     "./components/code-walkthrough": {
       "types": "./dist/components/code-walkthrough.d.ts",
       "default": "./dist/components/code-walkthrough.js"

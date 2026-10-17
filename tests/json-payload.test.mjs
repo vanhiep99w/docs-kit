@@ -31,7 +31,7 @@ test('strict JSON rejects comments, duplicate decoded keys, invalid syntax, exce
 
 test('removed components and legacy walkthrough namespace have no package exports', async () => {
   const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
-  assert.doesNotMatch(Object.keys(manifest.exports).join('\n'), /annotated-example|data-inspector|marble|state-transition/);
+  assert.doesNotMatch(Object.keys(manifest.exports).join('\n'), /annotated-example|data-inspector|marble|state-transition|concurrency-lanes/);
   assert.ok(manifest.exports['./code-walkthrough']);
   assert.ok(manifest.exports['./code-walkthrough/data']);
 });

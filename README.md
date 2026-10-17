@@ -1,10 +1,10 @@
 # @vanhiep99w/docs-kit
 
-Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange, Span Waterfall và Concurrency Lanes có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
+Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.8.0:** xoá các component không còn dùng, thiết kế lại CodeWalkthrough theo kiểu terminal, làm rõ ConcurrencyLanes và bỏ mô tả thừa trong Diff/ProtocolExchange. Bỏ các component không còn dùng; giữ copy nguyên bản, keyboard và nội dung không JavaScript. Đây là thay đổi breaking API; xem hướng dẫn chuyển đổi bên dưới. Chưa publish `0.8.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.9.0:** xoá hẳn ConcurrencyLanes cùng API, stylesheet, remark plugin và ví dụ liên quan. Các component còn lại giữ nguyên. Đây là thay đổi breaking API; xem hướng dẫn chuyển đổi bên dưới. Chưa publish `0.9.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
 
-**Giao diện 0.8.0:** ưu tiên code/dữ liệu thay cho nhiều lớp header. [Thay đổi UI và vị trí thông tin mở rộng →](./docs/compact-ui.md).
+**Giao diện 0.9.0:** ưu tiên code/dữ liệu thay cho nhiều lớp header. [Thay đổi UI và vị trí thông tin mở rộng →](./docs/compact-ui.md).
 
 ## Mục lục
 
@@ -17,7 +17,6 @@ Bộ component và tích hợp build-time dùng chung cho các website tài li�
 - [Code / Config Diff](#code--config-diff)
 - [Protocol Exchange](#protocol-exchange)
 - [Span Waterfall](#span-waterfall)
-- [Concurrency Lanes](#concurrency-lanes)
 - [Viết diagram](#viết-diagram)
 - [Cấu hình D2](#cấu-hình-d2)
 - [D2 nâng cao: viewer, nhiều board và tài nguyên](./docs/d2.md)
@@ -29,6 +28,8 @@ Bộ component và tích hợp build-time dùng chung cho các website tài li�
 - [Phát hành](#phát-hành)
 
 ## Chuyển đổi API
+
+**0.9.0:** xoá hẳn ConcurrencyLanes cùng các entry point `concurrency-lanes`, `concurrency-lanes/data`, `components/concurrency-lanes`, stylesheet và remark plugin. Gỡ import/MDX map và thay các fence tương ứng trong website.
 
 Các component AnnotatedExample, DataInspector, MarbleDiagram (cả bản zoom) và StateTransitionExplorer đã được xoá cùng entry point, CSS và remark plugin. Gỡ các import/MDX map tương ứng trong website sử dụng package.
 
@@ -46,10 +47,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.8.0` được publish:**
+**Cài từ npm sau khi `0.9.0` được publish:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.8.0
+npm install @vanhiep99w/docs-kit@0.9.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -74,7 +75,7 @@ npm install --install-links ../docs-kit
 npm pack
 
 # Trong một website khác
-npm install /path/to/vanhiep99w-docs-kit-0.8.0.tgz
+npm install /path/to/vanhiep99w-docs-kit-0.9.0.tgz
 ```
 
 **Git dependency**, sau khi code đã được commit và push:
@@ -295,16 +296,6 @@ MVP local cho timeline latency phân cấp: span có start/duration/parent/servi
 - CSS: `@vanhiep99w/docs-kit/styles/span-waterfall.css`.
 
 **[Tích hợp, thời gian/parent, API và giới hạn →](./docs/span-waterfall.md)** · **[Ví dụ API/cache/database và fan-out microservices →](./examples/span-waterfall/)**
-
-## Concurrency Lanes
-
-MVP local cho timeline transaction/thread/actor: event, khoảng thực thi/chờ/giữ tài nguyên và mũi tên do tác giả khai báo. Tên tác vụ nằm ngay trên timeline; khoảng chờ dùng nét đứt, khoảng giữ tài nguyên có viền. Các mục chồng nhau xếp dọc, không dịch tọa độ thời gian; có bước logic hoặc thời gian tương đối, provenance, chọn mục/quan hệ và bảng native khi tắt JavaScript. Không suy ra happens-before từ vị trí, không mô phỏng SQL/JVM hoặc xác minh quan hệ.
-
-- Plugin/parser: `remarkConcurrencyLanes`, `parseConcurrencyLanesDescriptor` từ `@vanhiep99w/docs-kit/concurrency-lanes`.
-- Component: `ConcurrencyLanes` từ `@vanhiep99w/docs-kit/components/concurrency-lanes`.
-- CSS: `@vanhiep99w/docs-kit/styles/concurrency-lanes.css`.
-
-**[Tích hợp, tọa độ/quan hệ, API và giới hạn →](./docs/concurrency-lanes.md)** · **[Ví dụ SQL row lock và Java volatile publication →](./examples/concurrency-lanes/)**
 
 ## Viết diagram
 

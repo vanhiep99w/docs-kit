@@ -7,13 +7,12 @@ Dành cho developer đọc tài liệu: công cụ quen thuộc, ít chữ, khô
 | Code Walkthrough | Khung terminal tối, tên file, copy; select bước và trước/sau; chỉ một lời giải thích hiện tại. Không sidebar hay footer giới thiệu. |
 | Code Diff | Code inline/split, word highlights, copy và source links. Bỏ caption, danh sách mô tả annotation và footer “Chi tiết”. |
 | Protocol Exchange | Request/response rõ ràng, headers và body. Bỏ descriptions, annotations và footer; không thêm search/tree JSON lồng vào. |
-| Concurrency Lanes | Nhãn tác vụ ngay trên timeline; event tròn, work tô kín, wait nét đứt, hold viền. Các hàng dùng chung trục. Liên kết đọc được ngay dưới hình. |
 | Span Waterfall | Giữ timeline và native span details; attributes thành JSON được định dạng dễ đọc. |
 | Terminal Session | Giữ transcript, warnings và context; ghi chú dùng native details. |
 
 ## Chuyển đổi
 
-Bốn component không còn trong package: AnnotatedExample, DataInspector, MarbleDiagram (kèm zoom), StateTransitionExplorer. Xoá import, CSS, remark plugin và MDX map tương ứng trong website.
+Các component không còn trong package: AnnotatedExample, DataInspector, MarbleDiagram (kèm zoom), StateTransitionExplorer và ConcurrencyLanes. Xoá import, CSS, remark plugin và MDX map tương ứng trong website.
 
 CodeWalkthrough là component độc lập. Helper chuyển sang `@vanhiep99w/docs-kit/code-walkthrough`; validator/types sang `@vanhiep99w/docs-kit/code-walkthrough/data`. Component/CSS imports và schema snapshots/steps giữ nguyên. Helper chuyển đổi `walkthroughExample` không còn dùng.
 

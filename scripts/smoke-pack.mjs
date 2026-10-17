@@ -40,9 +40,6 @@ try {
     'dist/code-diff/diff.js', 'dist/code/highlight.js', 'dist/code/tokens.js',
     'dist/components/code-diff.js', 'dist/components/code-diff.d.ts',
     'dist/components/code-diff-source.js', 'dist/components/code-diff-source.d.ts', 'dist/styles/code-diff.css',
-    'docs/concurrency-lanes.md', 'examples/concurrency-lanes/sql-row-lock.mdx', 'examples/concurrency-lanes/java-publication.mdx',
-    'dist/concurrency-lanes/index.js', 'dist/concurrency-lanes/index.d.ts', 'dist/concurrency-lanes/data.js', 'dist/concurrency-lanes/data.d.ts',
-    'dist/components/concurrency-lanes.js', 'dist/components/concurrency-lanes.d.ts', 'dist/styles/concurrency-lanes.css',
     'docs/span-waterfall.md', 'examples/span-waterfall/api-cache.mdx', 'examples/span-waterfall/parallel-services.mdx',
     'dist/span-waterfall/index.js', 'dist/span-waterfall/index.d.ts', 'dist/span-waterfall/data.js', 'dist/span-waterfall/data.d.ts',
     'dist/components/span-waterfall.js', 'dist/components/span-waterfall.d.ts', 'dist/styles/span-waterfall.css',
@@ -57,7 +54,7 @@ try {
     'dist/styles/source-explorer.css', 'dist/styles/source-explorer-fumadocs.css']) {
     assert.ok(names.has(required), `Missing packed file: ${required}`);
   }
-  for (const file of names) assert.doesNotMatch(file, /annotated-example|data-inspector|marble|state-transition/);
+  for (const file of names) assert.doesNotMatch(file, /annotated-example|data-inspector|marble|state-transition|concurrency-lanes/);
   const consumer = path.join(temporary, 'consumer');
   await mkdir(path.join(consumer, 'workdir'), { recursive: true });
   const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
@@ -105,9 +102,6 @@ import { ProtocolExchange } from '@vanhiep99w/docs-kit/components/protocol-excha
 import { prepareSpanWaterfall, remarkSpanWaterfall } from '@vanhiep99w/docs-kit/span-waterfall';
 import { waterfallRows, validatePreparedSpanWaterfall } from '@vanhiep99w/docs-kit/span-waterfall/data';
 import { SpanWaterfall } from '@vanhiep99w/docs-kit/components/span-waterfall';
-import { parseConcurrencyLanesDescriptor, remarkConcurrencyLanes } from '@vanhiep99w/docs-kit/concurrency-lanes';
-import { validateConcurrencyLanes, layoutConcurrencyLanes } from '@vanhiep99w/docs-kit/concurrency-lanes/data';
-import { ConcurrencyLanes } from '@vanhiep99w/docs-kit/components/concurrency-lanes';
 process.chdir(fileURLToPath(new URL('./workdir', import.meta.url)));
 const fence = String.fromCharCode(96).repeat(3);
 for (const layout of ['elk', 'dagre', 'tala']) {
@@ -174,14 +168,6 @@ assert.match(renderToStaticMarkup(createElement(SpanWaterfall, {data:trace})), /
 const traceMDX = await compile({value:fence+'span-waterfall\ntitle: Packed trace\nunit: ms\nprovenance: {kind: illustrative, description: Synthetic}\nspans: [{id: r, name: Root, service: api, start: 0, duration: 10}]\n'+fence,path:'trace.mdx'}, {remarkPlugins:[remarkSpanWaterfall]});
 assert.match(String(traceMDX), /SpanWaterfall/);
 const traceCssURL = new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/span-waterfall.css'));
-const lanesYAML = 'title: Packed lanes\nunit: step\nprovenance: {kind: illustrative, description: Synthetic}\nlanes: [{id: a, label: A}]\nevents: [{id: e, lane: a, at: 1, label: Event}]';
-const lanes = parseConcurrencyLanesDescriptor(lanesYAML);
-validateConcurrencyLanes(lanes);
-assert.equal(layoutConcurrencyLanes(lanes).items[0].number, 1);
-assert.match(renderToStaticMarkup(createElement(ConcurrencyLanes, {data:lanes})), /Bảng timeline đầy đủ/);
-const lanesMDX = await compile({value:fence+'concurrency-lanes\n'+lanesYAML+'\n'+fence,path:'lanes.mdx'}, {remarkPlugins:[remarkConcurrencyLanes]});
-assert.match(String(lanesMDX), /ConcurrencyLanes/);
-assert.match(await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/concurrency-lanes.css')), 'utf8'), /\.concurrency-lanes/);
 const walkthrough = await prepareCodeWalkthrough({title:'Packed walkthrough',language:'typescript',snapshots:[{id:'a',title:'A',code:'const a = 1;',source:{project:'demo',snapshot:'v0'}}],steps:[{id:'s',snapshot:'a',title:'Step',description:'Text',ranges:[[1,1]]}]});
 validateCodeWalkthrough(walkthrough);
 assert.match(renderToStaticMarkup(createElement(CodeWalkthrough, {data:walkthrough})), /--walkthrough-token-dark/);

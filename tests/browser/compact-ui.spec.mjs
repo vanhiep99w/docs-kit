@@ -5,7 +5,7 @@ const cases = [
   ['terminal', 'terminal-session', 800], ['diff-words', 'code-diff', 450],
   ['walkthrough', 'code-walkthrough', 400],
   ['protocol', 'protocol-exchange', 950],
-  ['waterfall', 'span-waterfall', 650], ['concurrency', 'concurrency-lanes', 900],
+  ['waterfall', 'span-waterfall', 650],
 ];
 
 test('all new viewers prioritize content and keep a compact default footprint without reducing code font size', async ({ page }) => {

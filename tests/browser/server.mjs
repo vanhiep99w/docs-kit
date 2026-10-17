@@ -8,7 +8,6 @@ import { renderDiagram } from '../../dist/d2/render.mjs';
 import { prepareCodeWalkthrough } from '../../dist/code-walkthrough/index.js';
 import { parseTerminalSession } from '../../dist/terminal-session/index.js';
 import { prepareCodeDiff, parseCodeDiffDescriptor } from '../../dist/code-diff/index.js';
-import { parseConcurrencyLanesDescriptor } from '../../dist/concurrency-lanes/index.js';
 import { parseSpanWaterfallDescriptor } from '../../dist/span-waterfall/index.js';
 import { prepareProtocolExchange } from '../../dist/protocol-exchange/index.js';
 
@@ -131,15 +130,6 @@ for (const [key, name] of [['waterfall', 'api-cache'], ['waterfall-parallel', 'p
   const mdx = await readFile(new URL('../../examples/span-waterfall/' + name + '.mdx', import.meta.url), 'utf8');
   data[key] = { waterfall: parseSpanWaterfallDescriptor(mdx.split('```span-waterfall\n')[1].split('```')[0]) };
 }
-for (const [key, name] of [['concurrency', 'sql-row-lock'], ['concurrency-java', 'java-publication']]) {
-  const mdx = await readFile(new URL('../../examples/concurrency-lanes/' + name + '.mdx', import.meta.url), 'utf8');
-  data[key] = { concurrency: parseConcurrencyLanesDescriptor(mdx.split('```concurrency-lanes\n')[1].split('```')[0]) };
-}
-data['concurrency-overlap'] = structuredClone(data.concurrency);
-data['concurrency-overlap'].concurrency.events.push({ id: 'same-coordinate', lane: 't1', at: 1, label: 'Cùng mốc với lock 👋' });
-data['concurrency-overlap'].concurrency.lanes[0].label = 'Transaction có tên dài cần đọc đầy đủ trong phần giải thích bên dưới, không làm lệch timeline';
-data['concurrency-overlap'].concurrency.lanes.push({ id: 'idle', label: 'Actor không có action' });
-const concurrencyCss = await readFile(new URL('../../dist/styles/concurrency-lanes.css', import.meta.url), 'utf8');
 const waterfallCss = await readFile(new URL('../../dist/styles/span-waterfall.css', import.meta.url), 'utf8');
 const exchangeCss = await readFile(new URL('../../dist/styles/protocol-exchange.css', import.meta.url), 'utf8');
 const diffCss = await readFile(new URL('../../dist/styles/code-diff.css', import.meta.url), 'utf8');
@@ -162,6 +152,6 @@ const server = createServer(async (req, res) => {
   }
   const props = data[url.searchParams.get('case') ?? 'static'] ?? data.static;
   res.setHeader('content-type', 'text/html;charset=utf-8');
-  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + terminalCss + diffCss + exchangeCss + waterfallCss + concurrencyCss + walkthroughCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
+  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + terminalCss + diffCss + exchangeCss + waterfallCss + walkthroughCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
 });
 server.listen(4178, '127.0.0.1', () => console.log('Browser fixtures ready'));

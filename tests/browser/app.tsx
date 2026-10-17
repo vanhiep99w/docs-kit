@@ -7,7 +7,6 @@ import { CodeWalkthroughWithSource } from '../../src/components/code-walkthrough
 import { TerminalSession, type TerminalSessionData } from '../../src/components/terminal-session.js';
 import { CodeDiff, type PreparedCodeDiff } from '../../src/components/code-diff.js';
 import { CodeDiffWithSource } from '../../src/components/code-diff-source.js';
-import { ConcurrencyLanes, type ConcurrencyLanesData } from '../../src/components/concurrency-lanes.js';
 import { SpanWaterfall, type PreparedSpanWaterfall } from '../../src/components/span-waterfall.js';
 import { ProtocolExchange, type PreparedProtocolExchange } from '../../src/components/protocol-exchange.js';
 
@@ -20,9 +19,8 @@ function WalkthroughDemo({ data }: { data: WalkthroughCase }) {
   return data.provider ? <SourceExplorerProvider manifestUrl="/manifest.json">{content}</SourceExplorerProvider> : content;
 }
 
-export function App({ data }: { data: D2InteractiveDiagramProps | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } | { concurrency: ConcurrencyLanesData } }) {
+export function App({ data }: { data: D2InteractiveDiagramProps | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } }) {
   if ('walkthrough' in data) return <WalkthroughDemo data={data} />;
-  if ('concurrency' in data) return <main><h1>Diễn biến đồng thời</h1><p>Lane là actor; quan hệ do tác giả khai báo, không mô phỏng hệ thống.</p><ConcurrencyLanes data={data.concurrency} /></main>;
   if ('waterfall' in data) return <main><h1>Thời gian request</h1><p>Trace tĩnh dùng chung mốc thời gian; không kết nối backend.</p><SpanWaterfall data={data.waterfall} /></main>;
   if ('exchange' in data) return <main><h1>Request và response</h1><p>So sánh các tình huống độc lập, không gọi API thật.</p><ProtocolExchange data={data.exchange} /></main>;
   if ('diff' in data) {

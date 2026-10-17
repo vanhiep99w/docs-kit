@@ -11,7 +11,6 @@
 | [Code Diff](./code-diff.md) | So sánh code/config trước và sau |
 | [Protocol Exchange](./protocol-exchange.md) | Request/response HTTP tĩnh |
 | [Span Waterfall](./span-waterfall.md) | Timeline latency phân cấp |
-| [Concurrency Lanes](./concurrency-lanes.md) | Tác vụ đồng thời trên cùng trục thời gian |
 
 ## Nguyên tắc
 
