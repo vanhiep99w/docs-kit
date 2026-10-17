@@ -7,8 +7,6 @@ import { TerminalSession } from '@vanhiep99w/docs-kit/components/terminal-sessio
 import { parseTerminalSession } from '@vanhiep99w/docs-kit/terminal-session';
 import { CodeDiff } from '@vanhiep99w/docs-kit/components/code-diff';
 import { prepareCodeDiff } from '@vanhiep99w/docs-kit/code-diff';
-import { DataInspector } from '@vanhiep99w/docs-kit/components/data-inspector';
-import { prepareDataInspector } from '@vanhiep99w/docs-kit/data-inspector';
 
 const render = (Component, data, props) => renderToStaticMarkup(createElement(Component, { data, ...props }));
 
@@ -33,28 +31,4 @@ test('short plain output does not need a disclosure row; explicit collapse and a
   assert.match(html, /<details class="terminal-session-output" data-stream="stdout"><summary>/);
   assert.match(html, /<details class="terminal-session-output" data-stream="stdout" open="">/);
   assert.match(html, /aria-label="stderr: Bước 1"/);
-});
-
-test('diff retains authored metadata in the details footer while only significant missing-newline differences get an inline symbol', async () => {
-  const data = await prepareCodeDiff({ title: 'Authored title', caption: 'Assumptions must remain readable.', before: { label: 'v1', code: 'old' }, after: { label: 'v2', code: 'new' } }, { highlight: false });
-  const html = render(CodeDiff, data);
-  assert.match(html, /<figcaption[^>]*class="code-diff-sr-only">Authored title/);
-  assert.match(html, /<details class="code-diff-info"><summary>Chi tiết<\/summary><strong>Authored title/);
-  assert.match(html, /Assumptions must remain readable/); assert.match(html, /Trước · v1/); assert.match(html, /Không có newline cuối/);
-  assert.doesNotMatch(html, /class="code-diff-header"|class="code-diff-files"|class="code-diff-no-newline"/);
-  const newline = await prepareCodeDiff({ title: 'Newline', before: { code: 'same' }, after: { code: 'same\n' } }, { highlight: false });
-  const newlineHTML = render(CodeDiff, newline);
-  assert.equal([...newlineHTML.matchAll(/class="code-diff-no-newline"/g)].length, 1);
-  assert.match(newlineHTML, /∅↵/);
-});
-
-test('nested inspector quiet chrome leaves JSON, raw source, annotations and unique IDs in SSR', () => {
-  const data = prepareDataInspector({ title: 'Embedded attributes', json: '{"id":9007199254740993}', annotations: [{ id: 'id', pointer: '/id', title: 'Exact ID', description: 'No rounding' }] });
-  const html = render(DataInspector, data, { embedded: true });
-  assert.match(html, /data-embedded="true"/); assert.match(html, /9007199254740993/);
-  assert.match(html, /<details class="data-inspector-tools" hidden="">/);
-  assert.match(html, /JSON gốc đầy đủ/); assert.match(html, /Exact ID/);
-  const ids = [...html.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
-  assert.equal(ids.length, new Set(ids).size);
-  assert.ok([...html.matchAll(/href="#([^"]+)"/g)].every((match) => ids.includes(match[1])));
 });

@@ -46,14 +46,15 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
 
   return <figure className={['concurrency-lanes', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${uid}-title`}>
     <figcaption className="concurrency-lanes-header"><span id={`${uid}-title`}>{data.title}</span><small>{data.provenance.kind === 'illustrative' ? 'Dữ liệu minh họa' : 'Dữ liệu đo thực tế'} · {data.unit === 'step' ? 'bước logic' : data.unit}</small></figcaption>
-    <div className="concurrency-lanes-legend" aria-label="Ký hiệu timeline"><span>○ Sự kiện</span><span>━ Thực thi</span><span>┄ Chờ</span><span>═ Giữ tài nguyên</span><span>→ Quan hệ khai báo</span></div>
+    <p className="concurrency-lanes-hint">Mỗi hàng là một tác nhân. Đọc từ trái → phải trên cùng trục {data.unit === 'step' ? 'bước logic' : 'thời gian'}.</p>
+    <div className="concurrency-lanes-legend" aria-label="Ký hiệu timeline"><span data-kind="event"><i />Sự kiện</span><span data-kind="work"><i />Đang chạy</span><span data-kind="wait"><i />Đang chờ</span><span data-kind="hold"><i />Giữ tài nguyên</span></div>
     <div className="concurrency-lanes-scroll" tabIndex={0} role="region" aria-label={`Timeline: ${data.title}`}>
       <div className="concurrency-lanes-chart">
         <div className="concurrency-lanes-ruler"><span>{data.unit === 'step' ? 'Bước logic →' : `${data.unit} →`}</span><svg width={layout.width} height={36} aria-hidden="true">
           {ticks.map((tick) => <g key={tick} transform={`translate(${24 + tick / layout.extent * (layout.width - 48)} 0)`}><text y={15} textAnchor={tick === 0 ? 'start' : tick === layout.extent ? 'end' : 'middle'}>{formatConcurrencyTime(tick)}</text><line y1={22} y2={30} /></g>)}
         </svg></div>
         <div className="concurrency-lanes-body"><div className="concurrency-lanes-labels">{layout.lanes.map((lane, index) => <div key={lane.id} style={{ height: lane.height, '--lane-color': `var(--concurrency-color-${index % 4})` } as CSSProperties} data-lane={lane.id}>
-          <span title={data.lanes[index].label}>{data.lanes[index].label}</span><small>{lane.id}</small>
+          <span title={data.lanes[index].label}>{data.lanes[index].label}</span>
         </div>)}</div>
           <svg className="concurrency-lanes-svg" width={layout.width} height={layout.height} aria-label="Sự kiện, khoảng và liên kết" role="group">
             <defs><marker id={`${uid}-arrow`} viewBox="0 0 8 8" refX={7} refY={4} markerWidth={7} markerHeight={7} orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 8 4 0 8Z" /></marker></defs>
@@ -67,14 +68,17 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
             {layout.items.map((position) => {
               const item = byId.get(position.id)!;
               const interval = 'kind' in item ? item : undefined;
-              const center = (position.x + position.endX) / 2;
+              const label = Array.from(item.label).length > 36 ? Array.from(item.label).slice(0, 35).join('') + '…' : item.label;
+              const labelX = Math.max(8, Math.min(position.x, layout.width - Math.min(Array.from(item.label).length, 36) * 7 - 20));
               const laneIndex = data.lanes.findIndex((lane) => lane.id === item.lane);
               return <a key={item.id} href={`#${targetId(item.id)}`} aria-label={`#${position.number}: ${item.label}`} aria-current={selected === item.id ? 'true' : undefined} onClick={(event) => reveal(event, item.id)}>
                 <g className="concurrency-lanes-item" data-item={item.id} data-kind={interval?.kind ?? 'event'} data-selected={related(item.id)} style={{ '--lane-color': `var(--concurrency-color-${laneIndex % 4})` } as CSSProperties}>
                   <title>{`${item.label} · ${interval ? `${time(interval.start)}–${time(interval.end)} · ${kindLabels[interval.kind]}` : time('at' in item ? item.at : 0)}`}</title>
-                  {interval && <rect className="concurrency-lanes-interval" x={position.x} y={position.y - 5} width={Math.max(1, position.endX - position.x)} height={10} />}
-                  {interval ? <rect className="concurrency-lanes-badge" x={center - 14} y={position.y - 11} width={28} height={22} rx={3} /> : <circle className="concurrency-lanes-badge" cx={position.x} cy={position.y} r={13} />}
-                  <text x={center} y={position.y} textAnchor="middle" dominantBaseline="central">{position.number}</text>
+                  <rect className="concurrency-lanes-hit" x={Math.min(labelX, position.x - 12)} y={position.y - 30} width={Math.max(position.endX - position.x + 24, Math.min(Array.from(item.label).length, 36) * 7 + 20)} height={44} />
+                  <text className="concurrency-lanes-label" x={labelX} y={position.y - 15}>{label}</text>
+                  {interval ? <rect className="concurrency-lanes-interval" x={position.x} y={position.y - 5} width={Math.max(1, position.endX - position.x)} height={10} rx={2} />
+                    : <circle className="concurrency-lanes-badge" cx={position.x} cy={position.y} r={5} />}
+
                 </g>
               </a>;
             })}
@@ -82,7 +86,10 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
         </div>
       </div>
     </div>
-    <details className="concurrency-lanes-reference" ref={reference}><summary>Sự kiện và quan hệ</summary>
+    {!!data.relations?.length && <div className="concurrency-lanes-connections" aria-label="Liên kết giữa các tác nhân">{data.relations.map((relation) => <a key={relation.id} href={`#${relationId(relation.id)}`} onClick={(event) => reveal(event, relation.id)}>
+      <span>{data.lanes.find((lane) => lane.id === byId.get(relation.from)!.lane)!.label} → {data.lanes.find((lane) => lane.id === byId.get(relation.to)!.lane)!.label}</span>{relation.label}
+    </a>)}</div>}
+    <details className="concurrency-lanes-reference" ref={reference}><summary>Chi tiết tác vụ</summary>
     {!!data.relations?.length && <section className="concurrency-lanes-relations" aria-labelledby={`${uid}-relations`}><h3 id={`${uid}-relations`}>Quan hệ được khai báo</h3>
       {data.relations.map((relation, index) => <details key={relation.id} id={relationId(relation.id)} data-relation-detail={relation.id} data-selected={selected === relation.id}
         ref={(node) => { if (node) details.current.set(relation.id, node); else details.current.delete(relation.id); }}>
@@ -97,7 +104,7 @@ export function ConcurrencyLanes({ data, className }: ConcurrencyLanesProps) {
           const item = byId.get(position.id)!;
           return <details key={item.id} id={targetId(item.id)} data-detail={item.id} data-selected={related(item.id)} ref={(node) => { if (node) details.current.set(item.id, node); else details.current.delete(item.id); }}>
             <summary onClick={() => setSelection({ data, id: item.id })}><span className="concurrency-lanes-number">{position.number}</span>{item.label}<small>{'at' in item ? time(item.at) : `${time(item.start)}–${time(item.end)} · ${kindLabels[item.kind]}`}</small></summary>
-            <p>{item.description ?? 'Không có giải thích bổ sung.'}</p><p className="concurrency-lanes-item-id">ID: {item.id}{'start' in item ? ` · Độ dài: ${time(item.end - item.start)}` : ''}</p>
+            {item.description && <p>{item.description}</p>}
           </details>;
         })}
         {!all.some((item) => item.lane === lane.id) && <p className="concurrency-lanes-empty">Không có mục trong lane này.</p>}

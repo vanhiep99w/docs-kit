@@ -8,10 +8,6 @@ import { compile, run } from '@mdx-js/mdx';
 import { prepareCodeDiff, remarkCodeDiff } from '@vanhiep99w/docs-kit/code-diff';
 import { diffCodeLines, splitDiffRows, validateCodeDiffInput, validatePreparedCodeDiff } from '@vanhiep99w/docs-kit/code-diff/data';
 import { CodeDiff } from '@vanhiep99w/docs-kit/components/code-diff';
-import { remarkMarble, parseMarbleDescriptor } from '@vanhiep99w/docs-kit/marble';
-import { prepareMarbleDiagram } from '@vanhiep99w/docs-kit/marble/data';
-import { MarbleDiagram } from '@vanhiep99w/docs-kit/components/marble';
-import { MarbleZoomDiagram } from '@vanhiep99w/docs-kit/components/marble-zoom';
 
 const plain = { highlight: false };
 const make = (before, after, extra = {}) => ({ title: 'Detail', wordDiff: true, before: { code: before }, after: { code: after }, ...extra });
@@ -93,38 +89,4 @@ test('word highlights cross syntax token boundaries without losing colors, text 
   const html = renderToStaticMarkup(createElement(CodeDiff, { data }));
   assert.equal([...html.matchAll(/data-word-changed="true"/g)].length, 4);
   assert.match(html, /--code-diff-token-light:#123456/); assert.match(html, /--code-diff-token-dark:#654321/);
-});
-
-test('new diff and zoom MDX fixtures compile and opt-in Marble uses the client wrapper only when requested', async () => {
-  for (const [path, plugin, components, expected] of [
-    ['../examples/code-diff/split-words.mdx', remarkCodeDiff, { CodeDiff }, /data-word-changed/],
-    ['../examples/marble/zoom.mdx', remarkMarble, { MarbleZoomDiagram }, /marble-zoom-controls/],
-  ]) {
-    const file = new URL(path, import.meta.url);
-    const output = await compile({ value: await readFile(file, 'utf8'), path: file.pathname }, { remarkPlugins: [plugin], outputFormat: 'function-body' });
-    const { default: Content } = await run(String(output), { ...runtime, baseUrl: import.meta.url });
-    assert.match(renderToStaticMarkup(createElement(Content, { components })), expected);
-  }
-  const base = '```marble\ntitle: Base\nrows: [{label: a, marble: "--a|"}]\n```';
-  assert.doesNotMatch(String(await compile(base, { remarkPlugins: [remarkMarble] })), /MarbleZoomDiagram/);
-  assert.throws(() => parseMarbleDescriptor('title: Bad\nzoom: yes\nrows: [{label: a, marble: "--a|"}]'), /zoom must be boolean/);
-});
-
-test('static frame spacing changes all coordinates together while preserving frames, marker size and server-first entry', async () => {
-  const data = { title: 'Spacing', rows: [{ label: 'A', marble: '--(ab|)' }, { label: 'B', marble: '--(xy|)' }] };
-  const prepared = prepareMarbleDiagram(data);
-  for (const frameWidth of [36, 48, 60, 72, 96]) {
-    const html = renderToStaticMarkup(createElement(MarbleDiagram, { data, frameWidth }));
-    assert.match(html, new RegExp(`translate\\(${24 + 2 * frameWidth} `)); assert.match(html, /r="14"/);
-    assert.equal([...html.matchAll(/data-frame="2"/g)].length, 6);
-    assert.deepEqual(prepareMarbleDiagram(data), prepared);
-  }
-  for (const frameWidth of [0, 35, 97, NaN, Infinity]) assert.throws(() => renderToStaticMarkup(createElement(MarbleDiagram, { data, frameWidth })), /frameWidth/);
-  assert.equal(renderToStaticMarkup(createElement(MarbleZoomDiagram, data)), renderToStaticMarkup(createElement(MarbleZoomDiagram, { data })));
-  const { build } = await import('esbuild');
-  for (const [name, symbol] of [['marble-zoom', 'MarbleZoomDiagram'], ['code-diff', 'CodeDiff']]) {
-    const result = await build({ stdin: { contents: `export { ${symbol} } from '@vanhiep99w/docs-kit/components/${name}';`, resolveDir: process.cwd() }, bundle: true, platform: 'browser', format: 'esm', write: false, metafile: true, external: ['react', 'react/jsx-runtime'], minify: true });
-    assert.doesNotMatch(Object.keys(result.metafile.inputs).join('\n'), /node_modules\/|shiki|yaml|code-diff\/diff\.|word-diff|source-explorer\/provider/);
-    console.log(name, result.outputFiles[0].contents.length, 'minified bytes');
-  }
 });

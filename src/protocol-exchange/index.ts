@@ -4,18 +4,18 @@ import type { Plugin } from 'unified';
 import { parseDocument } from 'yaml';
 import { visit } from 'unist-util-visit';
 import { dataElement } from '../mdx/data-element.js';
-import { prepareDataInspector } from '../data-inspector/index.js';
+import { prepareJSONPayload } from '../json/prepare.js';
 import { validateProtocolExchangeInput, validatePreparedProtocolExchange, type ProtocolBodyInput, type PreparedProtocolBody, type ProtocolExchangeInput, type PreparedProtocolExchange } from './data.js';
 
 export type { ProtocolExchangeInput, PreparedProtocolExchange, ProtocolBodyInput, PreparedProtocolBody, ProtocolHeader, ProtocolRequest, ProtocolResponse, ProtocolVariant, ProtocolAnnotation } from './data.js';
 
-/** Build-only: prepare JSON payloads through the existing lossless Inspector pipeline. */
+/** Build-only: prepare JSON payloads through the internal lossless JSON pipeline. */
 export function prepareProtocolExchange(input: ProtocolExchangeInput): PreparedProtocolExchange {
   validateProtocolExchangeInput(input);
   function body(value: ProtocolBodyInput | undefined, title: string): PreparedProtocolBody | undefined {
     if (value === undefined) return undefined;
     if (value.kind === 'text') return { ...value };
-    return { kind: 'json', data: prepareDataInspector({
+    return { kind: 'json', data: prepareJSONPayload({
       title, json: value.json,
       ...(value.expandedDepth !== undefined ? { expandedDepth: value.expandedDepth } : {}),
       ...(value.annotations ? { annotations: value.annotations } : {}),

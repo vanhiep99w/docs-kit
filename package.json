@@ -1,6 +1,6 @@
 {
   "name": "@vanhiep99w/docs-kit",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
   "type": "module",
   "license": "MIT",
@@ -16,15 +16,12 @@
     "README.md",
     "docs",
     "examples/d2",
-    "examples/annotated-example",
     "examples/terminal-session",
-    "examples/marble",
     "examples/code-diff",
-    "examples/data-inspector",
     "examples/protocol-exchange",
     "examples/span-waterfall",
     "examples/concurrency-lanes",
-    "examples/state-transition"
+    "examples/code-walkthrough"
   ],
   "sideEffects": [
     "**/*.css"
@@ -54,23 +51,6 @@
       "types": "./dist/components/d2-interactive.d.ts",
       "default": "./dist/components/d2-interactive.js"
     },
-    "./annotated-example": {
-      "types": "./dist/annotated-example/index.d.ts",
-      "default": "./dist/annotated-example/index.js"
-    },
-    "./annotated-example/data": {
-      "types": "./dist/annotated-example/data.d.ts",
-      "default": "./dist/annotated-example/data.js"
-    },
-    "./components/annotated-example": {
-      "types": "./dist/components/annotated-example.d.ts",
-      "default": "./dist/components/annotated-example.js"
-    },
-    "./components/annotated-example-source": {
-      "types": "./dist/components/annotated-example-source.d.ts",
-      "default": "./dist/components/annotated-example-source.js"
-    },
-    "./styles/annotated-example.css": "./dist/styles/annotated-example.css",
     "./terminal-session": {
       "types": "./dist/terminal-session/index.d.ts",
       "default": "./dist/terminal-session/index.js"
@@ -84,19 +64,6 @@
       "default": "./dist/components/terminal-session.js"
     },
     "./styles/terminal-session.css": "./dist/styles/terminal-session.css",
-    "./marble": {
-      "types": "./dist/marble/index.d.ts",
-      "default": "./dist/marble/index.js"
-    },
-    "./marble/data": {
-      "types": "./dist/marble/data.d.ts",
-      "default": "./dist/marble/data.js"
-    },
-    "./components/marble": {
-      "types": "./dist/components/marble.d.ts",
-      "default": "./dist/components/marble.js"
-    },
-    "./styles/marble.css": "./dist/styles/marble.css",
     "./code-diff": {
       "types": "./dist/code-diff/index.d.ts",
       "default": "./dist/code-diff/index.js"
@@ -114,19 +81,6 @@
       "default": "./dist/components/code-diff-source.js"
     },
     "./styles/code-diff.css": "./dist/styles/code-diff.css",
-    "./data-inspector": {
-      "types": "./dist/data-inspector/index.d.ts",
-      "default": "./dist/data-inspector/index.js"
-    },
-    "./data-inspector/data": {
-      "types": "./dist/data-inspector/data.d.ts",
-      "default": "./dist/data-inspector/data.js"
-    },
-    "./components/data-inspector": {
-      "types": "./dist/components/data-inspector.d.ts",
-      "default": "./dist/components/data-inspector.js"
-    },
-    "./styles/data-inspector.css": "./dist/styles/data-inspector.css",
     "./protocol-exchange": {
       "types": "./dist/protocol-exchange/index.d.ts",
       "default": "./dist/protocol-exchange/index.js"
@@ -166,14 +120,6 @@
       "default": "./dist/components/concurrency-lanes.js"
     },
     "./styles/concurrency-lanes.css": "./dist/styles/concurrency-lanes.css",
-    "./annotated-example/walkthrough": {
-      "types": "./dist/annotated-example/walkthrough.d.ts",
-      "default": "./dist/annotated-example/walkthrough.js"
-    },
-    "./annotated-example/walkthrough-data": {
-      "types": "./dist/annotated-example/walkthrough-data.d.ts",
-      "default": "./dist/annotated-example/walkthrough-data.js"
-    },
     "./components/code-walkthrough": {
       "types": "./dist/components/code-walkthrough.d.ts",
       "default": "./dist/components/code-walkthrough.js"
@@ -183,22 +129,13 @@
       "default": "./dist/components/code-walkthrough-source.js"
     },
     "./styles/code-walkthrough.css": "./dist/styles/code-walkthrough.css",
-    "./state-transition": {
-      "types": "./dist/state-transition/index.d.ts",
-      "default": "./dist/state-transition/index.js"
+    "./code-walkthrough": {
+      "types": "./dist/code-walkthrough/index.d.ts",
+      "default": "./dist/code-walkthrough/index.js"
     },
-    "./state-transition/data": {
-      "types": "./dist/state-transition/data.d.ts",
-      "default": "./dist/state-transition/data.js"
-    },
-    "./components/state-transition": {
-      "types": "./dist/components/state-transition.d.ts",
-      "default": "./dist/components/state-transition.js"
-    },
-    "./styles/state-transition.css": "./dist/styles/state-transition.css",
-    "./components/marble-zoom": {
-      "types": "./dist/components/marble-zoom.d.ts",
-      "default": "./dist/components/marble-zoom.js"
+    "./code-walkthrough/data": {
+      "types": "./dist/code-walkthrough/data.d.ts",
+      "default": "./dist/code-walkthrough/data.js"
     }
   },
   "scripts": {

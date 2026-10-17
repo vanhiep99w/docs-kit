@@ -13,22 +13,16 @@ test('copies complete originals exactly, without gutters, folded summaries or di
     await expect(button).toBeFocused();
   }
   await expect(page.locator('.code-diff-no-newline')).toHaveCount(0); // Both sides omit the final newline: no redundant inline note.
-  await page.locator('.code-diff-info > summary').click();
-  await expect(page.locator('.code-diff-info')).toContainText('Không có newline cuối');
+  await expect(page.locator('.code-diff-info, .code-diff-annotations')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
 test('line references remain side-specific after insertion and annotated equal lines stay visible', async ({ page }) => {
   await page.goto('/?case=diff');
-  await page.getByRole('link', { name: 'Giá trị cũ' }).click();
-  await expect(page.locator('.code-diff-number:target')).toHaveAttribute('data-before-line', '9');
-  await page.getByRole('link', { name: 'Giá trị mới' }).click();
-  await expect(page.locator('.code-diff-number:target')).toHaveAttribute('data-after-line', '10');
-  await expect(page.locator('.code-diff-number:target').locator('..')).toHaveAttribute('data-type', 'add');
-  const pinned = page.locator('[data-after-line="3"]');
-  await expect(pinned).toBeVisible();
-  await page.getByRole('link', { name: 'Dòng không đổi cần giải thích' }).click();
-  await expect(pinned).toHaveJSProperty('id', decodeURIComponent(new URL(page.url()).hash.slice(1)));
+  await expect(page.locator('[data-before-line="9"]').locator('..')).toHaveAttribute('data-type', 'remove');
+  await expect(page.locator('[data-after-line="10"]').locator('..')).toHaveAttribute('data-type', 'add');
+  await expect(page.locator('[data-after-line="3"]')).toBeVisible();
+  await expect(page.locator('.code-diff-annotations')).toHaveCount(0);
 });
 
 test('unchanged sections use keyboard-native disclosure and do not fetch extra data', async ({ page }) => {
@@ -66,7 +60,7 @@ test('responsive inline diff keeps wide lines scrollable and uses the host theme
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   const scroll = page.getByRole('region', { name: 'Diff: Giữ đúng số dòng sau khi chèn' });
   expect(await scroll.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
-  await expect(page.getByRole('list', { name: 'Giải thích thay đổi' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Giải thích thay đổi' })).toHaveCount(0);
   await page.screenshot({ path: 'test-results/code-diff-mobile-dark.png', fullPage: true });
 });
 
@@ -84,7 +78,7 @@ test('optional Source Explorer adapter opens the correct file snapshot for each 
   await expect(page.locator('.source-drawer')).toHaveCount(0);
 });
 
-test('all edits, annotations and unchanged source remain available without JavaScript', async ({ browser }) => {
+test('all edits and unchanged source remain available without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto('/?case=diff');
@@ -93,8 +87,7 @@ test('all edits, annotations and unchanged source remain available without JavaS
   await expect(page.locator('.code-diff-row[data-type="remove"]').first()).toBeVisible();
   const fold = page.locator('.code-diff-fold').first();
   await fold.locator('summary').click(); await expect(fold).toContainText('shared header 1');
-  await page.getByRole('link', { name: 'Giá trị mới' }).click();
-  await expect(page.locator('.code-diff-number:target')).toHaveAttribute('data-after-line', '10');
+  await expect(page.locator('[data-after-line="10"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await context.close();
 });

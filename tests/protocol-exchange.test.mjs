@@ -90,13 +90,13 @@ test('body and annotation validators enforce side-specific references and HTTP n
   for (const body of [{ kind: 'binary', text: 'x' }, { kind: 'text', text: null }, { kind: 'text', text: 'a', unknown: true },
     { kind: 'json', json: { id: 1 } }, { kind: 'json', json: '{"a":1,}' }, { kind: 'json', json: '{"a":1,"a":2}' }]) {
     const value = clone(); value.variants[0].request.body = body;
-    assert.throws(() => prepareProtocolExchange(value), /Protocol Exchange|Data Inspector/);
+    assert.throws(() => prepareProtocolExchange(value), /Protocol Exchange|JSON payload/);
   }
   const unresolved = clone(); unresolved.variants[0].request.body.annotations[0].pointer = '/absent';
   assert.throws(() => prepareProtocolExchange(unresolved), /does not exist/);
 });
 
-test('resource bounds and prepared artifacts reject excess sources, headers or invalid inspector data', () => {
+test('resource bounds and prepared artifacts reject excess sources, headers or invalid JSON data', () => {
   const headers = clone(); headers.variants[0].request.headers = Array.from({ length: 65 }, (_, i) => ({ id: 'h' + i, name: 'X-Demo', value: 'x' }));
   assert.throws(() => validateProtocolExchangeInput(headers), /64 headers/);
   const big = clone(); big.variants[0].response.body.text = 'x'.repeat(262145);
@@ -109,12 +109,12 @@ test('resource bounds and prepared artifacts reject excess sources, headers or i
   assert.throws(() => validatePreparedProtocolExchange(data), /node offsets/);
 });
 
-test('SSR exposes both sides and all native variants with unique annotation anchors', () => {
+test('SSR exposes both sides and all native variants without description chrome', () => {
   const data = prepareProtocolExchange(input);
   const html = renderToStaticMarkup(createElement(ProtocolExchange, { data }));
   assert.match(html, /open="" data-variant="ok"/); assert.match(html, /data-variant="empty">/);
-  assert.match(html, /9007199254740993/); assert.match(html, /Cookie thứ hai/);
-  assert.match(html, /Không có body/); assert.match(html, /Không gửi request/);
+  assert.match(html, /9007199254740993/); assert.doesNotMatch(html, /Cookie thứ hai/);
+  assert.doesNotMatch(html, /Không có body|Không gửi request|protocol-exchange-info/);
   assert.match(html, /hidden=""[^>]*aria-label="Sao chép request/);
   const two = renderToStaticMarkup(createElement('div', null, createElement(ProtocolExchange, { data }), createElement(ProtocolExchange, { data })));
   const ids = [...two.matchAll(/ id="([^"]+)"/g)].map((entry) => entry[1]);
@@ -123,14 +123,14 @@ test('SSR exposes both sides and all native variants with unique annotation anch
   assert.ok(targets.every((target) => ids.includes(target)));
 });
 
-test('MDX fixtures compile and embed Inspector rather than a separate JSON viewer', async () => {
+test('MDX fixtures compile and show HTTP messages and raw JSON', async () => {
   for (const name of ['rest-auth', 'graphql', 'oauth-redirect']) {
     const path = new URL(`../examples/protocol-exchange/${name}.mdx`, import.meta.url);
     const result = await compile({ value: await readFile(path, 'utf8'), path: path.pathname }, { remarkPlugins: [remarkProtocolExchange], outputFormat: 'function-body' });
     const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
     const html = renderToStaticMarkup(createElement(Content, { components: { ProtocolExchange } }));
-    assert.match(html, /protocol-exchange/); assert.match(html, /Chú thích trao đổi/);
-    if (name !== 'oauth-redirect') assert.match(html, /data-inspector/);
+    assert.match(html, /protocol-exchange/); assert.doesNotMatch(html, /protocol-exchange-annotations/);
+    if (name !== 'oauth-redirect') assert.match(html, /protocol-exchange-body/);
   }
 });
 
@@ -155,20 +155,20 @@ test('payloads, header values and explanations are escaped and locations never a
   const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
   const html = renderToStaticMarkup(createElement(Content, { components: { ProtocolExchange } }));
   assert.doesNotMatch(html, /<script|<iframe|<img|<b>/);
-  assert.match(html, /&lt;b&gt;not HTML&lt;\/b&gt;/);
+  assert.match(html, /&lt;iframe/);
   assert.doesNotMatch(html, /href="https?:/);
 });
 
-test('browser entry includes only the reused Inspector, not parsers, network or execution code', async () => {
+test('browser entry is self-contained, not parsers, network or execution code', async () => {
   const { build } = await import('esbuild');
   const result = await build({ stdin: { contents: "export { ProtocolExchange } from '@vanhiep99w/docs-kit/components/protocol-exchange';", resolveDir: process.cwd() }, bundle: true, platform: 'browser', format: 'esm', write: false, metafile: true, external: ['react', 'react/jsx-runtime'], minify: true });
   assert.ok(result.outputFiles[0].contents.length < 30_000);
   const files = Object.keys(result.metafile.inputs).join('\n');
-  assert.match(files, /components\/data-inspector/);
+  assert.doesNotMatch(files, /data-inspector/);
   assert.doesNotMatch(files, /node_modules\/|jsonc-parser|yaml|shiki|source-explorer|d2\//);
   const component = await readFile(new URL('../dist/components/protocol-exchange.js', import.meta.url), 'utf8');
   assert.match(component, /^['"]use client['"]/);
   assert.doesNotMatch(component, /fetch\(|WebSocket|eval\(|dangerouslySetInnerHTML|XMLHttpRequest/);
   const css = await readFile(new URL('../dist/styles/protocol-exchange.css', import.meta.url), 'utf8');
-  assert.match(css, /@import '.\/data-inspector.css'/);
+  assert.doesNotMatch(css, /@import/);
 });

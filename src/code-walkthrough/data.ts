@@ -1,7 +1,6 @@
-import { codeLines, validateAnnotations, type ExampleRange, type ExampleAnnotation } from '../code/annotations.js';
+import { codeLines, validateAnnotations, type ExampleRange } from '../code/annotations.js';
 import { validateCodeTokens, type ExampleToken } from '../code/tokens.js';
 import { validateSourceRequest, type SourceRequest } from '../source-explorer/index.js';
-import type { AnnotatedExampleData } from './data.js';
 
 export type WalkthroughSnapshot = {
   id: string;
@@ -96,14 +95,4 @@ export function validateCodeWalkthrough(value: unknown): asserts value is CodeWa
   }
   for (const [id, snapshot] of snapshots) if (!snapshot.uses) fail(`snapshot "${id}" is not referenced by any step.`);
   if (budget > 1048576) fail('text/code exceeds 1048576 UTF-16 code units.');
-}
-
-/** Reuses the Annotated Example contract; call after validating the walkthrough. */
-export function walkthroughExample(data: CodeWalkthroughData, snapshot: WalkthroughSnapshot): AnnotatedExampleData {
-  const annotations: ExampleAnnotation[] = data.steps.filter((step) => step.snapshot === snapshot.id).map(({ snapshot: _snapshot, ...annotation }) => annotation);
-  return {
-    title: snapshot.title, code: snapshot.code, language: snapshot.language ?? data.language ?? 'text', annotations,
-    ...(snapshot.tokens !== undefined ? { tokens: snapshot.tokens } : {}),
-    ...(snapshot.source !== undefined ? { source: snapshot.source } : {}),
-  };
 }

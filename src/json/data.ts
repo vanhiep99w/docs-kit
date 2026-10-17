@@ -1,26 +1,25 @@
-export type InspectorNodeType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
-export type InspectorAnnotation = { id: string; pointer: string; title: string; description: string };
-export type DataInspectorInput = {
+export type JSONNodeType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
+export type JSONAnnotation = { id: string; pointer: string; title: string; description: string };
+export type JSONPayloadInput = {
   title: string;
   /** Strict JSON source, not a JavaScript value; number lexemes remain lossless. */
   json: string;
   description?: string;
   expandedDepth?: number;
-  annotations?: InspectorAnnotation[];
+  annotations?: JSONAnnotation[];
 };
-export type InspectorNode = {
+export type JSONNode = {
   pointer: string;
   /** Decoded object key / array index; root uses (root). */
   key: string;
-  type: InspectorNodeType;
+  type: JSONNodeType;
   offset: number;
   length: number;
   children: string[];
 };
-export type PreparedDataInspector = DataInspectorInput & { nodes: InspectorNode[] };
-export type InspectorSearchResult = { matches: string[]; visible: string[]; ancestors: string[] };
+export type PreparedJSONPayload = JSONPayloadInput & { nodes: JSONNode[] };
 
-function fail(message: string): never { throw new Error(`Data Inspector: ${message}`); }
+function fail(message: string): never { throw new Error(`JSON payload: ${message}`); }
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -43,13 +42,13 @@ export function decodeJSONPointer(pointer: string): string[] {
   return pointer === '' ? [] : pointer.slice(1).split('/').map((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
 }
 
-export function inspectorParent(pointer: string): string | undefined {
+export function jsonParent(pointer: string): string | undefined {
   return pointer === '' ? undefined : pointer.slice(0, pointer.lastIndexOf('/'));
 }
 
-function validate(value: unknown, prepared: boolean): asserts value is DataInspectorInput {
+function validate(value: unknown, prepared: boolean): asserts value is JSONPayloadInput {
   if (!record(value)) fail('expected an object.');
-  keys(value, ['title', 'json', 'description', 'expandedDepth', 'annotations', ...(prepared ? ['nodes'] : [])], 'inspector');
+  keys(value, ['title', 'json', 'description', 'expandedDepth', 'annotations', ...(prepared ? ['nodes'] : [])], 'payload');
   text(value.title, 'title'); text(value.json, 'json');
   if (value.json.length > 262144) fail('json exceeds 262144 UTF-16 code units.');
   if (value.description !== undefined) text(value.description, 'description');
@@ -70,14 +69,14 @@ function validate(value: unknown, prepared: boolean): asserts value is DataInspe
   }
 }
 
-export function validateDataInspectorInput(value: unknown): asserts value is DataInspectorInput { validate(value, false); }
+export function validateJSONPayloadInput(value: unknown): asserts value is JSONPayloadInput { validate(value, false); }
 
 /** Structural checks only. Strict JSON syntax and duplicate keys are checked by the build parser. */
-export function validatePreparedDataInspector(value: unknown): asserts value is PreparedDataInspector {
+export function validatePreparedJSONPayload(value: unknown): asserts value is PreparedJSONPayload {
   validate(value, true);
-  const data = value as PreparedDataInspector;
+  const data = value as PreparedJSONPayload;
   if (!Array.isArray(data.nodes) || !data.nodes.length || data.nodes.length > 1024) fail('nodes must contain 1–1024 entries.');
-  const byPointer = new Map<string, InspectorNode>();
+  const byPointer = new Map<string, JSONNode>();
   for (const node of data.nodes) {
     if (!record(node)) fail('each node must be an object.');
     keys(node, ['pointer', 'key', 'type', 'offset', 'length', 'children'], 'node');
@@ -88,7 +87,7 @@ export function validatePreparedDataInspector(value: unknown): asserts value is 
     if (!['object', 'array', 'string', 'number', 'boolean', 'null'].includes(node.type)) fail('invalid node.type.');
     if (!Number.isSafeInteger(node.offset) || !Number.isSafeInteger(node.length) || node.offset < 0 || node.length < 1 || node.offset + node.length > data.json.length) fail('node offsets must be inside json.');
     if (!Array.isArray(node.children) || new Set(node.children).size !== node.children.length || node.children.some((entry) => typeof entry !== 'string')) fail('node.children must contain unique pointers.');
-    const parent = inspectorParent(node.pointer);
+    const parent = jsonParent(node.pointer);
     if (parent === undefined) {
       if (byPointer.size !== 0 || node.key !== '(root)' || data.json.slice(0, node.offset).trim() || data.json.slice(node.offset + node.length).trim()) fail('the first node must cover the root JSON value.');
     } else {
@@ -114,7 +113,7 @@ export function validatePreparedDataInspector(value: unknown): asserts value is 
     let previousEnd = node.offset;
     for (const [index, pointer] of node.children.entries()) {
       const child = byPointer.get(pointer);
-      if (!child || inspectorParent(pointer) !== node.pointer || child.offset < previousEnd ||
+      if (!child || jsonParent(pointer) !== node.pointer || child.offset < previousEnd ||
         (node.type === 'array' && child.key !== String(index))) fail('child links must preserve source order and canonical array indices.');
       previousEnd = child.offset + child.length;
     }
@@ -122,42 +121,20 @@ export function validatePreparedDataInspector(value: unknown): asserts value is 
   for (const annotation of data.annotations ?? []) if (!byPointer.has(annotation.pointer)) fail(`annotation pointer "${annotation.pointer}" does not exist.`);
 }
 
-export function inspectorValue(data: PreparedDataInspector, pointer: string): string {
-  const node = data.nodes.find((entry) => entry.pointer === pointer);
-  if (!node) fail(`pointer "${pointer}" does not exist.`);
-  return pointer === '' ? data.json : data.json.slice(node.offset, node.offset + node.length);
-}
 
-export function inspectorPreview(data: PreparedDataInspector, node: InspectorNode): string {
-  if (node.type === 'object') return `{ ${node.children.length} field }`;
-  if (node.type === 'array') return `[ ${node.children.length} phần tử ]`;
-  const raw = data.json.slice(node.offset, node.offset + node.length);
-  const compact = node.type === 'string' ? JSON.stringify(JSON.parse(raw)) : raw;
-  const chars = Array.from(compact);
-  return chars.length <= 120 ? compact : chars.slice(0, 120).join('') + '…';
-}
-
-export function searchInspector(data: PreparedDataInspector, query: string): InspectorSearchResult {
-  const needle = query.trim().slice(0, 200).toLowerCase();
-  if (!needle) return { matches: [], visible: data.nodes.map((node) => node.pointer), ancestors: [] };
-  const matches: string[] = []; const visible = new Set<string>(); const ancestors = new Set<string>();
-  for (const node of data.nodes) {
-    const raw = node.type === 'object' || node.type === 'array' ? '' : data.json.slice(node.offset, node.offset + node.length);
-    const value = node.type === 'string' ? JSON.parse(raw) as string : raw;
-    if (![node.key, node.pointer, value].some((part) => part.toLowerCase().includes(needle))) continue;
-    matches.push(node.pointer); visible.add(node.pointer);
-    let parent = inspectorParent(node.pointer);
-    while (parent !== undefined) { visible.add(parent); ancestors.add(parent); parent = inspectorParent(parent); }
+/** Readable display only: retain scalar lexemes, especially large numbers. Copy uses json. */
+export function formatJSONPayload(data: PreparedJSONPayload): string {
+  const nodes = new Map(data.nodes.map((node) => [node.pointer, node]));
+  function format(node: JSONNode, depth: number): string {
+    if (node.type !== 'object' && node.type !== 'array') return data.json.slice(node.offset, node.offset + node.length);
+    const object = node.type === 'object';
+    const [open, close] = object ? ['{', '}'] : ['[', ']'];
+    if (!node.children.length) return open + close;
+    const children = node.children.map((pointer) => {
+      const child = nodes.get(pointer)!;
+      return '  '.repeat(depth + 1) + (object ? `${JSON.stringify(child.key)}: ` : '') + format(child, depth + 1);
+    });
+    return open + '\n' + children.join(',\n') + '\n' + '  '.repeat(depth) + close;
   }
-  return { matches, visible: [...visible], ancestors: [...ancestors] };
-}
-
-/** Annotation ancestors are open even with JS disabled. */
-export function inspectorInitialExpanded(data: PreparedDataInspector): string[] {
-  const expanded = new Set(data.nodes.filter((node) => node.children.length && decodeJSONPointer(node.pointer).length < (data.expandedDepth ?? 1)).map((node) => node.pointer));
-  for (const annotation of data.annotations ?? []) {
-    let parent = inspectorParent(annotation.pointer);
-    while (parent !== undefined) { expanded.add(parent); parent = inspectorParent(parent); }
-  }
-  return [...expanded];
+  return format(data.nodes[0], 0);
 }

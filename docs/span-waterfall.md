@@ -27,7 +27,7 @@ const components = { SpanWaterfall }; // merge với components hiện có
 @import '@vanhiep99w/docs-kit/styles/span-waterfall.css';
 ```
 
-Stylesheet này đã import `data-inspector.css`. Không cần Source Explorer provider, Next.js, tracing backend hay cấu hình riêng cho Fumadocs. Font kế thừa website; màu dùng biến Fumadocs nếu có, với fallback light/dark. Dark theo `.dark` hoặc `[data-theme='dark']` trên ancestor.
+Stylesheet độc lập. Không cần Source Explorer provider, Next.js, tracing backend hay cấu hình riêng cho Fumadocs. Font kế thừa website; màu dùng biến Fumadocs nếu có, với fallback light/dark. Dark theo `.dark` hoặc `[data-theme='dark']` trên ancestor.
 
 ## Descriptor
 
@@ -60,7 +60,7 @@ annotations:
 ```
 ````
 
-`attributes` là **chuỗi JSON strict**, không phải YAML object. Dùng `|-` cho JSON nhiều dòng nếu không muốn thêm newline cuối. Số lớn và number lexeme được giữ nguyên qua Data Inspector; không serialize lại qua JavaScript Number.
+`attributes` là **chuỗi JSON strict**, không phải YAML object. Dùng `|-` cho JSON nhiều dòng nếu không muốn thêm newline cuối. Số lớn và number lexeme được giữ nguyên qua bộ parse JSON lossless nội bộ; không serialize lại qua JavaScript Number.
 
 ## API React / build helper
 
@@ -98,7 +98,7 @@ Mỗi span:
 - `start`, `duration`, `start + duration` phải hữu hạn trong `[0, 1e12]`. Thời lượng dương không được nhỏ đến mức mất hoàn toàn khi cộng vào `start` theo precision của JavaScript Number. Thời gian không có cam kết chính xác kiểu arbitrary precision.
 - `status`: `ok`, `error`, `unset`; bỏ qua tương đương `unset`, không suy ra trạng thái từ attributes.
 - `description`: giải thích do tác giả khai báo.
-- `attributes`: chuỗi JSON tùy chọn. Prepared span thay chuỗi bằng `PreparedDataInspector`.
+- `attributes`: chuỗi JSON tùy chọn. Prepared span thay chuỗi bằng `PreparedJSONPayload`.
 
 Props component: `{ data: PreparedSpanWaterfall; className?: string }`.
 
@@ -107,7 +107,7 @@ Các export:
 - `@vanhiep99w/docs-kit/span-waterfall`: `prepareSpanWaterfall`, `parseSpanWaterfallDescriptor`, `remarkSpanWaterfall` và types; build-only.
 - `@vanhiep99w/docs-kit/span-waterfall/data`: validators input/prepared, `waterfallRows`, `waterfallExtent`, `formatSpanTime` và types; không parser/React. Helpers rows/extent nhận dữ liệu đã validate.
 - `@vanhiep99w/docs-kit/components/span-waterfall`: client component + props/types; SSR được trên React 18.3/19.
-- `@vanhiep99w/docs-kit/styles/span-waterfall.css`: CSS riêng + Inspector.
+- `@vanhiep99w/docs-kit/styles/span-waterfall.css`: CSS độc lập.
 
 ## Ngữ nghĩa timeline
 
@@ -122,7 +122,7 @@ Các export:
 
 ## Tương tác và fallback
 
-Mặc định “Chi tiết span” đóng và không mở sẵn attributes của root. Chọn tên span bằng chuột hoặc Enter để mở cả danh sách lẫn đúng span, rồi đi tới chi tiết. Dòng được chọn có `aria-current`; chi tiết dùng `<details>` native, không ép các mục khác đóng lại. Tại đó, Data Inspector cung cấp search và copy pointer/value cho attributes.
+Mặc định “Chi tiết span” đóng và không mở sẵn attributes của root. Chọn tên span bằng chuột hoặc Enter để mở cả danh sách lẫn đúng span, rồi đi tới chi tiết. Dòng được chọn có `aria-current`; chi tiết dùng `<details>` native, không ép các mục khác đóng lại. Tại đó, attributes là JSON định dạng nhiều dòng, không có search/tree/copy-field lồng vào.
 
 Khi không JavaScript, timeline/timing vẫn SSR đầy đủ; người đọc mở từng chi tiết và bảng thời gian bằng `<summary>`. Link vẫn có anchor thật, nhưng trạng thái chọn/mở tự động là progressive enhancement. Mọi span và attributes đều có trong HTML, không bị giấu chỉ vì chưa được chọn.
 
@@ -131,7 +131,7 @@ Trên màn hình hẹp, timeline cuộn ngang thay vì co chữ hoặc đổi th
 ## Giới hạn và ranh giới tin cậy
 
 - Độ sâu parent tối đa 16 (root = 0), ID ASCII dài tối đa 128 ký tự, text field tối đa 16384 UTF-16 code units. Tổng text source chính (title/description/provenance/name/service/attributes/annotations) tối đa 1048576 code units.
-- Mỗi attributes dùng giới hạn Inspector: JSON 262144 code units, 1024 value nodes, depth 32; strict JSON, không duplicate keys/comment/trailing comma.
+- Mỗi attributes dùng giới hạn JSON: JSON 262144 code units, 1024 value nodes, depth 32; strict JSON, không duplicate keys/comment/trailing comma.
 - Descriptor YAML tối đa 2097152 code units, alias expansion có giới hạn; unknown properties/duplicate keys báo lỗi. Remark error giữ file/vị trí fence.
 - Không nhận HTML thô, không fetch trace, không export request/chạy code, không auto-redact secrets. Tất cả text được React escape.
 - Attributes, kể cả native disclosure đang đóng, được publish công khai trong HTML/MDX assets. Chỉ đưa trace đã lọc, có quyền sử dụng; đừng đưa token, thông tin cá nhân hoặc dữ liệu production chưa kiểm tra vào docs.

@@ -5,13 +5,9 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { D2 } from '@d2lang/d2';
 import { renderDiagram } from '../../dist/d2/render.mjs';
-import { parseStateTransitionDescriptor } from '../../dist/state-transition/index.js';
-import { prepareCodeWalkthrough } from '../../dist/annotated-example/walkthrough.js';
-import { prepareAnnotatedExample } from '../../dist/annotated-example/index.js';
+import { prepareCodeWalkthrough } from '../../dist/code-walkthrough/index.js';
 import { parseTerminalSession } from '../../dist/terminal-session/index.js';
-import { parseMarbleDescriptor } from '../../dist/marble/index.js';
 import { prepareCodeDiff, parseCodeDiffDescriptor } from '../../dist/code-diff/index.js';
-import { prepareDataInspector } from '../../dist/data-inspector/index.js';
 import { parseConcurrencyLanesDescriptor } from '../../dist/concurrency-lanes/index.js';
 import { parseSpanWaterfallDescriptor } from '../../dist/span-waterfall/index.js';
 import { prepareProtocolExchange } from '../../dist/protocol-exchange/index.js';
@@ -35,17 +31,6 @@ for (const mode of ['steps', 'tabs', 'explorer', 'animation']) {
 }
 await d2.dispose();
 data.static = { id: 'demo', caption: 'Architecture overview', lightSvg: svg, darkSvg: svg.replace('#c4dbec', '#7195b1'), source: 'api -> db' };
-const example = await prepareAnnotatedExample({
-  title: 'Theo dõi pipeline RxJS', language: 'typescript',
-  code: "import { filter, map, of } from 'rxjs';\r\n\r\nconst result$ = of(1, 2, 3).pipe(\r\n  filter((value) => value % 2 === 0),\r\n  map((value) => value * 10),\r\n);\r\n\r\nresult$.subscribe(console.log); // tiếng Việt — " + 'long-output-'.repeat(20) + '\r\n',
-  annotations: [
-    { id: 'pipeline', title: 'Ghép pipeline', description: 'filter giữ 2; map đổi thành 20.', ranges: [[3, 6]] },
-    { id: 'subscribe', title: 'Bắt đầu execution', description: 'Source phát đồng bộ khi subscribe.', ranges: [[3, 3], [8, 8]] },
-  ],
-});
-data.annotated = { example };
-data['annotated-source'] = { example: { ...example, source: { project: 'demo', file: 'src/main.ts', lines: '1' } }, adapter: true, provider: true };
-data['annotated-no-provider'] = { ...data['annotated-source'], provider: false };
 const walkthroughInput = {
   title: 'Đọc thay đổi qua hai snapshot', language: 'typescript', description: 'Ví dụ tĩnh; không chạy code.',
   snapshots: [
@@ -97,19 +82,6 @@ data['diff-contract'] = { diff: await prepareCodeDiff({
   language: 'json', before: {label:'Response v1',code:'{\n  "id": 123,\n  "name": "Nguyễn An"\n}'}, after: {label:'Response chuyển tiếp',code:'{\n  "id": 123,\n  "name": "Nguyễn An",\n  "fullName": "Nguyễn An"\n}'},
   annotations: [{id:'contract',side:'after',title:'Không xóa field cũ ngay',description:'Giữ contract cho consumer cũ trong migration window; tên và ý nghĩa của field cũ phải được giữ ổn định.',ranges:[[3,4]]}],
 }) };
-for (const [key, name] of [['marble', 'switch-map'], ['marble-group', 'lifecycle']]) {
-  const mdx = await readFile(new URL('../../examples/marble/' + name + '.mdx', import.meta.url), 'utf8');
-  data[key] = { marble: parseMarbleDescriptor(mdx.split('```marble\n')[1].split('```')[0]) };
-}
-data['marble-long'] = { marble: { title: 'Cùng frame, nhãn dài',
-  rows: [
-    { id: 'a', label: 'Nguồn có tên dài cần xuống dòng, không đè lên trục thời gian', marble: '--(ab|)', kind: 'source' },
-    { id: 'b', label: 'Kết quả', marble: '--(xy|)', kind: 'output' },
-    { label: 'Cửa sổ thời gian', marble: '-'.repeat(60), kind: 'subscription' },
-  ], values: { a: 'A', b: 'B', x: 'X', y: 'Y' },
-} };
-data['marble-zoom'] = { marble: { ...data['marble-long'].marble, zoom: true } };
-data['marble-zoom-direct'] = { ...data['marble-zoom'], marbleDirect: true };
 const diffHeader = Array.from({ length: 8 }, (_, i) => '// shared header ' + (i + 1) + '\r\n').join('');
 const diffTail = Array.from({ length: 8 }, (_, i) => '// shared tail ' + (i + 1) + '\r\n').join('');
 data.diff = { diff: await prepareCodeDiff({
@@ -131,15 +103,6 @@ data['diff-source'] = { adapter: true, provider: true, diff: await prepareCodeDi
   after: { code: 'export const demo = 1;', source: { project: 'demo', snapshot: 'v1', file: 'src/main.ts' } },
 }) };
 data['diff-no-provider'] = { ...data['diff-source'], provider: false };
-data.inspector = { inspector: prepareDataInspector({
-  title: 'Event payload', expandedDepth: 1,
-  json: ' \r\n{\n  "sequence": 9007199254740993,\n  "value": {"name":"xin chào 👋", "items":[{"sku":"ABC-001", "quantity":2}], "details":{"a/b":{"~":true}}},\n  "nullable": null, "empty": [], "": "empty key",\n  "unopened": {"child":{"status":"pending"}},\n  "longText": "' + 'long-value-'.repeat(25) + '"\n}\r\n',
-  annotations: [
-    { id: 'sku', pointer: '/value/items/0/sku', title: 'SKU sản phẩm', description: 'Chỉ là field trong payload minh họa.' },
-    { id: 'escape', pointer: '/value/details/a~1b/~0', title: 'Key có slash và tilde', description: 'Copy path dùng RFC 6901.' },
-  ],
-}) };
-data['inspector-scalar'] = { inspector: prepareDataInspector({ title: 'Scalar root', json: '1e309' }) };
 data.protocol = { exchange: prepareProtocolExchange({
   title: 'Profile API — các kết quả',
   description: 'Payload và credentials đều là dữ liệu giả lập.',
@@ -153,7 +116,7 @@ data.protocol = { exchange: prepareProtocolExchange({
       }, annotations: [
         { id: 'auth', side: 'request', target: 'header', header: 'auth', title: 'Credential giả', description: 'Chỉ là ví dụ, không có bước xác thực.' },
         { id: 'cookie', side: 'response', target: 'header', header: 'cookie-two', title: 'Cookie thứ hai', description: 'Header trùng tên giữ nguyên từng dòng.' },
-        { id: 'payload', side: 'response', target: 'body', title: 'Đọc JSON response', description: 'Dùng chung Data Inspector.' },
+        { id: 'payload', side: 'response', target: 'body', title: 'Đọc JSON response', description: 'JSON nguyên bản.' },
       ],
     },
     { id: 'error', title: 'Không được phép', request: { method: 'GET', url: 'https://api.example.invalid/demo' },
@@ -176,25 +139,12 @@ data['concurrency-overlap'] = structuredClone(data.concurrency);
 data['concurrency-overlap'].concurrency.events.push({ id: 'same-coordinate', lane: 't1', at: 1, label: 'Cùng mốc với lock 👋' });
 data['concurrency-overlap'].concurrency.lanes[0].label = 'Transaction có tên dài cần đọc đầy đủ trong phần giải thích bên dưới, không làm lệch timeline';
 data['concurrency-overlap'].concurrency.lanes.push({ id: 'idle', label: 'Actor không có action' });
-for (const [key, name] of [['state-model', 'circuit-breaker'], ['state-form', 'form-workflow']]) {
-  const mdx = await readFile(new URL('../../examples/state-transition/' + name + '.mdx', import.meta.url), 'utf8');
-  data[key] = { stateModel: parseStateTransitionDescriptor(mdx.split('```state-transition\n')[1].split('```')[0]) };
-}
-data['state-model'].replacement = { ...structuredClone(data['state-model'].stateModel), title: 'Mô hình thay thế', states: data['state-model'].stateModel.states.map((state) => ({ ...state, label: state.label + ' mới' })) };
-data['state-unsafe-looking'] = structuredClone(data['state-model']);
-data['state-unsafe-looking'].stateModel.transitions.find((transition) => transition.id === 'trip').guard = 'globalThis.__stateGuardRuns = 99';
-data['state-unsafe-looking'].stateModel.transitions.find((transition) => transition.id === 'trip').effects = ['fetch("https://example.invalid/effect")', 'alert("effect")'];
-data['state-dead-end'] = { stateModel: { title: 'Dead end', assumptions: 'Không suy ra terminal.', initial: 'a', states: [{id:'a',label:'A'}], transitions: [] } };
-const stateCss = await readFile(new URL('../../dist/styles/state-transition.css', import.meta.url), 'utf8');
 const concurrencyCss = await readFile(new URL('../../dist/styles/concurrency-lanes.css', import.meta.url), 'utf8');
 const waterfallCss = await readFile(new URL('../../dist/styles/span-waterfall.css', import.meta.url), 'utf8');
 const exchangeCss = await readFile(new URL('../../dist/styles/protocol-exchange.css', import.meta.url), 'utf8');
-const inspectorCss = await readFile(new URL('../../dist/styles/data-inspector.css', import.meta.url), 'utf8');
 const diffCss = await readFile(new URL('../../dist/styles/code-diff.css', import.meta.url), 'utf8');
-const marbleCss = await readFile(new URL('../../dist/styles/marble.css', import.meta.url), 'utf8');
 const terminalCss = await readFile(new URL('../../dist/styles/terminal-session.css', import.meta.url), 'utf8');
 const walkthroughCss = await readFile(new URL('../../dist/styles/code-walkthrough.css', import.meta.url), 'utf8');
-const annotatedCss = await readFile(new URL('../../dist/styles/annotated-example.css', import.meta.url), 'utf8');
 const css = await readFile(new URL('../../dist/styles/d2.css', import.meta.url), 'utf8');
 const sourceCss = await readFile(new URL('../../dist/styles/source-explorer.css', import.meta.url), 'utf8');
 const server = createServer(async (req, res) => {
@@ -212,6 +162,6 @@ const server = createServer(async (req, res) => {
   }
   const props = data[url.searchParams.get('case') ?? 'static'] ?? data.static;
   res.setHeader('content-type', 'text/html;charset=utf-8');
-  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + annotatedCss + terminalCss + marbleCss + diffCss + inspectorCss + exchangeCss.replace("@import './data-inspector.css';", '') + waterfallCss.replace("@import './data-inspector.css';", '') + concurrencyCss + walkthroughCss.replace("@import './annotated-example.css';", '') + stateCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
+  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + terminalCss + diffCss + exchangeCss + waterfallCss + concurrencyCss + walkthroughCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
 });
 server.listen(4178, '127.0.0.1', () => console.log('Browser fixtures ready'));

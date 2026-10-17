@@ -109,7 +109,7 @@ test('annotation ranges stay on their original side and pinned unchanged lines n
   assert.ok(diffBlocks(data).some((block) => block.folded));
   const html = renderToStaticMarkup(createElement(CodeDiff, { data }));
   assert.match(html, /data-before-line="2"/); assert.match(html, /data-after-line="3"/);
-  assert.match(html, /Bản sau · Dòng 3/);
+  assert.doesNotMatch(html, /code-diff-annotations|code-diff-info/);
   assert.match(html, /hidden=""[^>]*aria-label="Sao chép bản trước"/);
 });
 
@@ -135,7 +135,7 @@ test('authored MDX fixtures compile, execute and render without interpreting the
     const result = await compile({ value: await readFile(path, 'utf8'), path: path.pathname }, { remarkPlugins: [remarkCodeDiff], outputFormat: 'function-body' });
     const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
     const html = renderToStaticMarkup(createElement(Content, { components: { CodeDiff } }));
-    assert.match(html, /code-diff/); assert.match(html, /Giải thích thay đổi/); assert.match(html, /--code-diff-token-light/);
+    assert.match(html, /code-diff/); assert.doesNotMatch(html, /Giải thích thay đổi/); assert.match(html, /--code-diff-token-light/);
   }
 });
 

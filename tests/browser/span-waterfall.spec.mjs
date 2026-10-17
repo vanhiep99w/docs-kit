@@ -21,18 +21,13 @@ test('keyboard span selection opens the matching detail and preserves other disc
   expect(errors).toEqual([]);
 });
 
-test('span attributes reuse Inspector search and exact large-number copying without network', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+test('span attributes retain exact JSON numbers without nested Inspector UI', async ({ page }) => {
   await page.goto(url);
   const requests = []; page.on('request', (request) => requests.push(request.url()));
   await page.locator('[data-span="query"] a').click();
   const detail = page.locator('[data-detail="query"]');
-  await detail.getByRole('button', { name: 'Chọn /demo.sequence', exact: true }).click();
-  await detail.getByRole('button', { name: 'Sao chép value', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('9007199254740993');
-  await detail.getByRole('searchbox').fill('postgresql');
-  await expect(detail.getByRole('status', { name: 'Kết quả tìm kiếm', exact: true })).toContainText('1 kết quả');
-  await expect(detail.locator('[data-pointer="/db.system.name"]')).toBeVisible();
+  await expect(detail.locator('pre')).toContainText('9007199254740993');
+  await expect(detail.getByRole('searchbox')).toHaveCount(0);
   await expect(detail).toHaveAttribute('open', '');
   expect(requests).toEqual([]);
 });

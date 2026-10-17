@@ -41,7 +41,7 @@ test('same-coordinate events stack without shifting time, overlapping intervals 
   expect(first.x).toBe(same.x); expect(first.y).not.toBe(same.y);
   const hold = await page.locator('[data-item="t1-hold"] .concurrency-lanes-interval').evaluate((el) => ({ x: el.getAttribute('x'), width: el.getAttribute('width') }));
   expect(hold.x).toBe(first.x); expect(Number(hold.width)).toBeGreaterThan(0);
-  const badge = page.locator('[data-item="t2-wait"] .concurrency-lanes-badge');
+  const badge = page.locator('[data-item="t2-wait"] .concurrency-lanes-interval');
   expect(await badge.evaluate((el) => el.tagName)).toBe('rect');
   await page.getByRole('link', { name: '#6: Cùng mốc với lock 👋', exact: true }).click();
   await expect(page.locator('[data-detail="same-coordinate"]')).toHaveAttribute('open', '');

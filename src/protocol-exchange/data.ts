@@ -1,12 +1,12 @@
-import { validateDataInspectorInput, validatePreparedDataInspector, type InspectorAnnotation, type PreparedDataInspector } from '../data-inspector/data.js';
+import { validateJSONPayloadInput, validatePreparedJSONPayload, type JSONAnnotation, type PreparedJSONPayload } from '../json/data.js';
 
 export type ProtocolHeader = { id: string; name: string; value: string };
 export type ProtocolBodyInput =
   | { kind: 'text'; text: string }
-  | { kind: 'json'; json: string; expandedDepth?: number; annotations?: InspectorAnnotation[] };
+  | { kind: 'json'; json: string; expandedDepth?: number; annotations?: JSONAnnotation[] };
 export type PreparedProtocolBody =
   | { kind: 'text'; text: string }
-  | { kind: 'json'; data: PreparedDataInspector };
+  | { kind: 'json'; data: PreparedJSONPayload };
 export type ProtocolRequest<B = ProtocolBodyInput> = {
   method: string;
   /** Origin-relative target or absolute HTTP(S) URL. Display only, never fetched. */
@@ -86,10 +86,10 @@ function body(value: unknown, path: string, prepared: boolean) {
     try {
       if (prepared) {
         keys(value, ['kind', 'data'], path);
-        validatePreparedDataInspector(value.data);
+        validatePreparedJSONPayload(value.data);
       } else {
         keys(value, ['kind', 'json', 'expandedDepth', 'annotations'], path);
-        validateDataInspectorInput({
+        validateJSONPayloadInput({
           title: 'JSON body', json: value.json,
           ...(value.expandedDepth !== undefined ? { expandedDepth: value.expandedDepth } : {}),
           ...(value.annotations !== undefined ? { annotations: value.annotations } : {}),
@@ -137,7 +137,7 @@ function validate(value: unknown, prepared: boolean) {
       if (message.body !== undefined) {
         const content = message.body as Record<string, unknown>;
         sourceSize += content.kind === 'text' ? (content.text as string).length :
-          prepared ? (content.data as PreparedDataInspector).json.length : (content.json as string).length;
+          prepared ? (content.data as PreparedJSONPayload).json.length : (content.json as string).length;
       }
     }
     if (variant.annotations !== undefined) {

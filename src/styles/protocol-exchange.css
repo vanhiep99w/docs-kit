@@ -1,7 +1,4 @@
-@import './data-inspector.css';
-
 .protocol-exchange {
-  position: relative;
   --exchange-bg: var(--color-fd-card, #f8fafb);
   --exchange-fg: var(--color-fd-foreground, #23303b);
   --exchange-muted: var(--color-fd-muted-foreground, #586775);
@@ -10,6 +7,7 @@
   --exchange-success: #286741;
   --exchange-error: #a33c36;
   container-type: inline-size;
+  position: relative;
   margin: 1.25rem 0;
   border: 1px solid var(--exchange-border);
   border-radius: .375rem;
@@ -29,62 +27,37 @@
   --exchange-success: #9bd0ad;
   --exchange-error: #f49a9a;
 }
-.protocol-exchange .protocol-exchange-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; margin: 0; padding: .45rem .75rem; border-bottom: 1px solid var(--exchange-border); text-align: left; color: inherit; }
-.protocol-exchange-header > span { flex: 1; font-weight: 500; font-size: .75rem; overflow-wrap: anywhere; }
-.protocol-exchange-header > small { font-size: .75rem; color: var(--exchange-muted); }
-.protocol-exchange-header > p { flex-basis: 100%; margin: 0; color: var(--exchange-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-.protocol-exchange-notice { margin: 0; padding: .65rem 1rem; color: var(--exchange-muted); font-size: .75rem; border-bottom: 1px solid var(--exchange-border); }
+.protocol-exchange .protocol-exchange-header { margin: 0; padding: .45rem .75rem; border-bottom: 1px solid var(--exchange-border); text-align: left; color: inherit; font-size: .75rem; font-weight: 500; overflow-wrap: anywhere; }
 .protocol-exchange-variant + .protocol-exchange-variant { border-top: 1px solid var(--exchange-border); }
 .protocol-exchange-variant > summary { padding: .4rem .75rem; cursor: pointer; overflow-wrap: anywhere; }
 .protocol-exchange-variant > summary > span { font-weight: 600; }
 .protocol-exchange-variant > summary > small { display: inline-block; margin-left: .75rem; color: var(--exchange-muted); font-size: .75rem; }
-.protocol-exchange-description { margin: 0; padding: 0 1rem .85rem; color: var(--exchange-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .protocol-exchange-pair { display: grid; grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--exchange-border); }
 .protocol-exchange-message { min-width: 0; padding: .6rem .75rem; }
 .protocol-exchange-message + .protocol-exchange-message { border-top: 1px solid var(--exchange-border); }
-.protocol-exchange-message-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; margin-bottom: .35rem; }
-.protocol-exchange .protocol-exchange-message-heading h3 { flex: 1; margin: 0; padding: 0; font: inherit; font-size: .8125rem; font-weight: 600; }
-.protocol-exchange button { display: inline-flex; align-items: center; justify-content: center; min-width: 1.75rem; min-height: 1.75rem; padding: .25rem; border: 0; border-radius: .25rem; background: transparent; color: inherit; font: inherit; font-size: .75rem; cursor: pointer; }
-.protocol-exchange button:hover:not(:disabled) { background: color-mix(in srgb, var(--exchange-accent) 8%, var(--exchange-bg)); }
+.protocol-exchange-message-heading { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .25rem; }
+.protocol-exchange .protocol-exchange-message-heading h3 { flex-basis: 100%; margin: 0; padding: 0; color: var(--exchange-muted); font: inherit; font-size: .6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; }
+.protocol-exchange button { display: inline-flex; align-items: center; justify-content: center; min-width: 1.75rem; min-height: 1.75rem; padding: .25rem; border: 0; border-radius: .25rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.protocol-exchange button:hover { background: color-mix(in srgb, var(--exchange-accent) 8%, var(--exchange-bg)); }
 .protocol-exchange [hidden] { display: none; }
-.protocol-exchange-start { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; min-width: 0; padding-bottom: 0; flex: 1; }
-.protocol-exchange-start > code { min-width: 0; color: inherit; background: transparent; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Consolas, monospace); font-size: .8125rem; overflow-wrap: anywhere; }
+.protocol-exchange-start { display: flex; flex: 1; flex-wrap: wrap; align-items: baseline; gap: .5rem; min-width: 0; }
+.protocol-exchange-start > code { min-width: 0; padding: 0; color: inherit; background: transparent; font-family: var(--font-mono, ui-monospace, monospace); font-size: .8125rem; overflow-wrap: anywhere; }
 .protocol-exchange-method, .protocol-exchange-status-code { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--exchange-accent); }
 .protocol-exchange-status-code[data-class='2'] { color: var(--exchange-success); }
 .protocol-exchange-status-code[data-class='4'], .protocol-exchange-status-code[data-class='5'] { color: var(--exchange-error); }
-.protocol-exchange-headers-scroll { overflow: auto; max-height: 20rem; margin-bottom: .35rem; }
+.protocol-exchange-headers-scroll { overflow: auto; max-height: 20rem; }
 .protocol-exchange .protocol-exchange-headers { width: 100%; border-collapse: collapse; margin: 0; font-size: .8125rem; }
-.protocol-exchange-headers caption { text-align: left; padding: .25rem 0 .5rem; font-size: .75rem; color: var(--exchange-muted); }
 .protocol-exchange-headers th, .protocol-exchange-headers td { border: 0; padding: .15rem .25rem; text-align: left; vertical-align: top; }
 .protocol-exchange-headers th { font-weight: 500; }
-.protocol-exchange-headers code { color: inherit; background: transparent; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Consolas, monospace); font-size: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-.protocol-exchange-headers thead { color: var(--exchange-muted); }
-.protocol-exchange-empty { margin: 0; padding: .5rem 0; color: var(--exchange-muted); font-size: .75rem; }
-.protocol-exchange-body-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem 1rem; margin-top: .25rem; padding-top: .25rem; }
-.protocol-exchange-body-heading > span { flex: 1; color: var(--exchange-muted); font-size: .75rem; }
-.protocol-exchange-body > .data-inspector { margin: .75rem 0 0; }
-.protocol-exchange .protocol-exchange-body > pre { max-height: 28rem; overflow: auto; margin: .75rem 0 0; padding: .5rem 0; background: transparent; color: inherit; border: 0; border-radius: 0; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Consolas, monospace); font-size: .8125rem; line-height: 1.75; }
-.protocol-exchange-body > pre > code { display: block; width: max-content; min-width: 100%; padding: 0; color: inherit; background: transparent; font: inherit; white-space: pre; }
-.protocol-exchange-annotations { margin: 0; list-style: none; padding: .4rem .75rem; border-top: 1px solid var(--exchange-border); }
-.protocol-exchange-annotations li { margin: 0; padding: .35rem 0; }
-.protocol-exchange-annotations a { color: var(--exchange-accent); font-weight: 600; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.protocol-exchange-annotations li > span { display: block; color: var(--exchange-muted); font-size: .75rem; }
-.protocol-exchange-annotations p { margin: .25rem 0 0; color: var(--exchange-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-.protocol-exchange :focus-visible, .protocol-exchange :target { outline: 2px solid var(--exchange-accent); outline-offset: -2px; }
+.protocol-exchange-headers code { color: inherit; background: transparent; padding: 0; font: .75rem var(--font-mono, ui-monospace, monospace); white-space: pre-wrap; overflow-wrap: anywhere; }
+.protocol-exchange .protocol-exchange-body > pre { overflow: auto; max-height: 26rem; margin: .75rem 0 0; padding: .5rem 0; border: 0; border-radius: 0; background: transparent; color: inherit; font: .8125rem/1.75 var(--font-mono, ui-monospace, monospace); white-space: pre; }
+.protocol-exchange-body > pre > code { display: block; width: max-content; min-width: 100%; padding: 0; color: inherit; background: transparent; font: inherit; }
+.protocol-exchange :focus-visible { outline: 2px solid var(--exchange-accent); outline-offset: -2px; }
+.protocol-exchange-headers caption, .protocol-exchange-headers thead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .protocol-exchange-copy-status:empty { display: none; }
 .protocol-exchange-copy-status:not(:empty) { padding: .5rem 1rem; border-top: 1px solid var(--exchange-border); color: var(--exchange-muted); font-size: .75rem; }
-@container (min-width: 56rem) {
+@container (min-width: 48rem) {
   .protocol-exchange-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .protocol-exchange-message + .protocol-exchange-message { border-top: 0; border-left: 1px solid var(--exchange-border); }
 }
-
-.protocol-exchange-sr-only, .protocol-exchange-headers caption, .protocol-exchange-headers thead, .protocol-exchange-annotations li > span { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.protocol-exchange .protocol-exchange-message-heading { align-items: center; gap: .5rem; margin-bottom: .25rem; }
-.protocol-exchange-body > .data-inspector { border: 0; border-radius: 0; margin: 0; }
-.protocol-exchange-body > .data-inspector > .data-inspector-header { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
-.protocol-exchange-body .data-inspector-controls, .protocol-exchange-body .data-inspector-selection, .protocol-exchange-body .data-inspector-tree-region { padding-inline: .25rem; }
-.protocol-exchange-body .data-inspector-source { border-bottom: 0; }
-.protocol-exchange-info { border-top: 1px solid var(--exchange-border); padding: .35rem .75rem; color: var(--exchange-muted); font-size: .75rem; }
-.protocol-exchange-info > summary { cursor: pointer; width: fit-content; }
-.protocol-exchange-info > p { margin: .4rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-@media (pointer: coarse) { .protocol-exchange button { min-width: 2.25rem; min-height: 2.25rem; } }
+@media (pointer: coarse) { .protocol-exchange button { min-width: 2.75rem; min-height: 2.75rem; } }

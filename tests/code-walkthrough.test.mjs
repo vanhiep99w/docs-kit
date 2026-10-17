@@ -5,11 +5,8 @@ import { createElement } from 'react';
 import * as runtime from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { compile, run } from '@mdx-js/mdx';
-import { prepareCodeWalkthrough, parseCodeWalkthroughDescriptor, remarkCodeWalkthrough } from '@vanhiep99w/docs-kit/annotated-example/walkthrough';
-import { validateCodeWalkthrough, walkthroughExample } from '@vanhiep99w/docs-kit/annotated-example/walkthrough-data';
-import { remarkAnnotatedExample } from '@vanhiep99w/docs-kit/annotated-example';
-import { codeLines } from '@vanhiep99w/docs-kit/annotated-example/data';
-import { AnnotatedExample } from '@vanhiep99w/docs-kit/components/annotated-example';
+import { prepareCodeWalkthrough, parseCodeWalkthroughDescriptor, remarkCodeWalkthrough } from '@vanhiep99w/docs-kit/code-walkthrough';
+import { validateCodeWalkthrough } from '@vanhiep99w/docs-kit/code-walkthrough/data';
 import { CodeWalkthrough } from '@vanhiep99w/docs-kit/components/code-walkthrough';
 import { CodeWalkthroughWithSource } from '@vanhiep99w/docs-kit/components/code-walkthrough-source';
 
@@ -26,11 +23,12 @@ const input = {
     { id: 'revisit', snapshot: 'before', title: 'Quay lại', description: 'Không phải history Git.', ranges: [[3, 3]] },
   ],
 };
+const codeLines = (code) => code.split(/\r\n|\r|\n/);
 const clone = () => structuredClone(input);
 const descriptor = 'title: Demo\nlanguage: text\nsnapshots: [{id: a, title: A, code: hello}]\nsteps: [{id: s, snapshot: a, title: Step, description: Text, ranges: [[1, 1]]}]';
 const fence = (body, language = 'code-walkthrough') => '\x60\x60\x60' + language + '\n' + body + '\n\x60\x60\x60';
 
-test('prepares each snapshot through Annotated Example, retaining exact source, tokens and ordered revisits', async () => {
+test('prepares each snapshot independently, retaining exact source, tokens and ordered revisits', async () => {
   const original = clone(); const data = await prepareCodeWalkthrough(input);
   assert.deepEqual(input, original);
   assert.deepEqual(data.steps, input.steps);
@@ -41,10 +39,7 @@ test('prepares each snapshot through Annotated Example, retaining exact source, 
     assert.ok(snapshot.tokens.flat().some((token) => token.light !== token.dark));
     assert.equal(snapshot.language, 'typescript');
   }
-  const view = walkthroughExample(data, data.snapshots[0]);
-  assert.equal(view.tokens, data.snapshots[0].tokens);
-  assert.deepEqual(view.annotations.map((annotation) => annotation.id), ['new', 'log']);
-  assert.ok(view.annotations.every((annotation) => !Object.hasOwn(annotation, 'snapshot')));
+
 });
 
 test('validates schema, IDs, source requests, missing/unused snapshots and snapshot-local ranges', () => {
@@ -112,46 +107,36 @@ test('prepared tokens must reconstruct every snapshot and cannot inject CSS or H
   assert.throws(() => validateCodeWalkthrough(wrongRows), /displayed lines/);
 });
 
-test('SSR renders each snapshot once, all explanations and native fallbacks, initially opens the first step snapshot', () => {
+test('SSR renders each snapshot once, all explanations and no-JS fallback, initially selects the first step snapshot', () => {
   const html = renderToStaticMarkup(createElement(CodeWalkthrough, { data: input }));
-  assert.equal([...html.matchAll(/class="annotated-example not-prose"/g)].length, 2);
-  assert.match(html, /data-snapshot="before" open=""/); assert.doesNotMatch(html, /data-snapshot="after" open=""/);
+  assert.equal([...html.matchAll(/class="code-walkthrough-code"/g)].length, 2);
+  assert.match(html, /data-snapshot="before"/); assert.doesNotMatch(html, /data-snapshot="after" open=""/);
   assert.match(html, /Không phải history Git/); assert.match(html, /Hai vùng được chọn/);
-  assert.match(html, /aria-current="step"/); assert.match(html, /hidden=""/);
+  assert.match(html, /aria-label="Chọn bước"/); assert.match(html, /hidden=""/);
   const two = renderToStaticMarkup(createElement('div', null, createElement(CodeWalkthrough, { data: input }), createElement(CodeWalkthrough, { data: input })));
   const ids = [...two.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(ids.length, new Set(ids).size);
   assert.ok([...two.matchAll(/href="#([^"]+)"/g)].every((match) => ids.includes(match[1])));
 });
 
-test('controlled Annotated Example selection highlights the requested ranges in SSR and null clears them', () => {
-  const data = walkthroughExample(input, input.snapshots[0]);
-  const html = renderToStaticMarkup(createElement(AnnotatedExample, { data, activeAnnotation: 'new' }));
-  assert.equal([...html.matchAll(/data-highlighted="true"/g)].length, 3);
-  assert.doesNotMatch(renderToStaticMarkup(createElement(AnnotatedExample, { data, activeAnnotation: null })), /data-highlighted/);
-  assert.throws(() => renderToStaticMarkup(createElement(AnnotatedExample, { data, activeAnnotation: 'missing' })), /activeAnnotation/);
-});
-
 test('source adapter preserves per-snapshot references and SSR remains usable without provider', () => {
   const html = renderToStaticMarkup(createElement(CodeWalkthroughWithSource, { data: input }));
-  assert.match(html, /source-ref/); assert.match(html, /snapshot=v0/); assert.match(html, /snapshot=v1/); assert.doesNotMatch(html, /source-drawer/);
+  assert.match(html, /source-ref/); assert.match(html, /snapshot=v0/); assert.doesNotMatch(html, /source-drawer/);
   const custom = renderToStaticMarkup(createElement(CodeWalkthroughWithSource, { data: input, renderSourceLink: () => createElement('span', null, 'Custom source') }));
   assert.doesNotMatch(custom, /source-ref/); assert.match(custom, /Custom source/);
 });
 
-test('MDX fixtures compile and coexist with annotated fences without requiring another code viewer', async () => {
+test('MDX fixtures compile and use the standalone viewer', async () => {
   for (const name of ['walkthrough-guard', 'walkthrough-dockerfile']) {
-    const path = new URL(`../examples/annotated-example/${name}.mdx`, import.meta.url);
-    const result = await compile({ value: await readFile(path, 'utf8'), path: path.pathname }, { remarkPlugins: [remarkAnnotatedExample, remarkCodeWalkthrough], outputFormat: 'function-body' });
+    const path = new URL(`../examples/code-walkthrough/${name}.mdx`, import.meta.url);
+    const result = await compile({ value: await readFile(path, 'utf8'), path: path.pathname }, { remarkPlugins: [remarkCodeWalkthrough], outputFormat: 'function-body' });
     const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
     const html = renderToStaticMarkup(createElement(Content, { components: { CodeWalkthrough } }));
-    assert.match(html, /code-walkthrough/); assert.match(html, /annotated-example-token/); assert.match(html, /Chú thích code/);
+    assert.match(html, /code-walkthrough/); assert.match(html, /code-walkthrough-token/); assert.match(html, /code-walkthrough-note/);
   }
   const ordinary = fence('const a = 1;', 'typescript');
   assert.equal(String(await compile(ordinary, { remarkPlugins: [remarkCodeWalkthrough] })), String(await compile(ordinary)));
-  const annotated = fence('title: Single\ncode: hi\nannotations: [{id: a, title: A, description: Text, ranges: [[1, 1]]}]', 'annotated');
-  const output = await compile(annotated + '\n\n' + fence(descriptor), { remarkPlugins: [remarkCodeWalkthrough, remarkAnnotatedExample] });
-  assert.match(String(output), /AnnotatedExample/); assert.match(String(output), /CodeWalkthrough/);
+
 });
 
 test('descriptor errors retain file/fence position, reject tokens and select source adapter only when needed', async () => {
@@ -165,7 +150,7 @@ test('descriptor errors retain file/fence position, reject tokens and select sou
   assert.equal((await parseCodeWalkthroughDescriptor(descriptor)).snapshots[0].code, 'hello');
 });
 
-test('malicious-looking code and descriptions remain escaped; browser bundle reuses Annotated Example without build tools', async () => {
+test('malicious-looking code and descriptions remain escaped; browser bundle is standalone without build tools', async () => {
   const value = clone(); value.title = '<script>bad</script>'; value.steps[0].description = '<b>plain</b>';
   value.snapshots[1].code = '<iframe src=x>\n\nline'; value.snapshots[1].language = 'text';
   const result = await compile(fence(JSON.stringify(value)), { remarkPlugins: [remarkCodeWalkthrough], outputFormat: 'function-body' });
@@ -175,10 +160,10 @@ test('malicious-looking code and descriptions remain escaped; browser bundle reu
   const { build } = await import('esbuild');
   const bundle = await build({ stdin: { contents: "export { CodeWalkthrough } from '@vanhiep99w/docs-kit/components/code-walkthrough';", resolveDir: process.cwd() }, bundle: true, platform: 'browser', format: 'esm', write: false, metafile: true, external: ['react', 'react/jsx-runtime'], minify: true });
   const files = Object.keys(bundle.metafile.inputs).join('\n');
-  assert.match(files, /components\/annotated-example/); assert.doesNotMatch(files, /shiki|yaml|d2\/|explorer\.tsx|provider\.tsx|node:|code-diff/);
+  assert.doesNotMatch(files, /annotated-example/); assert.doesNotMatch(files, /shiki|yaml|d2\/|explorer\.tsx|provider\.tsx|node:|code-diff/);
   assert.ok(bundle.outputFiles[0].contents.length < 25000);
   const source = await readFile(new URL('../dist/components/code-walkthrough.js', import.meta.url), 'utf8');
   assert.match(source, /^['"]use client['"]/); assert.doesNotMatch(source, /fetch\(|WebSocket|eval\(|dangerouslySetInnerHTML/);
-  assert.match(await readFile(new URL('../dist/styles/code-walkthrough.css', import.meta.url), 'utf8'), /@import '.\/annotated-example.css'/);
-  console.log('Code Walkthrough minified with Annotated Example, React external:', bundle.outputFiles[0].contents.length, 'bytes');
+  assert.doesNotMatch(await readFile(new URL('../dist/styles/code-walkthrough.css', import.meta.url), 'utf8'), /@import/);
+  console.log('Code Walkthrough minified standalone, React external:', bundle.outputFiles[0].contents.length, 'bytes');
 });

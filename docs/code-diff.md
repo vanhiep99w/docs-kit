@@ -73,6 +73,8 @@ annotations:
 
 Không tự suy ra thay đổi này tốt hơn, kiểm chứng code, benchmark hoặc chạy migration. Tác giả chịu trách nhiệm giải thích điều kiện áp dụng.
 
+Caption, mô tả annotation và footer “Chi tiết” không render. Viết ngữ cảnh cần thiết trong bài MDX. Annotation ranges vẫn highlight/pin dòng không đổi.
+
 ## 3. Hợp đồng descriptor
 
 | Field | Bắt buộc | Ý nghĩa |
@@ -80,7 +82,7 @@ Không tự suy ra thay đổi này tốt hơn, kiểm chứng code, benchmark h
 | `title` | Có | Tên ví dụ |
 | `before`, `after` | Có | Hai phiên bản, mỗi bên có `code` |
 | `language` | Không | Tên/alias ngôn ngữ bundled của Shiki; mặc định `text` |
-| `caption` | Không | Bối cảnh, giả định hoặc kết luận |
+| `caption` | Không | Metadata bối cảnh; không render |
 | `contextLines` | Không | Số dòng không đổi quanh thay đổi; số nguyên 0–20, mặc định 3 |
 | `annotations` | Không | 1–100 chú thích nếu cung cấp |
 | `view` | Không | `inline` (mặc định) hoặc `split`; chế độ SSR ban đầu |
@@ -89,15 +91,15 @@ Không tự suy ra thay đổi này tốt hơn, kiểm chứng code, benchmark h
 ### Mỗi phiên bản
 
 - `code`: chuỗi gốc, được phép rỗng.
-- `label?`: nhãn phiên bản, tên file hoặc tên cấu hình; luôn có thêm nhãn Trước/Sau để phân biệt.
+- `label?`: nhãn phiên bản, tên file hoặc tên cấu hình; metadata; toolbar dùng nhãn Trước/Sau.
 - `source?`: reference tới Source Explorer, xem phần adapter.
 - `tokens?`: dữ liệu highlight đã được validate; thường do build helper tự sinh. Không cần tự viết trong YAML.
 
-Cả hai bên dùng cùng `language`. Nếu khác ngôn ngữ, cân nhắc hai Annotated Example riêng thay vì mô tả như một file diff.
+Cả hai bên dùng cùng `language`. Nếu khác ngôn ngữ, cân nhắc hai code block riêng thay vì mô tả như một file diff.
 
 ### Annotation
 
-Dùng chung `ExampleAnnotation` với Annotated Example và thêm `side`:
+Dùng `DiffAnnotation` với các trường sau (metadata tương thích; không render lời giải thích bên dưới):
 
 - `id`: duy nhất trong toàn bộ diff, quy tắc chữ/số ASCII/`_`/`-`, bắt đầu bằng chữ hoặc số.
 - `side`: `before` hoặc `after`.
@@ -113,8 +115,8 @@ File rỗng có **0 dòng vật lý** nên không có range hợp lệ để ch�
 - So sánh chính xác từng dòng, **bao gồm line ending**. Không trim whitespace, chuẩn hóa EOL hoặc bỏ qua dòng trống.
 - File rỗng là 0 dòng; `a` và `a` kèm newline là hai nội dung khác nhau.
 - Newline cuối kết thúc dòng, không tạo thêm một dòng diff giả. Ví dụ `a\n` là 1 dòng vật lý, `\n` là 1 dòng trống, chuỗi rỗng là 0 dòng.
-- CRLF, CR và LF được nhận diện riêng. Chuyển cả file từ CRLF sang LF có thể hiện thành xóa/thêm mọi dòng; metadata trong “Chi tiết” ghi kiểu EOL từng bên để giúp hiểu nguyên nhân.
-- Dòng cuối thiếu newline chỉ có ký hiệu `∅↵` khi khác biệt giữa hai bản; nếu cả hai đều thiếu newline thì không lặp note. “Chi tiết” giữ trạng thái newline từng bên. EOL note và gutters không thuộc code được copy.
+- CRLF, CR và LF được nhận diện riêng. Chuyển cả file từ CRLF sang LF có thể hiện thành xóa/thêm mọi dòng.
+- Dòng cuối thiếu newline chỉ có ký hiệu `∅↵` khi khác biệt giữa hai bản; nếu cả hai đều thiếu newline thì không lặp note. EOL note và gutters không thuộc code được copy.
 - Copy lấy **toàn bộ chuỗi code gốc** của bên được chọn, gồm cả phần đang thu gọn; không lấy dấu +/−, số dòng hoặc chú thích.
 - YAML `|-`, `|`, `|+` vẫn có quy tắc giữ/bỏ newline cuối trước khi dữ liệu đến component. Dùng `|-` khi không muốn vô tình đưa newline cuối vào ví dụ.
 - Clipboard cần được browser cho phép. Nút copy chỉ xuất hiện sau hydrate; nếu thất bại có thông báo. Không gửi code tới server để copy.
@@ -125,12 +127,12 @@ File rỗng có **0 dòng vật lý** nên không có range hợp lệ để ch�
 
 - **Inline view** mặc định: hai cột số dòng trước/sau, dấu −/+ và code. `view: split` render hai bên ngay từ SSR; nút Inline/Song song xuất hiện sau hydrate, giữ focus khi đổi.
 - Split view ghép các dòng xóa/thêm theo vị trí trong từng hunk; dòng thừa có ô trống bên đối diện, không có số dòng giả. Dòng giữ nguyên xuất hiện ở cả hai bên. Hai bên dùng chung vùng cuộn và disclosure; CSS grid/subgrid yêu cầu browser hiện đại.
-- Đổi view không chạy lại diff; annotation vẫn trỏ đúng side/line. Disclosure reset khi đổi chế độ. Object `data` mới reset về `data.view` (hoặc inline); host nên giữ identity ổn định khi dữ liệu không đổi.
+- Đổi view không chạy lại diff; ranges vẫn thuộc đúng side/line. Disclosure reset khi đổi chế độ. Object `data` mới reset về `data.view` (hoặc inline); host nên giữ identity ổn định khi dữ liệu không đổi.
 - Dùng cả ký hiệu lẫn màu để phân biệt thêm/xóa. Có text trợ giúp cho trình đọc màn hình.
 - Phần không đổi xa thay đổi được nhóm trong native `<details>`. Mở bằng click hoặc keyboard, không cần JavaScript.
-- Tất cả phần thêm/xóa và lời giải thích đều có trong HTML server render; tất cả phần không đổi cũng có trong disclosure, không fetch khi mở.
-- Copy và nút đổi view cần JavaScript; chế độ SSR được cấu hình vẫn đọc được khi không JavaScript. Link annotation là anchor native, dùng được khi tắt JavaScript.
-- Code rộng cuộn trong viewer; không thu nhỏ chữ để ép vừa mobile. Metadata hai bên xếp dọc trong container hẹp.
+- Tất cả phần thêm/xóa đều có trong HTML server render; tất cả phần không đổi cũng có trong disclosure, không fetch khi mở.
+- Copy và nút đổi view cần JavaScript; chế độ SSR được cấu hình vẫn đọc được khi không JavaScript.
+- Code rộng cuộn trong viewer; không thu nhỏ chữ để ép vừa mobile.
 - CSS kế thừa font/màu Fumadocs, có fallback ngoài Fumadocs; dark mode theo `.dark` hoặc `[data-theme='dark']` của host. Không animation bắt buộc.
 - Không có thay đổi: hiển thị thông báo hai bản giống nhau; phần code không đổi vẫn mở được từ disclosure. Hai file rỗng có thông báo riêng.
 
@@ -235,6 +237,6 @@ await prepareCodeDiff(input, {
 - `@vanhiep99w/docs-kit/code-diff/data`: types, line helpers, validator, `splitDiffRows` (projection chỉ số rows, không text diff) và cách nhóm phần thu gọn; không Shiki hoặc diff matrix.
 - `@vanhiep99w/docs-kit/components/code-diff`: client component SSR-readable.
 - `@vanhiep99w/docs-kit/components/code-diff-source`: adapter Source Explorer tùy chọn.
-- `@vanhiep99w/docs-kit/styles/code-diff.css`: CSS độc lập; không cần CSS Annotated Example.
+- `@vanhiep99w/docs-kit/styles/code-diff.css`: CSS độc lập.
 
 Ví dụ: [Dockerfile](../examples/code-diff/dockerfile.mdx), [IAM policy](../examples/code-diff/iam-policy.mdx), [SQL query](../examples/code-diff/sql-query.mdx).

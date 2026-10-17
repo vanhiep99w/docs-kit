@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { DataInspector } from './data-inspector.js';
+import { formatJSONPayload } from '../json/data.js';
 import { formatSpanTime, validatePreparedSpanWaterfall, waterfallExtent, waterfallRows, type PreparedSpanWaterfall } from '../span-waterfall/data.js';
 
 export type { SpanWaterfallInput, PreparedSpanWaterfall, WaterfallSpan, SpanAnnotation } from '../span-waterfall/data.js';
@@ -63,7 +63,7 @@ export function SpanWaterfall({ data, className }: SpanWaterfallProps) {
         <dl><div><dt>ID</dt><dd>{span.id}</dd></div><div><dt>Cha</dt><dd>{span.parent ?? 'Không có (root)'}</dd></div>
           <div><dt>Bắt đầu</dt><dd>{time(span.start)}</dd></div><div><dt>Kết thúc</dt><dd>{time(span.start + span.duration)}</dd></div></dl>
         {span.description && <p>{span.description}</p>}
-        {span.attributes ? <DataInspector embedded key={span.id} data={span.attributes} /> : <p className="span-waterfall-empty">Không khai báo attributes.</p>}
+        {span.attributes ? <pre className="span-waterfall-attributes" tabIndex={0} aria-label={`Attributes: ${span.name}`}><code>{formatJSONPayload(span.attributes)}</code></pre> : <p className="span-waterfall-empty">Không khai báo attributes.</p>}
       </details>)}
     </section></details>
     <details className="span-waterfall-table-disclosure"><summary>Bảng thời gian đầy đủ</summary>

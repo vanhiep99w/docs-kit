@@ -24,7 +24,7 @@ const components = { ConcurrencyLanes }; // merge với components hiện có
 @import '@vanhiep99w/docs-kit/styles/concurrency-lanes.css';
 ```
 
-Import CSS sau stylesheet website. Font kế thừa website, màu dùng biến Fumadocs với fallback riêng; dark mode theo `.dark` hoặc `[data-theme='dark']` trên ancestor. Không cần provider, Next.js, D2, RxJS, Inspector hoặc tracing backend.
+Import CSS sau stylesheet website. Font kế thừa website, màu dùng biến Fumadocs với fallback riêng; dark mode theo `.dark` hoặc `[data-theme='dark']` trên ancestor. Không cần provider, Next.js, D2, RxJS hoặc tracing backend.
 
 ## Cú pháp
 
@@ -121,17 +121,17 @@ Public entry points:
 ## Cách bố trí và đọc timeline
 
 - Mỗi actor là một lane, chung trục từ 0 đến `max(event.at, interval.end)`, giữ cả khoảng trống đầu. Nếu tất cả ở 0, miền hiển thị 0–1 chỉ là fallback; dữ liệu vẫn ở 0 và có thông báo riêng.
-- Event là marker tròn đánh số; interval là thanh có badge chữ nhật. Thực thi tô kín, chờ nét đứt, giữ tài nguyên viền dày. Nhãn text và loại luôn có trong chi tiết/bảng, không dựa vào màu đơn độc.
-- Số ổn định theo thứ tự `events`, sau đó `intervals`, **không phải thứ tự thực thi**. Nội dung dưới hình nhóm theo lane, sắp xếp mốc bắt đầu; tie giữ thứ tự số. Sắp xếp này không khẳng định program order.
+- Event là chấm tròn có nhãn trực tiếp; interval là thanh có tên tác vụ ngay phía trên. Thực thi tô kín, chờ nét đứt, giữ tài nguyên viền dày. Nhãn text và loại luôn có trong chi tiết/bảng, không dựa vào màu đơn độc.
+- Số trong phần chi tiết/bảng ổn định theo thứ tự `events`, sau đó `intervals`, **không phải thứ tự thực thi**. Nội dung dưới hình nhóm theo lane, sắp xếp mốc bắt đầu; tie giữ thứ tự số. Sắp xếp này không khẳng định program order.
 - Những mục quá gần/chồng nhau trong một lane được xếp vào các subtrack **theo chiều dọc**. Không dịch tọa độ ngang hoặc tăng thời lượng để né chồng. Subtrack không phải thread hay resource mới.
 - Timeline có chiều rộng hình học 640px cộng cột lane 10rem. Trên mobile cuộn ngang giữ marker/font rõ, không co chữ và không đổi scale theo từng lane.
-- Nhãn lane dài được ellipsis trong hình; nhãn và mô tả đầy đủ luôn ở phần chi tiết HTML. Nhãn item dài đặt bên dưới, không đè lên timeline.
-- Nhãn số thời gian rút gọn 12 chữ số có nghĩa, không sửa source. Interval rất ngắn có thanh tối thiểu 1px và badge có bề rộng cố định để đọc số; không coi pixel là phép đo chính xác.
+- Nhãn lane dài xuống dòng; nhãn item trên hình tối đa 36 ký tự, tên đầy đủ có trong tooltip và chi tiết. Layout dành chỗ cho cả nhãn và thanh để tránh chồng chữ.
+- Nhãn số thời gian rút gọn 12 chữ số có nghĩa, không sửa source. Interval rất ngắn có thanh tối thiểu 1px ; không coi pixel là phép đo chính xác.
 - Mũi tên có thể cắt qua mục khác trong hình dày; chọn relation hoặc endpoint để highlight, đọc tên và hai endpoint trong phần “Quan hệ được khai báo”. Với nhiều cạnh, tách ví dụ thay vì xem đây là graph router tự tránh mọi giao cắt.
 
 ## Tương tác và fallback
 
-“Sự kiện và quan hệ” mặc định đóng; chọn số hoặc mũi tên bằng chuột/Enter để mở nhóm và `<details>` tương ứng rồi đi tới nội dung. Chọn event highlight cạnh liên quan; chọn relation highlight hai endpoint. Mở/thu summary bằng bàn phím vẫn là native disclosure; không ép các mục khác đóng lại.
+“Chi tiết tác vụ” mặc định đóng; chọn nhãn tác vụ, mũi tên hoặc tên liên kết dưới hình bằng chuột/Enter để mở nhóm và `<details>` tương ứng rồi đi tới nội dung. Chọn event highlight cạnh liên quan; chọn relation highlight hai endpoint. Mở/thu summary bằng bàn phím vẫn là native disclosure; không ép các mục khác đóng lại.
 
 SVG anchors có tên truy cập được và tham chiếu HTML thật. Khi không JavaScript, toàn bộ diagram, chi tiết, quan hệ và bảng vẫn SSR; người đọc mở từng summary để đọc. Auto-open/selection của ứng dụng là progressive enhancement, không phải điều kiện truy cập nội dung.
 

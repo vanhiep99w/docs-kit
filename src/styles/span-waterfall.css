@@ -1,4 +1,3 @@
-@import './data-inspector.css';
 
 .span-waterfall {
   position: relative;
@@ -83,7 +82,6 @@
 .span-waterfall-details dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .span-waterfall-details > details > p { margin: 0; padding: 0 1rem .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .span-waterfall-empty { color: var(--waterfall-muted); }
-.span-waterfall-details .data-inspector { margin: 0 1rem 1rem; }
 .span-waterfall table { border-collapse: collapse; width: 100%; min-width: 42rem; margin: 0; font-size: .75rem; font-variant-numeric: tabular-nums; }
 .span-waterfall caption { text-align: left; padding: .5rem 1rem; color: var(--waterfall-muted); }
 .span-waterfall th, .span-waterfall td { text-align: left; vertical-align: top; padding: .5rem .75rem; border: 1px solid var(--waterfall-border); overflow-wrap: anywhere; max-width: 18rem; }
@@ -99,10 +97,10 @@
 .span-waterfall-detail-list, .span-waterfall-info { border-top: 1px solid var(--waterfall-border); }
 .span-waterfall-info > p { margin: .4rem .75rem; font-size: .75rem; color: var(--waterfall-muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .span-waterfall-info .span-waterfall-notice { padding: 0; }
-.span-waterfall-details .data-inspector { border: 0; border-radius: 0; }
-.span-waterfall-details .data-inspector-header { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); }
 .span-waterfall-header > small { font-size: .6875rem; }
 .span-waterfall-details dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @container (max-width: 30rem) { .span-waterfall-details dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .span-waterfall .span-waterfall-details > .span-waterfall-sr-only { padding: 0; margin: -1px; }
+
+.span-waterfall-attributes { overflow: auto; max-height: 24rem; margin: .5rem .75rem; padding: .75rem; font-size: .8125rem; white-space: pre; }

@@ -7,7 +7,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { compile, run } from '@mdx-js/mdx';
 import { prepareSpanWaterfall, parseSpanWaterfallDescriptor, remarkSpanWaterfall } from '@vanhiep99w/docs-kit/span-waterfall';
 import { validateSpanWaterfallInput, validatePreparedSpanWaterfall, waterfallRows, waterfallExtent, formatSpanTime } from '@vanhiep99w/docs-kit/span-waterfall/data';
-import { inspectorValue } from '@vanhiep99w/docs-kit/data-inspector/data';
 import { SpanWaterfall } from '@vanhiep99w/docs-kit/components/span-waterfall';
 
 const input = {
@@ -29,8 +28,8 @@ test('prepares lossless attributes without mutation, accepts forward parents and
   const original = clone(); const data = prepareSpanWaterfall(input);
   assert.deepEqual(input, original);
   assert.equal(data.spans[0].attributes.json, input.spans[0].attributes);
-  assert.equal(inspectorValue(data.spans[0].attributes, '/id'), '9007199254740993');
-  assert.equal(inspectorValue(data.spans[0].attributes, '/huge'), '1e309');
+  assert.equal(data.spans[0].attributes.json.slice(data.spans[0].attributes.nodes[1].offset, data.spans[0].attributes.nodes[1].offset + data.spans[0].attributes.nodes[1].length), '9007199254740993');
+  assert.equal(data.spans[0].attributes.json.slice(data.spans[0].attributes.nodes[2].offset, data.spans[0].attributes.nodes[2].offset + data.spans[0].attributes.nodes[2].length), '1e309');
   assert.deepEqual(waterfallRows(data.spans).map(({ span, depth }) => [span.id, depth]), [['root', 0], ['a', 1], ['query', 2], ['b', 1], ['zero', 1]]);
   assert.equal(waterfallExtent(data.spans), 35);
   assert.equal(formatSpanTime(0.1 + 0.2), '0.3');
@@ -89,10 +88,10 @@ test('bounds nesting, annotations, text and aggregate attribute sources', () => 
   assert.throws(() => parseSpanWaterfallDescriptor('x'.repeat(2097153)), /2097152/);
 });
 
-test('uses strict Inspector parser and validates prepared attributes before rendering', () => {
+test('uses strict lossless JSON parser and validates prepared attributes before rendering', () => {
   for (const attributes of ['{"id":1,"id":2}', '{"id":1,}', '{broken}', '{} //comment', { id: 1 }, 'x'.repeat(262145)]) {
     const value = clone(); value.spans[0].attributes = attributes;
-    assert.throws(() => prepareSpanWaterfall(value), /Data Inspector/);
+    assert.throws(() => prepareSpanWaterfall(value), /JSON payload/);
   }
   const data = prepareSpanWaterfall(input); data.spans[0].attributes.nodes[0].offset = -1;
   assert.throws(() => validatePreparedSpanWaterfall(data), /node offsets/);
@@ -104,7 +103,7 @@ test('SSR contains accessible timing, status, provenance, all details and a comp
   const html = renderToStaticMarkup(createElement(SpanWaterfall, { data }));
   assert.match(html, /Trace minh họa/); assert.match(html, /Bảng thời gian đầy đủ/);
   assert.match(html, /Bắt đầu 12.5 ms, thời lượng 5 ms, cấp 2/);
-  assert.match(html, /Call A/); assert.match(html, /Lỗi/); assert.match(html, /data-inspector/);
+  assert.match(html, /Call A/); assert.match(html, /Lỗi/); assert.match(html, /span-waterfall-attributes/);
   assert.match(html, /left:35.714285714285715%;width:14.285714285714285%/);
   const two = renderToStaticMarkup(createElement('div', null, createElement(SpanWaterfall, { data }), createElement(SpanWaterfall, { data })));
   const ids = [...two.matchAll(/ id="([^"]+)"/g)].map((x) => x[1]);
@@ -114,13 +113,13 @@ test('SSR contains accessible timing, status, provenance, all details and a comp
   assert.match(renderToStaticMarkup(createElement(SpanWaterfall, { data: measured })), /Trace đo thực tế/);
 });
 
-test('two MDX fixtures compile, SSR and reuse Inspector for attributes', async () => {
+test('two MDX fixtures compile, SSR and show raw attributes', async () => {
   for (const name of ['api-cache', 'parallel-services']) {
     const path = new URL(`../examples/span-waterfall/${name}.mdx`, import.meta.url);
     const result = await compile({ value: await readFile(path, 'utf8'), path: path.pathname }, { remarkPlugins: [remarkSpanWaterfall], outputFormat: 'function-body' });
     const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
     const html = renderToStaticMarkup(createElement(Content, { components: { SpanWaterfall } }));
-    assert.match(html, /span-waterfall-chart/); assert.match(html, /data-inspector/); assert.match(html, /Chú thích span/);
+    assert.match(html, /span-waterfall-chart/); assert.match(html, /span-waterfall-attributes/); assert.match(html, /Chú thích span/);
   }
 });
 
@@ -143,14 +142,14 @@ test('untrusted-looking labels and sources are escaped, never interpreted or lin
   assert.doesNotMatch(html, /<script|<iframe|<img|<b>/); assert.match(html, /&lt;b&gt;text/);
 });
 
-test('browser entry excludes parsers, Node, renderers and network clients; CSS imports Inspector', async () => {
+test('browser entry excludes parsers, Node, renderers and network clients; self-contained CSS', async () => {
   const { build } = await import('esbuild');
   const result = await build({ stdin: { contents: "export { SpanWaterfall } from '@vanhiep99w/docs-kit/components/span-waterfall';", resolveDir: process.cwd() }, bundle: true, platform: 'browser', format: 'esm', write: false, metafile: true, external: ['react', 'react/jsx-runtime'], minify: true });
   assert.ok(result.outputFiles[0].contents.length < 30000);
   const files = Object.keys(result.metafile.inputs).join('\n');
-  assert.match(files, /components\/data-inspector/); assert.doesNotMatch(files, /node_modules\/|jsonc-parser|yaml|shiki|source-explorer|d2\//);
+  assert.doesNotMatch(files, /data-inspector/); assert.doesNotMatch(files, /node_modules\/|jsonc-parser|yaml|shiki|source-explorer|d2\//);
   const source = await readFile(new URL('../dist/components/span-waterfall.js', import.meta.url), 'utf8');
   assert.match(source, /^['"]use client['"]/); assert.doesNotMatch(source, /fetch\(|WebSocket|eval\(|dangerouslySetInnerHTML|XMLHttpRequest/);
-  assert.match(await readFile(new URL('../dist/styles/span-waterfall.css', import.meta.url), 'utf8'), /@import '.\/data-inspector.css'/);
+  assert.doesNotMatch(await readFile(new URL('../dist/styles/span-waterfall.css', import.meta.url), 'utf8'), /@import/);
   console.log('Span Waterfall minified, React external:', result.outputFiles[0].contents.length, 'bytes');
 });

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { ExampleToken } from '../code/tokens.js';
 
-export function codeTokenStyle(token: ExampleToken, prefix: 'annotated' | 'code-diff'): CSSProperties {
+export function codeTokenStyle(token: ExampleToken, prefix: 'walkthrough' | 'code-diff'): CSSProperties {
   const light = token.fontStyle ?? 0;
   const dark = token.darkFontStyle ?? light;
   return {

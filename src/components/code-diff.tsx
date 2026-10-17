@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
-import { diffBlocks, diffCodeLines, diffLineEndings, splitDiffRows, validatePreparedCodeDiff, type DiffSide, type DiffView, type DiffWordRange, type DiffSplitRow, type PreparedCodeDiff } from '../code-diff/data.js';
+import { diffBlocks, diffCodeLines, splitDiffRows, validatePreparedCodeDiff, type DiffSide, type DiffView, type DiffWordRange, type DiffSplitRow, type PreparedCodeDiff } from '../code-diff/data.js';
 import { CopyIcon } from './copy-icon.js';
 import { writeSourceURL } from '../source-explorer/index.js';
 import { codeTokenStyle } from './code-token-style.js';
@@ -117,19 +117,6 @@ export function CodeDiff({ data, className, sourceLinks }: CodeDiffProps) {
         </>}
       </div>
     </div>
-    {data.annotations && <ol className="code-diff-annotations" aria-label="Giải thích thay đổi">
-      {data.annotations.map((annotation) => <li key={annotation.id}>
-        <a href={`#${lineId(annotation.side, annotation.ranges[0][0])}`}>{annotation.title}</a>
-        <span>Bản {annotation.side === 'before' ? 'trước' : 'sau'} · Dòng {annotation.ranges.map(([start, end]) => start === end ? start : `${start}–${end}`).join(', ')}</span>
-        <p>{annotation.description}</p>
-      </li>)}
-    </ol>}
-    <details className="code-diff-info"><summary>Chi tiết</summary>
-      <strong>{data.title}</strong>{data.caption && <p>{data.caption}</p>}
-      <p>+{added} thêm · −{removed} xóa</p>
-      {(['before', 'after'] as const).map((side) => <p key={side}>{side === 'before' ? 'Trước' : 'Sau'}{data[side].label ? ` · ${data[side].label}` : ''} · {diffLineEndings(data[side].code)}{view[side].length && !view[side].at(-1)!.ending ? ' · Không có newline cuối' : ''}</p>)}
-      <p>{displayView === 'split' ? 'Trái: trước · Phải: sau. Ô trống không phải dòng của file. ' : 'Số dòng: trước / sau. '}Dấu − là xóa; dấu + là thêm.{data.wordDiff && ' Vùng gạch chân là chi tiết từ trong các dòng thay thế đã ghép theo vị trí.'}</p>
-    </details>
     <div className="code-diff-status" role="status" aria-live="polite">{status}</div>
   </figure>;
 }

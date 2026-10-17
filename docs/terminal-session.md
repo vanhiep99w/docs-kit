@@ -136,7 +136,7 @@ Các CLI tương tác như Redis CLI không nhất thiết có shell exit code s
 - `stream`: `stdout` hoặc `stderr`; được hiển thị bằng nhãn, không chỉ bằng màu.
 - `text`: chuỗi plain text; được phép rỗng.
 - `collapsed?`: boolean; khai báo `true` để đóng, `false` để mở native `<details>/<summary>`. Bỏ field: output plain không annotations tối đa 8 dòng hiện trực tiếp; output dài/có annotation vẫn mở bằng native disclosure, không JavaScript vẫn đọc được.
-- `annotations?`: mảng chú thích không rỗng nếu cung cấp. Dùng chung `ExampleAnnotation` và inclusive ranges với [Annotated Example](./annotated-example.md).
+- `annotations?`: mảng chú thích không rỗng nếu cung cấp. Dùng chung `ExampleAnnotation` và inclusive ranges với các viewer code khác.
 
 Mỗi output có scope annotation ID riêng. Ranges bắt đầu từ **1**, tính trên output đó, không phải command hoặc toàn session. Hỗ trợ nhiều vùng và vùng chồng nhau; tất cả dòng được chú thích được đánh dấu sẵn. Link chú thích trỏ tới dòng đầu của range đầu tiên. MVP chưa có selection tương tác theo từng annotation trong Terminal Session.
 
@@ -207,6 +207,6 @@ const data = parseTerminalSession(yamlSource);
 - `@vanhiep99w/docs-kit/terminal-session`: remark plugin và parser YAML build-time.
 - `@vanhiep99w/docs-kit/terminal-session/data`: types, validator và context label helper.
 - `@vanhiep99w/docs-kit/components/terminal-session`: React component.
-- `@vanhiep99w/docs-kit/styles/terminal-session.css`: CSS riêng, không cần CSS Annotated Example.
+- `@vanhiep99w/docs-kit/styles/terminal-session.css`: CSS riêng.
 
 Ví dụ: [Kubernetes](../examples/terminal-session/kubernetes.mdx), [Docker](../examples/terminal-session/docker.mdx), [Redis CLI](../examples/terminal-session/redis.mdx).

@@ -1,4 +1,4 @@
-import { validateDataInspectorInput, validatePreparedDataInspector, type PreparedDataInspector } from '../data-inspector/data.js';
+import { validateJSONPayloadInput, validatePreparedJSONPayload, type PreparedJSONPayload } from '../json/data.js';
 
 export type SpanAnnotation = { id: string; span: string; title: string; description: string };
 export type WaterfallSpan<A = string> = {
@@ -22,7 +22,7 @@ export type SpanWaterfallInput = {
   spans: WaterfallSpan[];
   annotations?: SpanAnnotation[];
 };
-export type PreparedSpanWaterfall = Omit<SpanWaterfallInput, 'spans'> & { spans: WaterfallSpan<PreparedDataInspector>[] };
+export type PreparedSpanWaterfall = Omit<SpanWaterfallInput, 'spans'> & { spans: WaterfallSpan<PreparedJSONPayload>[] };
 export type WaterfallRow<A = string> = { span: WaterfallSpan<A>; depth: number };
 
 function fail(message: string): never { throw new Error(`Span Waterfall: ${message}`); }
@@ -90,9 +90,9 @@ function validate(value: unknown, prepared: boolean) {
     if (span.status !== undefined && !['ok', 'error', 'unset'].includes(span.status as string)) fail('invalid span.status.');
     if (span.description !== undefined) text(span.description, 'span.description');
     if (span.attributes !== undefined) {
-      if (prepared) validatePreparedDataInspector(span.attributes);
-      else validateDataInspectorInput({ title: 'Attributes', json: span.attributes });
-      budget += prepared ? (span.attributes as PreparedDataInspector).json.length : (span.attributes as string).length;
+      if (prepared) validatePreparedJSONPayload(span.attributes);
+      else validateJSONPayloadInput({ title: 'Attributes', json: span.attributes });
+      budget += prepared ? (span.attributes as PreparedJSONPayload).json.length : (span.attributes as string).length;
     }
     budget += span.name.length + span.service.length + ((span.description as string | undefined)?.length ?? 0);
   }

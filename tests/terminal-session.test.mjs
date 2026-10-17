@@ -8,8 +8,6 @@ import { compile, run } from '@mdx-js/mdx';
 import { parseTerminalSession, remarkTerminalSession } from '@vanhiep99w/docs-kit/terminal-session';
 import { terminalContextLabel, validateTerminalSession } from '@vanhiep99w/docs-kit/terminal-session/data';
 import { TerminalSession } from '@vanhiep99w/docs-kit/components/terminal-session';
-import { remarkAnnotatedExample } from '@vanhiep99w/docs-kit/annotated-example';
-import { AnnotatedExample } from '@vanhiep99w/docs-kit/components/annotated-example';
 
 const session = {
   title: 'Phiên minh họa',
@@ -131,16 +129,6 @@ test('reports descriptor errors with source file and fence location', async () =
       return true;
     });
   }
-});
-
-test('coexists with Annotated Example and leaves ordinary code fences unchanged', async () => {
-  const plain = '\x60\x60\x60bash\necho hello\n\x60\x60\x60';
-  assert.equal(String(await compile(plain, { remarkPlugins: [remarkTerminalSession] })), String(await compile(plain)));
-  const annotated = '\x60\x60\x60annotated\ntitle: x\ncode: x\nannotations: [{id: a, title: A, description: B, ranges: [[1, 1]]}]\n\x60\x60\x60';
-  const result = await compile(fence(descriptor) + '\n\n' + annotated, { remarkPlugins: [remarkTerminalSession, remarkAnnotatedExample], outputFormat: 'function-body' });
-  const { default: Content } = await run(String(result), { ...runtime, baseUrl: import.meta.url });
-  const html = renderToStaticMarkup(createElement(Content, { components: { TerminalSession, AnnotatedExample } }));
-  assert.match(html, /terminal-session/); assert.match(html, /annotated-example/);
 });
 
 test('terminal browser entry has no shell, network runtime, parser, highlighter or source drawer', async () => {

@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useId, useMemo, useState } from 'react';
+import { formatJSONPayload } from '../json/data.js';
 import { CopyIcon } from './copy-icon.js';
-import { DataInspector } from './data-inspector.js';
-import { formatProtocolMessage, protocolBodySource, validatePreparedProtocolExchange, type PreparedProtocolExchange, type PreparedProtocolBody, type ProtocolVariant } from '../protocol-exchange/data.js';
+import { formatProtocolMessage, validatePreparedProtocolExchange, type PreparedProtocolExchange, type PreparedProtocolBody, type ProtocolVariant } from '../protocol-exchange/data.js';
 
 export type { ProtocolExchangeInput, PreparedProtocolExchange, ProtocolBodyInput, PreparedProtocolBody, ProtocolHeader, ProtocolRequest, ProtocolResponse, ProtocolVariant, ProtocolAnnotation } from '../protocol-exchange/data.js';
 export type ProtocolExchangeProps = { data: PreparedProtocolExchange; className?: string };
@@ -24,11 +24,11 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
     return `${uid}-variant-${index}-${side}-${target}${headerIndex}`;
   }
 
-  async function copy(variant: ProtocolVariant<PreparedProtocolBody>, side: 'request' | 'response', bodyOnly = false) {
+  async function copy(variant: ProtocolVariant<PreparedProtocolBody>, side: 'request' | 'response') {
     try {
-      const text = bodyOnly ? protocolBodySource(variant[side].body)! : formatProtocolMessage(variant, side);
+      const text = formatProtocolMessage(variant, side);
       await navigator.clipboard.writeText(text);
-      setStatus(`Đã sao chép ${bodyOnly ? 'body ' : ''}${side} — ${variant.title}.`);
+      setStatus(`Đã sao chép ${side} — ${variant.title}.`);
     } catch { setStatus('Không thể sao chép. Hãy chọn và sao chép nội dung thủ công.'); }
   }
 
@@ -44,7 +44,7 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
     </>;
     return <section className="protocol-exchange-message" aria-labelledby={headingId}>
       <div className="protocol-exchange-message-heading">
-        <h3 id={headingId} className="protocol-exchange-sr-only">{label}</h3>
+        <h3 id={headingId}>{label}</h3>
         <div className="protocol-exchange-start" id={targetId(variant.id, side, 'start')}>{start}</div>
         <button type="button" hidden={!ready} aria-label={`Sao chép ${side} — ${variant.title}`} title={`Sao chép ${side}`} onClick={() => copy(variant, side)}><CopyIcon /></button>
       </div>
@@ -58,12 +58,8 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
         </table>
       </div> : null}
       {value.body !== undefined ? <div className="protocol-exchange-body" id={targetId(variant.id, side, 'body')}>
-        <div className="protocol-exchange-body-heading"><span>Body</span>
-          <button type="button" hidden={!ready} aria-label={`Sao chép body ${side} — ${variant.title}`} title="Sao chép body" onClick={() => copy(variant, side, true)}><CopyIcon /></button>
-        </div>
-        {value.body.kind === 'json' ? <DataInspector embedded data={value.body.data} />
-          : <>{!value.body.text && <p className="protocol-exchange-empty">Body rỗng.</p>}<pre tabIndex={0} role="region" aria-label={`Body ${side} — ${variant.title}`}><code>{value.body.text}</code></pre></>}
-      </div> : <p className="protocol-exchange-empty">Không có body.</p>}
+        <pre tabIndex={0} role="region" aria-label={`Body ${side} — ${variant.title}`}><code>{value.body.kind === 'json' ? formatJSONPayload(value.body.data) : value.body.text}</code></pre>
+      </div> : null}
     </section>;
   }
 
@@ -74,21 +70,12 @@ export function ProtocolExchange({ data, className }: ProtocolExchangeProps) {
     <div className="protocol-exchange-variants">
       {data.variants.map((variant, index) => <details key={variant.id} className="protocol-exchange-variant" open={index === 0} data-variant={variant.id}>
         <summary><span>{variant.title}</span><small>{variant.request.method} → {variant.response.status}</small></summary>
-        {variant.description && <p className="protocol-exchange-description">{variant.description}</p>}
         <div className="protocol-exchange-pair">
           {message(variant, 'request')}
           {message(variant, 'response')}
         </div>
-        {variant.annotations && <ol className="protocol-exchange-annotations" aria-label={`Chú thích trao đổi — ${variant.title}`}>
-          {variant.annotations.map((annotation) => <li key={annotation.id}>
-            <a href={`#${targetId(variant.id, annotation.side, annotation.target, annotation.header)}`}>{annotation.title}</a>
-            <span>{annotation.side} · {annotation.target}{annotation.header ? ` · ${annotation.header}` : ''}</span>
-            <p>{annotation.description}</p>
-          </li>)}
-        </ol>}
       </details>)}
     </div>
-    <details className="protocol-exchange-info"><summary>Về ví dụ</summary>{data.description && <p>{data.description}</p>}<p>Ví dụ tĩnh · Không gửi request. Bản sao là transcript đọc được, không phải HTTP wire format.</p></details>
     <div className="protocol-exchange-copy-status" role="status" aria-label="Sao chép trao đổi" aria-live="polite">{status}</div>
   </figure>;
 }

@@ -4,7 +4,7 @@ import type { Plugin } from 'unified';
 import { parseDocument } from 'yaml';
 import { visit } from 'unist-util-visit';
 import { dataElement } from '../mdx/data-element.js';
-import { prepareDataInspector } from '../data-inspector/index.js';
+import { prepareJSONPayload } from '../json/prepare.js';
 import { validateSpanWaterfallInput, validatePreparedSpanWaterfall, type SpanWaterfallInput, type PreparedSpanWaterfall } from './data.js';
 
 export type { SpanWaterfallInput, PreparedSpanWaterfall, WaterfallSpan, SpanAnnotation, WaterfallRow } from './data.js';
@@ -14,7 +14,7 @@ export function prepareSpanWaterfall(input: SpanWaterfallInput): PreparedSpanWat
   validateSpanWaterfallInput(input);
   const data: PreparedSpanWaterfall = { ...input, spans: input.spans.map(({ attributes, ...span }) => ({
     ...span,
-    ...(attributes !== undefined ? { attributes: prepareDataInspector({ title: 'Attributes', json: attributes }) } : {}),
+    ...(attributes !== undefined ? { attributes: prepareJSONPayload({ title: 'Attributes', json: attributes }) } : {}),
   })) };
   validatePreparedSpanWaterfall(data);
   return data;

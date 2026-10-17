@@ -4,11 +4,11 @@ import type { Plugin } from 'unified';
 import { parseDocument } from 'yaml';
 import { visit } from 'unist-util-visit';
 import { dataElement } from '../mdx/data-element.js';
-import { prepareAnnotatedExample, type PrepareAnnotatedExampleOptions } from './index.js';
-import { validateCodeWalkthrough, walkthroughExample, type CodeWalkthroughData } from './walkthrough-data.js';
+import { highlightCode, type HighlightCodeOptions } from '../code/highlight.js';
+import { validateCodeWalkthrough, type CodeWalkthroughData } from './data.js';
 
-export type { CodeWalkthroughData, WalkthroughSnapshot, WalkthroughStep } from './walkthrough-data.js';
-export type PrepareCodeWalkthroughOptions = PrepareAnnotatedExampleOptions;
+export type { CodeWalkthroughData, WalkthroughSnapshot, WalkthroughStep } from './data.js';
+export type PrepareCodeWalkthroughOptions = HighlightCodeOptions;
 export type RemarkCodeWalkthroughOptions = PrepareCodeWalkthroughOptions;
 
 /** Build only. Tokenize each snapshot once, not once per step. Never compute or execute changes. */
@@ -16,8 +16,8 @@ export async function prepareCodeWalkthrough(input: CodeWalkthroughData, options
   validateCodeWalkthrough(input);
   const snapshots = [];
   for (const snapshot of input.snapshots) {
-    const prepared = await prepareAnnotatedExample(walkthroughExample(input, snapshot), options);
-    snapshots.push({ ...snapshot, language: prepared.language, tokens: prepared.tokens });
+    const language = snapshot.language ?? input.language ?? 'text';
+    snapshots.push({ ...snapshot, language, tokens: await highlightCode(snapshot.code, language, options) });
   }
   const data = { ...input, snapshots };
   validateCodeWalkthrough(data);

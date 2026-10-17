@@ -92,3 +92,24 @@
 .concurrency-lanes-info > p { margin: .4rem .75rem; color: var(--concurrency-muted); font-size: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .concurrency-lanes-info .concurrency-lanes-notice { padding: 0; }
 .concurrency-lanes-header > small { font-size: .6875rem; }
+
+.concurrency-lanes-hint { padding: .65rem .85rem .25rem; font-size: .75rem; }
+.concurrency-lanes-legend { border: 0; padding: .25rem .85rem .6rem; color: var(--concurrency-muted); }
+.concurrency-lanes-legend > span { display: inline-flex; align-items: center; gap: .4rem; }
+.concurrency-lanes-legend i { width: 1.2rem; height: .35rem; background: var(--concurrency-color-0); border: 1px solid var(--concurrency-color-0); border-radius: 2px; }
+.concurrency-lanes-legend [data-kind='wait'] i { background: transparent; border-style: dashed; }
+.concurrency-lanes-legend [data-kind='hold'] i { background: transparent; border-width: 2px; }
+.concurrency-lanes-legend [data-kind='event'] i { width: .4rem; height: .4rem; border-radius: 50%; }
+.concurrency-lanes-labels > div { justify-content: flex-start; padding-top: 1.1rem; }
+.concurrency-lanes-labels > div > span { white-space: normal; overflow-wrap: anywhere; font-size: .75rem; }
+.concurrency-lanes-item .concurrency-lanes-label { font-size: 12px; font-weight: 500; }
+.concurrency-lanes-hit { fill: transparent; stroke: none; }
+.concurrency-lanes-item[data-selected='true'] .concurrency-lanes-label { fill: var(--concurrency-accent); font-weight: 600; }
+.concurrency-lanes-item[data-selected='true'] .concurrency-lanes-interval, .concurrency-lanes-svg a:focus-visible .concurrency-lanes-interval { stroke: var(--concurrency-accent); stroke-width: 3; }
+.concurrency-lanes-svg a:focus-visible .concurrency-lanes-label { text-decoration: underline; }
+.concurrency-lanes-relation { opacity: .35; }
+.concurrency-lanes-relation[data-selected='true'], .concurrency-lanes-svg a:hover .concurrency-lanes-relation, .concurrency-lanes-svg a:focus-visible .concurrency-lanes-relation { opacity: 1; }
+.concurrency-lanes-connections { display: flex; flex-direction: column; gap: .45rem; padding: .65rem .85rem; border-top: 1px solid var(--concurrency-border); font-size: .75rem; }
+.concurrency-lanes-connections a { text-decoration: none; }
+.concurrency-lanes-connections a:hover { text-decoration: underline; }
+.concurrency-lanes-connections span { color: var(--concurrency-muted); margin-right: .65rem; }

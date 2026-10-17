@@ -107,14 +107,14 @@ export function validateConcurrencyLanes(value: unknown): asserts value is Concu
 
 const WIDTH = 640;
 const PADDING = 24;
-const TRACK = 36;
+const TRACK = 56;
 
 /** Pure bounded geometry. Only vertical stacking changes to avoid collisions, never time coordinates. */
 export function layoutConcurrencyLanes(data: ConcurrencyLanesData): ConcurrencyLayout {
   validateConcurrencyLanes(data);
   const all = [
-    ...data.events.map((item, index) => ({ id: item.id, lane: item.lane, start: item.at, end: item.at, number: index + 1, type: 'event' as const })),
-    ...(data.intervals ?? []).map((item, index) => ({ id: item.id, lane: item.lane, start: item.start, end: item.end, number: data.events.length + index + 1, type: 'interval' as const })),
+    ...data.events.map((item, index) => ({ id: item.id, lane: item.lane, start: item.at, end: item.at, number: index + 1, label: item.label, type: 'event' as const })),
+    ...(data.intervals ?? []).map((item, index) => ({ id: item.id, lane: item.lane, start: item.start, end: item.end, number: data.events.length + index + 1, label: item.label, type: 'interval' as const })),
   ];
   const end = Math.max(...all.map((item) => item.end));
   const extent = end || 1;
@@ -126,13 +126,15 @@ export function layoutConcurrencyLanes(data: ConcurrencyLanesData): ConcurrencyL
     const trackEnds: number[] = [];
     const entries = all.filter((item) => item.lane === lane.id).sort((a, b) => a.start - b.start || a.number - b.number);
     for (const item of entries) {
-      const startX = x(item.start); const endX = x(item.end); const center = (startX + endX) / 2;
-      // Number badges occupy 28px even when an interval is very short.
-      const left = Math.min(startX, center - 14); const right = Math.max(endX, center + 14);
+      const startX = x(item.start); const endX = x(item.end);
+      // Reserve the visible label as well as the exact time mark. Never move time coordinates.
+      const labelWidth = Math.min(Array.from(item.label).length, 36) * 7 + 12;
+      const labelX = Math.max(8, Math.min(startX, WIDTH - labelWidth - 8));
+      const left = Math.min(startX - 14, labelX); const right = Math.max(endX + 14, labelX + labelWidth);
       let track = trackEnds.findIndex((previous) => previous + 8 < left);
       if (track === -1) track = trackEnds.length;
       trackEnds[track] = right;
-      items.push({ id: item.id, lane: lane.id, number: item.number, type: item.type, x: startX, endX, y: top + 28 + track * TRACK, track });
+      items.push({ id: item.id, lane: lane.id, number: item.number, type: item.type, x: startX, endX, y: top + 42 + track * TRACK, track });
     }
     const tracks = Math.max(1, trackEnds.length);
     const height = tracks * TRACK + 20;
