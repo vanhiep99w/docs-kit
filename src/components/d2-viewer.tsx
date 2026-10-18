@@ -189,8 +189,7 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
     ancestors.unshift(item); parent = item.parent;
   }
 
-  const content = <figure className={['d2-diagram', 'd2-viewer', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${prefix}-caption`}>
-    <div className="d2-toolbar" role="group" aria-label="Diagram controls">
+  const controls = <div className="d2-toolbar" role="group" aria-label="Diagram controls">
       {source !== undefined ? <D2SourceMenu source={source}>
         <D2IconButton label="Copy D2" icon="copy" onClick={copy} />
         <D2IconButton label="Download SVG" icon="download" onClick={() => download()} />
@@ -213,7 +212,9 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
         onClick={() => expanded ? closeExpanded() : setExpanded(true)} aria-expanded={expanded}>
         <D2Icon name={expanded ? 'close' : 'fullscreen'} />
       </button>
-    </div>
+    </div>;
+
+  const content = <figure className={['d2-diagram', 'd2-viewer', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${prefix}-caption`}>
     {views.length > 1 && <>
       {sequential ? <div className="d2-stepper" role="group" aria-label="Diagram steps">
         <button type="button" onClick={() => go(index - 1)} disabled={index === 0}>← Previous</button>
@@ -232,6 +233,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
       </div>}
     </>}
     {board.description && <p className="d2-view-description">{board.description}</p>}
+    <div className="d2-canvas">
+    {controls}
     <div id={`${prefix}-canvas`} className="d2-viewport" ref={viewport} tabIndex={0}
       role={!sequential && mode !== 'explorer' && views.length > 1 ? 'tabpanel' : 'region'}
       aria-labelledby={!sequential && mode !== 'explorer' && views.length > 1 ? `${prefix}-tab-${index}` : `${prefix}-caption`}
@@ -245,6 +248,7 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
           <div className="d2-diagram-dark" role="group" aria-label={board.label} dangerouslySetInnerHTML={{ __html: board.darkSvg }} />
         </div>
       </div>
+    </div>
     </div>
     <span className="d2-sr-only" role="status">{status}</span>
     <figcaption id={`${prefix}-caption`}>{caption}</figcaption>

@@ -22,7 +22,7 @@
   --d2-ink: var(--color-fd-foreground, #243346);
   --d2-muted: var(--color-fd-muted-foreground, #637083);
   --d2-paper: var(--color-fd-background, #f8fafc);
-  color: var(--d2-ink); margin-block: 1.5rem;
+  position: relative; color: var(--d2-ink); margin-block: 1.5rem;
 }
 :where(.dark, [data-theme='dark']) .d2-interactive {
   --d2-line: var(--color-fd-border, #354151);
@@ -54,9 +54,12 @@
 .d2-interactive button:hover:not(:disabled) { background: color-mix(in srgb, currentColor 7%, transparent); }
 .d2-interactive button:disabled { opacity: 0.4; cursor: default; }
 .d2-interactive button[aria-pressed='true'] { border-color: var(--d2-line); background: color-mix(in srgb, currentColor 6%, transparent); }
+.d2-canvas { position: relative; min-width: 0; }
+/* Float only over the canvas, not board navigation, and reserve no header space. */
 .d2-toolbar, .d2-fallback-tools {
-  position: relative; display: flex; align-items: center; justify-content: end;
-  gap: 0.15rem; padding-block: 0.2rem; border-bottom: 1px solid var(--d2-line);
+  position: absolute; z-index: 2; top: 0.25rem; right: 0.25rem;
+  display: flex; align-items: center; justify-content: end; gap: 0.15rem;
+  background: var(--d2-paper); border-radius: 0.25rem;
 }
 .d2-interactive .d2-icon-button { width: 2rem; height: 2rem; padding: 0; flex: 0 0 auto; }
 .d2-icon { display: block; width: 1.125rem; height: 1.125rem; flex: 0 0 auto; }
@@ -109,7 +112,8 @@
 .d2-fullscreen::backdrop { background: rgb(12 20 32 / 65%); }
 .d2-fullscreen[open] { display: flex; }
 .d2-fullscreen .d2-viewer { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; margin: 0; }
-.d2-fullscreen :is(.d2-toolbar, .d2-stepper, .d2-tabs, .d2-breadcrumb) { flex-shrink: 0; }
+.d2-fullscreen :is(.d2-stepper, .d2-tabs, .d2-breadcrumb) { flex-shrink: 0; }
+.d2-fullscreen .d2-canvas { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .d2-fullscreen .d2-viewport { flex: 1; min-height: 0; max-height: none; }
 .d2-source-links { display: contents; }
 @media (max-width: 480px) {

@@ -45,6 +45,15 @@ test('source is an overlay icon, not a bottom row, including inside 90vh fullscr
     }
     const figure = page.locator('.d2-viewer');
     const before = await figure.boundingBox();
+    const canvas = await page.locator('.d2-canvas').boundingBox();
+    const viewport = await page.locator('.d2-viewport').boundingBox();
+    const toolbar = await page.locator('.d2-toolbar').boundingBox();
+    await expect(page.locator('.d2-toolbar')).toHaveCSS('position', 'absolute');
+    expect(viewport.y).toBeCloseTo(canvas.y, 0);
+    expect(viewport.height).toBeCloseTo(canvas.height, 0);
+    expect(before.height).toBeCloseTo(viewport.height, 0);
+    expect(toolbar.y).toBeGreaterThanOrEqual(viewport.y);
+    expect(toolbar.y + toolbar.height).toBeLessThanOrEqual(viewport.y + viewport.height);
     for (const button of await page.locator('.d2-toolbar > button').all()) {
       expect(await button.textContent()).toBe('');
       await expect(button.locator('svg')).toHaveCount(1);
