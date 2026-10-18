@@ -77,7 +77,20 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
   }, [status]);
 
   function fit() {
-    if (viewport.current) setZoom(Math.max(0.1, Math.min(4, (viewport.current.clientWidth - 24) / size.width)));
+    const element = viewport.current;
+    if (!element) return;
+    const style = window.getComputedStyle(element);
+    const horizontalPadding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const maxHeight = parseFloat(style.maxHeight);
+    // Use the CSS height budget, not the current content height (small boards
+    // can shrink the viewport). Account for host resets using border-box.
+    const height = Number.isFinite(maxHeight)
+      ? maxHeight - (style.boxSizing === 'border-box'
+        ? verticalPadding + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth) : 0)
+      : element.clientHeight - verticalPadding;
+    setZoom(Math.max(0.1, Math.min(1, (element.clientWidth - horizontalPadding) / size.width, height / size.height)));
+    element.scrollTop = 0; element.scrollLeft = 0;
   }
   function closeExpanded() {
     setExpanded(false);

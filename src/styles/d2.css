@@ -32,6 +32,15 @@
 }
 .d2-interactive :is(button, select) { font: inherit; color: inherit; }
 .d2-interactive .d2-diagram figcaption { color: var(--d2-muted); }
+/* Fit the pre-Explore overview without changing native-size server-only diagrams
+   or the zoom canvas. CSS alone also covers no-JS and failed-viewer fallbacks. */
+.d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) {
+  width: 100%; min-width: 0;
+}
+.d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) > svg {
+  width: auto; height: auto; max-width: 100%;
+  max-height: var(--d2-preview-max-height, 65vh);
+}
 .d2-interactive button {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
   min-height: 2rem; padding: 0.3rem 0.55rem; border: 1px solid transparent;
@@ -91,4 +100,5 @@
 @media print {
   .d2-launch, .d2-toolbar, .d2-stepper, .d2-tabs, .d2-breadcrumb, .d2-viewer-status { display: none; }
   .d2-diagram-scroll, .d2-viewport { overflow: visible; max-height: none; }
+  .d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) > svg { max-height: none; }
 }

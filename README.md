@@ -318,7 +318,7 @@ guard -> blocked: Không
 - Rectangle và diamond được đo nhãn bằng font thực tế rồi bố trí lại nếu ô quá nhỏ. Không dùng ước lượng theo số ký tự.
 - Caption của container, sequence message và nhãn trên mũi tên vẫn giữ vị trí theo ngữ nghĩa của D2.
 - Dùng luồng ngang, nhãn ngắn và xuống dòng hợp lý. Tách quy trình dài thành các giai đoạn thay vì thu nhỏ chữ đến mức khó đọc.
-- Trên màn hình nhỏ, diagram cuộn ngang để giữ chữ rõ.
+- Diagram server-only cuộn ngang để giữ chữ rõ. Với `interactive`, preview tự fit chiều rộng và tối đa `65vh`; bấm Explore để zoom/pan đọc chi tiết. Có thể đổi giới hạn bằng `--d2-preview-max-height`; xem [hướng dẫn D2](./docs/d2.md#1-bật-tương-tác-khi-cần).
 - Giữ cây thư mục, log, payload và những ví dụ text theo vị trí ở dạng text khi phù hợp.
 
 **Ranh giới tin cậy:** chỉ compile MDX/D2 do người viết tài liệu đáng tin cậy quản lý trong repository. SVG được nhúng trực tiếp vào HTML; đây không phải sanitizer hay dịch vụ render input công khai. Không nhận D2 không tin cậy từ người dùng.

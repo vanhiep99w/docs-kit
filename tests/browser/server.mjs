@@ -30,6 +30,10 @@ for (const mode of ['steps', 'tabs', 'explorer', 'animation']) {
 }
 await d2.dispose();
 data.static = { id: 'demo', caption: 'Architecture overview', lightSvg: svg, darkSvg: svg.replace('#c4dbec', '#7195b1'), source: 'api -> db' };
+for (const [name, width, height] of [['wide', 2400, 600], ['tall', 600, 2400], ['small', 160, 80]]) {
+  const previewSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#c4dbec"/><text x="20" y="40">${name} overview</text></svg>`;
+  data['preview-' + name] = { ...data.static, lightSvg: previewSvg, darkSvg: previewSvg.replace('#c4dbec', '#7195b1') };
+}
 const walkthroughInput = {
   title: 'Đọc thay đổi qua hai snapshot', language: 'typescript', description: 'Ví dụ tĩnh; không chạy code.',
   snapshots: [
