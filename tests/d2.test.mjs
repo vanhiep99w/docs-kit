@@ -4,6 +4,8 @@ import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { compile } from '@mdx-js/mdx';
+import { D2 } from '@d2lang/d2';
+import { renderDiagram } from '../dist/d2/render.mjs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
@@ -36,6 +38,14 @@ function props(node) {
   ]));
 }
 
+function assertScale(svg, scale) {
+  const [, viewWidth, viewHeight, width, height] = svg.match(
+    /viewBox="0 0 ([\d.]+) ([\d.]+)" width="([\d.]+)" height="([\d.]+)"/,
+  );
+  assert.ok(Math.abs(+width - +viewWidth * scale) <= 1);
+  assert.ok(Math.abs(+height - +viewHeight * scale) <= 1);
+}
+
 const fence = '```d2 title="Guard và resolver"\na -> b\n```';
 
 test('renders from a foreign working directory with themed sketch SVGs', async () => {
@@ -47,10 +57,27 @@ test('renders from a foreign working directory with themed sketch SVGs', async (
   assert.match(result.lightSvg, /^<svg/);
   assert.match(result.darkSvg, /^<svg/);
   assert.notEqual(result.lightSvg, result.darkSvg);
+  assertScale(result.lightSvg, 0.8);
+  assertScale(result.darkSvg, 0.8);
   assert.match(result.lightSvg, /<pattern id="streaks-/);
   assert.match(result.lightSvg, /<rect\b[^>]*fill="transparent"/);
   assert.doesNotMatch(result.lightSvg, /prefers-color-scheme|<\?xml/);
   assert.doesNotMatch(compiled, /@terrastruct|@d2lang|child_process|labelLayout/);
+});
+
+test('direct renderer defaults to scale 0.8 and preserves explicit overrides', async () => {
+  const d2 = new D2();
+  try {
+    for (const scale of [undefined, 0.6]) {
+      const result = await renderDiagram(d2, {
+        source: 'a -> b', salt: 'scale-regression', options: { scale },
+      });
+      assertScale(result.lightSvg, scale ?? 0.8);
+      assertScale(result.darkSvg, scale ?? 0.8);
+    }
+  } finally {
+    await d2.dispose();
+  }
 });
 
 test('reuses disk cache without rewriting it', async () => {

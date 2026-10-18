@@ -127,7 +127,7 @@ export async function renderDiagram(d2, { source, salt, options = {}, resources 
   const renderSettings = {
     ...renderOptions, darkThemeID: undefined, noXMLTag: true,
     sketch: renderOptions.sketch ?? options.sketch ?? true,
-    pad: options.padding ?? 12, scale: options.scale ?? 0.75,
+    pad: options.padding ?? 12, scale: options.scale ?? 0.8,
     target: canonicalTarget(options.target) || undefined, animateInterval: undefined,
   };
   walkBoards(diagram, graph, (board) => { board.root.fill = 'transparent'; });

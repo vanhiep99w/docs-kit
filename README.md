@@ -314,7 +314,7 @@ guard -> blocked: Không
 ```
 ````
 
-- D2 mặc định dùng sketch, layout ELK, scale `0.75` và nền trong suốt.
+- D2 mặc định dùng sketch, layout ELK, scale `0.8` và nền trong suốt.
 - Rectangle và diamond được đo nhãn bằng font thực tế rồi bố trí lại nếu ô quá nhỏ. Không dùng ước lượng theo số ký tự.
 - Caption của container, sequence message và nhãn trên mũi tên vẫn giữ vị trí theo ngữ nghĩa của D2.
 - Dùng luồng ngang, nhãn ngắn và xuống dòng hợp lý. Tách quy trình dài thành các giai đoạn thay vì thu nhỏ chữ đến mức khó đọc.
@@ -329,7 +329,7 @@ guard -> blocked: Không
 remarkPlugins: [[remarkD2, {
   sketch: true,
   layout: 'elk',
-  scale: 0.75,
+  scale: 0.8,
   padding: 12,
   themes: { light: 0, dark: 200 },
   cacheDir: '.cache/docs-kit/d2',
@@ -343,7 +343,7 @@ remarkPlugins: [[remarkD2, {
 | --- | --- | --- |
 | `sketch` | `true` | Phong cách vẽ tay |
 | `layout` | `'elk'` | Engine mặc định: `elk`, `dagre` hoặc `tala`; có thể ghi đè theo page/block |
-| `scale` | `0.75` | Scale SVG, phải lớn hơn 0 |
+| `scale` | `0.8` | Scale SVG, phải lớn hơn 0 |
 | `padding` | `12` | Padding canvas SVG, không âm |
 | `themes.light` / `themes.dark` | `0` / `200` | ID theme D2 cho từng chế độ |
 | `cacheDir` | `.cache/docs-kit/d2` | Tương đối với working directory của website, hoặc đường dẫn tuyệt đối |

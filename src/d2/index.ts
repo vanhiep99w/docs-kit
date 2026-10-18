@@ -162,7 +162,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     darkOverrides: options.themeOverrides?.dark,
     sketch: options.sketch ?? true,
     layout: options.layout ?? 'elk',
-    scale: options.scale ?? 0.75,
+    scale: options.scale ?? 0.8,
     padding: options.padding ?? 12,
     lightTheme: options.themes?.light ?? 0,
     darkTheme: options.themes?.dark ?? 200,
