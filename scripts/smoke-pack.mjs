@@ -21,7 +21,7 @@ try {
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
     'dist/components/d2-interactive.js', 'dist/components/d2-interactive.d.ts', 'dist/components/d2-viewer.js',
     'dist/components/d2-types.d.ts', 'dist/d2/resources.js', 'dist/d2/resources.d.ts',
-    'docs/d2.md', 'examples/d2/transaction.d2',
+    'docs/d2.md', 'examples/d2/transaction.d2', 'examples/d2/sequence-groups.d2',
     'dist/components/copy-icon.js', 'dist/components/copy-icon.d.ts', 'docs/compact-ui.md', 'examples/terminal-session/rollback.mdx',
     'docs/code-walkthrough.md', 'examples/code-walkthrough/walkthrough-guard.mdx', 'examples/code-walkthrough/walkthrough-dockerfile.mdx',
     'dist/code-walkthrough/index.js', 'dist/code-walkthrough/index.d.ts',
@@ -121,6 +121,16 @@ for (const layout of ['elk', 'dagre', 'tala']) {
   });
   assert.equal(String(perBlock), String(result));
 }
+const sequence = await compile({value: fence + 'd2\nshape: sequence_diagram\na\nb\nfragment: {a -> b: Request}\n' + fence, path:'sequence.mdx'}, {
+  remarkPlugins: [remarkD2],
+});
+assert.match(String(sequence), /data-d2-sequence/);
+assert.match(String(sequence), /#64748b/);
+assert.match(String(sequence), /#94a3b8/);
+const nativeSequence = await compile({value: fence + 'd2 sequenceStyle=native\nshape: sequence_diagram\na\nb\nfragment: {a -> b: Request}\n' + fence, path:'sequence-native.mdx'}, {
+  remarkPlugins: [remarkD2],
+});
+assert.doesNotMatch(String(nativeSequence), /data-d2-sequence/);
 const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package',lightSvg:'<svg/>',darkSvg:'<svg/>'}));
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');

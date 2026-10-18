@@ -83,6 +83,7 @@ test('downloaded SVG keeps readable frames without docs-kit or host stylesheets'
   for await (const chunk of stream) chunks.push(chunk);
   const svg = Buffer.concat(chunks).toString();
   await page.setContent(svg);
+  await expect(page.locator('svg .shape.blend')).toHaveCount(3);
   for (const shape of await page.locator('svg .shape.blend').all()) {
     await expect(shape).toHaveCSS('opacity', '1');
     await expect(shape).toHaveCSS('mix-blend-mode', 'normal');

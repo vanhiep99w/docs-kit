@@ -2,7 +2,7 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.9.0:** xoá hẳn ConcurrencyLanes cùng API, stylesheet, remark plugin và ví dụ liên quan. Các component còn lại giữ nguyên. Đây là thay đổi breaking API; xem hướng dẫn chuyển đổi bên dưới. Chưa publish `0.9.0`; dùng bản đóng gói local để kiểm tra trước khi phát hành.
+**Bản chuẩn bị phát hành 0.9.7:** sequence có viền rõ, nền group trong suốt và padding phù hợp mặc định, dùng chung cho mọi host. SVG tải xuống giữ nguyên cách hiển thị này. Style tác giả khai báo trong D2 vẫn được ưu tiên; `sequenceStyle: 'native'` giữ giao diện D2 cũ. Chưa publish `0.9.7`.
 
 **Giao diện 0.9.0:** ưu tiên code/dữ liệu thay cho nhiều lớp header. [Thay đổi UI và vị trí thông tin mở rộng →](./docs/compact-ui.md).
 
@@ -317,6 +317,7 @@ guard -> blocked: Không
 - D2 mặc định dùng sketch, layout ELK, scale `1` (kích thước gốc) và nền trong suốt.
 - Rectangle và diamond được đo nhãn bằng font thực tế rồi bố trí lại nếu ô quá nhỏ. Không dùng ước lượng theo số ký tự.
 - Caption của container, sequence message và nhãn trên mũi tên vẫn giữ vị trí theo ngữ nghĩa của D2.
+- Sequence group tự có nền trong suốt, viền theo light/dark và không bị blend mờ/chồng màu; không cần CSS hoặc màu hard-code tại host. Chỉ style mặc định được thay; fill/stroke/độ dày tác giả đặt rõ được giữ nguyên. Canvas sequence có padding riêng, nhưng không tự tăng giới hạn `90vh` hay thay sizing của ER/architecture. Xem [`sequenceStyle` và CSS variables](./docs/d2.md#sequence-frames-và-khoảng-đệm).
 - Dùng luồng ngang, nhãn ngắn và xuống dòng hợp lý. Tách quy trình dài thành các giai đoạn thay vì thu nhỏ chữ đến mức khó đọc.
 - Diagram server-only cuộn ngang để giữ chữ rõ. Từ `0.9.3`, `interactive` mở sẵn với toolbar icon zoom/fit/fullscreen và tự fit tối đa `90vh`; source nằm trong panel nổi, không có hàng footer. Có thể đổi giới hạn bằng `--d2-viewport-max-height` (viewer) và `--d2-preview-max-height` (fallback); xem [hướng dẫn D2](./docs/d2.md#1-bật-tương-tác-khi-cần).
 - Giữ cây thư mục, log, payload và những ví dụ text theo vị trí ở dạng text khi phù hợp.
@@ -345,6 +346,7 @@ remarkPlugins: [[remarkD2, {
 | `layout` | `'elk'` | Engine mặc định: `elk`, `dagre` hoặc `tala`; có thể ghi đè theo page/block |
 | `scale` | `1` | Scale SVG, phải lớn hơn 0; vẫn cho phép override theo plugin/fence |
 | `padding` | `12` | Padding canvas SVG, không âm |
+| `sequenceStyle` | `'readable'` | Viền/nền group dễ đọc và padding sequence dùng chung; `'native'` giữ D2 gốc |
 | `themes.light` / `themes.dark` | `0` / `200` | ID theme D2 cho từng chế độ |
 | `cacheDir` | `.cache/docs-kit/d2` | Tương đối với working directory của website, hoặc đường dẫn tuyệt đối |
 | `concurrency` | `1` | Từ 1 đến 8 worker; các tiến trình có cùng cache directory và pool settings dùng chung pool |
