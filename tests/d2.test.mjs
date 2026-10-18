@@ -51,46 +51,46 @@ const fence = '```d2 title="Guard và resolver"\na -> b\n```';
 test('renders from a foreign working directory with themed sketch SVGs', async () => {
   const { tree, compiled } = await transform(fence);
   const node = tree.children[0];
-  assert.equal(node.name, 'D2Diagram');
+  assert.equal(node.name, 'D2InteractiveDiagram');
   const result = props(node);
   assert.equal(result.caption, 'Guard và resolver');
   assert.match(result.lightSvg, /^<svg/);
   assert.match(result.darkSvg, /^<svg/);
   assert.notEqual(result.lightSvg, result.darkSvg);
-  assertScale(result.lightSvg, 1);
-  assertScale(result.darkSvg, 1);
+  assertScale(result.lightSvg, 0.85);
+  assertScale(result.darkSvg, 0.85);
   assert.match(result.lightSvg, /<pattern id="streaks-/);
   assert.match(result.lightSvg, /<rect\b[^>]*fill="transparent"/);
   assert.doesNotMatch(result.lightSvg, /prefers-color-scheme|<\?xml/);
   assert.doesNotMatch(compiled, /@terrastruct|@d2lang|child_process|labelLayout/);
 });
 
-test('direct renderer defaults to scale 1 and preserves explicit overrides', async () => {
+test('direct renderer defaults to scale 0.85 and preserves explicit overrides', async () => {
   const d2 = new D2();
   try {
-    for (const scale of [undefined, 0.6]) {
+    for (const scale of [undefined, 0.6, 1]) {
       const result = await renderDiagram(d2, {
         source: 'a -> b', salt: 'scale-regression', options: { scale },
       });
-      assertScale(result.lightSvg, scale ?? 1);
-      assertScale(result.darkSvg, scale ?? 1);
+      assertScale(result.lightSvg, scale ?? 0.85);
+      assertScale(result.darkSvg, scale ?? 0.85);
     }
   } finally {
     await d2.dispose();
   }
 });
 
-test('default scale shares cache with explicit 1, not the previous 0.8', async () => {
+test('default scale shares cache with explicit 0.85, not the previous 1', async () => {
   const options = { cacheDir: './scale-cache' };
-  const legacy = props((await transform(fence, { ...options, scale: 0.8 })).tree.children[0]);
-  const native = props((await transform(fence, options)).tree.children[0]);
+  const legacy = props((await transform(fence, { ...options, scale: 1 })).tree.children[0]);
+  const defaults = props((await transform(fence, options)).tree.children[0]);
   for (const theme of ['lightSvg', 'darkSvg']) {
-    assertScale(legacy[theme], 0.8);
-    assertScale(native[theme], 1);
+    assertScale(legacy[theme], 1);
+    assertScale(defaults[theme], 0.85);
   }
   assert.equal((await readdir(options.cacheDir)).filter((file) => file.endsWith('.json')).length, 2);
-  const explicit = props((await transform(fence, { ...options, scale: 1 })).tree.children[0]);
-  assert.deepEqual(explicit, native);
+  const explicit = props((await transform(fence, { ...options, scale: 0.85 })).tree.children[0]);
+  assert.deepEqual(explicit, defaults);
   assert.equal((await readdir(options.cacheDir)).filter((file) => file.endsWith('.json')).length, 2);
 
   const overridden = props((await transform('```d2 scale=0.6\na -> b\n```', { ...options, scale: 0.8 })).tree.children[0]);

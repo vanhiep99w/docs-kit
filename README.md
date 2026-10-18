@@ -2,7 +2,9 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.9.7:** sequence có viền rõ, nền group trong suốt và padding phù hợp mặc định, dùng chung cho mọi host. SVG tải xuống giữ nguyên cách hiển thị này. Style tác giả khai báo trong D2 vẫn được ưu tiên; `sequenceStyle: 'native'` giữ giao diện D2 cũ. Chưa publish `0.9.7`.
+**Bản chuẩn bị phát hành 0.9.8:** D2 mặc định dùng scale **`0.85`** và bật sẵn viewer với zoom in/out, fit, fullscreen, source và tải SVG. Host cần đăng ký `D2InteractiveDiagram` cùng `D2Diagram`. Dùng `interactive=false` để giữ component server-only hoặc `scale=1` để render ở kích thước D2 gốc. Override đang có trong host vẫn được giữ. Chưa publish `0.9.8`.
+
+Từ `0.9.7`, sequence có viền rõ, nền group trong suốt và padding phù hợp dùng chung cho mọi host. SVG tải xuống cũng giữ cách hiển thị này; style tác giả khai báo trong D2 vẫn được ưu tiên, hoặc chọn `sequenceStyle: 'native'` để dùng giao diện D2 cũ.
 
 **Giao diện 0.9.0:** ưu tiên code/dữ liệu thay cho nhiều lớp header. [Thay đổi UI và vị trí thông tin mở rộng →](./docs/compact-ui.md).
 
@@ -28,6 +30,8 @@ Bộ component và tích hợp build-time dùng chung cho các website tài li�
 - [Phát hành](#phát-hành)
 
 ## Chuyển đổi API
+
+**0.9.8:** fence D2 không khai báo `interactive` giờ sinh `D2InteractiveDiagram`, không còn mặc định sinh `D2Diagram`. Đăng ký cả hai component như ví dụ bên dưới. Nếu muốn giữ hành vi cũ trên toàn site, đặt `remarkD2({ interactive: false, scale: 1 })`; từng fence vẫn override được các giá trị này. Scale mặc định mới là `0.85`, không tự ghi đè `scale` đã khai báo trong source config/fence.
 
 **0.9.0:** xoá hẳn ConcurrencyLanes cùng các entry point `concurrency-lanes`, `concurrency-lanes/data`, `components/concurrency-lanes`, stylesheet và remark plugin. Gỡ import/MDX map và thay các fence tương ứng trong website.
 
@@ -112,12 +116,14 @@ Trong `mdx-components.tsx`:
 ```tsx
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { D2Diagram } from '@vanhiep99w/docs-kit/components/d2';
+import { D2InteractiveDiagram } from '@vanhiep99w/docs-kit/components/d2-interactive';
 import type { MDXComponents } from 'mdx/types';
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
     D2Diagram,
+    D2InteractiveDiagram,
     ...components,
   };
 }
@@ -314,12 +320,12 @@ guard -> blocked: Không
 ```
 ````
 
-- D2 mặc định dùng sketch, layout ELK, scale `1` (kích thước gốc) và nền trong suốt.
+- D2 mặc định dùng sketch, layout ELK, scale `0.85`, nền trong suốt và viewer có sẵn toolbar. Không cần thêm flag `interactive` cho mỗi fence.
 - Rectangle và diamond được đo nhãn bằng font thực tế rồi bố trí lại nếu ô quá nhỏ. Không dùng ước lượng theo số ký tự.
 - Caption của container, sequence message và nhãn trên mũi tên vẫn giữ vị trí theo ngữ nghĩa của D2.
 - Sequence group tự có nền trong suốt, viền theo light/dark và không bị blend mờ/chồng màu; không cần CSS hoặc màu hard-code tại host. Chỉ style mặc định được thay; fill/stroke/độ dày tác giả đặt rõ được giữ nguyên. Canvas sequence có padding riêng, nhưng không tự tăng giới hạn `90vh` hay thay sizing của ER/architecture. Xem [`sequenceStyle` và CSS variables](./docs/d2.md#sequence-frames-và-khoảng-đệm).
 - Dùng luồng ngang, nhãn ngắn và xuống dòng hợp lý. Tách quy trình dài thành các giai đoạn thay vì thu nhỏ chữ đến mức khó đọc.
-- Diagram server-only cuộn ngang để giữ chữ rõ. Từ `0.9.3`, `interactive` mở sẵn với toolbar icon zoom/fit/fullscreen và tự fit tối đa `90vh`; source nằm trong panel nổi, không có hàng footer. Có thể đổi giới hạn bằng `--d2-viewport-max-height` (viewer) và `--d2-preview-max-height` (fallback); xem [hướng dẫn D2](./docs/d2.md#1-bật-tương-tác-khi-cần).
+- Diagram server-only cuộn ngang để giữ chữ rõ. Từ `0.9.3`, `interactive` mở sẵn với toolbar icon zoom/fit/fullscreen và tự fit tối đa `90vh`; source nằm trong panel nổi, không có hàng footer. Có thể đổi giới hạn bằng `--d2-viewport-max-height` (viewer) và `--d2-preview-max-height` (fallback); xem [hướng dẫn D2](./docs/d2.md#1-viewer-mặc-định-và-chế-độ-static).
 - Giữ cây thư mục, log, payload và những ví dụ text theo vị trí ở dạng text khi phù hợp.
 
 **Ranh giới tin cậy:** chỉ compile MDX/D2 do người viết tài liệu đáng tin cậy quản lý trong repository. SVG được nhúng trực tiếp vào HTML; đây không phải sanitizer hay dịch vụ render input công khai. Không nhận D2 không tin cậy từ người dùng.
@@ -330,7 +336,8 @@ guard -> blocked: Không
 remarkPlugins: [[remarkD2, {
   sketch: true,
   layout: 'elk',
-  scale: 1,
+  scale: 0.85,
+  interactive: true,
   padding: 12,
   themes: { light: 0, dark: 200 },
   cacheDir: '.cache/docs-kit/d2',
@@ -344,7 +351,8 @@ remarkPlugins: [[remarkD2, {
 | --- | --- | --- |
 | `sketch` | `true` | Phong cách vẽ tay |
 | `layout` | `'elk'` | Engine mặc định: `elk`, `dagre` hoặc `tala`; có thể ghi đè theo page/block |
-| `scale` | `1` | Scale SVG, phải lớn hơn 0; vẫn cho phép override theo plugin/fence |
+| `scale` | `0.85` | Scale SVG, phải lớn hơn 0; đặt `1` để dùng kích thước D2 gốc |
+| `interactive` | `true` | Viewer mở sẵn với toolbar; `false` dùng server-only khi mode là static |
 | `padding` | `12` | Padding canvas SVG, không âm |
 | `sequenceStyle` | `'readable'` | Viền/nền group dễ đọc và padding sequence dùng chung; `'native'` giữ D2 gốc |
 | `themes.light` / `themes.dark` | `0` / `200` | ID theme D2 cho từng chế độ |
@@ -390,7 +398,7 @@ Thêm `.cache/` vào `.gitignore` của website. Cache bao gồm source, vị tr
 
 ## D2 nâng cao
 
-Diagram cũ vẫn server-first, không tự thêm toolbar/JavaScript. Đăng ký thêm component khi cần:
+Viewer mặc định có toolbar và tự tải chunk controls sau hydration, nhưng D2/WASM vẫn chỉ chạy lúc build. Luôn đăng ký cả hai component; `interactive=false` chọn component server-only:
 
 ```tsx
 import { D2InteractiveDiagram } from '@vanhiep99w/docs-kit/components/d2-interactive';
@@ -407,7 +415,7 @@ steps: {
 ```
 ````
 
-- `interactive`: mở sẵn, toolbar icon fit/zoom/fullscreen, pan; source/copy/tải SVG trong panel nổi.
+- `interactive=true` (mặc định): mở sẵn toolbar icon fit/zoom/fullscreen và pan; source/copy/tải SVG trong panel nổi. `interactive=false` tắt toolbar cho mode static.
 - `mode=steps`: bước trước/sau; `mode=tabs`: scenarios; `mode=explorer`: layers/drill-down.
 - `mode=animation`: phát có điều khiển và tải animated SVG. Không autoplay khi mở trang.
 - Source Explorer adapter mở implementation khi click node, không reload.

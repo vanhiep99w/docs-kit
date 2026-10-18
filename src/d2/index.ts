@@ -16,7 +16,7 @@ export type { D2ResourceOptions } from './resources.js';
 export type D2Layout = 'elk' | 'dagre' | 'tala';
 
 export interface RemarkD2Options extends D2ResourceOptions {
-  /** Opt-in client viewer; register D2InteractiveDiagram in your MDX components. */
+  /** Viewer controls default to true; false emits the server-only D2Diagram. */
   interactive?: boolean;
   mode?: D2Mode;
   target?: string;
@@ -31,7 +31,7 @@ export interface RemarkD2Options extends D2ResourceOptions {
   sketch?: boolean;
   /** Default engine; overridden by page d2Layout and then fence layout. */
   layout?: D2Layout;
-  /** SVG render scale; defaults to 1 (native size). */
+  /** SVG render scale; defaults to 0.85. Use 1 for native size. */
   scale?: number;
   padding?: number;
   themes?: { light?: number; dark?: number };
@@ -168,7 +168,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     darkOverrides: options.themeOverrides?.dark,
     sketch: options.sketch ?? true,
     layout: options.layout ?? 'elk',
-    scale: options.scale ?? 1,
+    scale: options.scale ?? 0.85,
     padding: options.padding ?? 12,
     lightTheme: options.themes?.light ?? 0,
     darkTheme: options.themes?.dark ?? 200,
@@ -329,7 +329,7 @@ export const remarkD2: Plugin<[RemarkD2Options?], Root> = function (options = {}
         const blockOptions = resolveOptions({ ...options, ...meta, layout: meta.layout ?? pageLayout,
           themes: { light: meta.lightTheme ?? rendererOptions.lightTheme, dark: meta.darkTheme ?? rendererOptions.darkTheme } });
         const { lightSvg, darkSvg, boards, animation } = await render(node.value, id, cacheDir, concurrency, blockOptions, idleTimeoutMs, resources);
-        const interactive = (meta.interactive ?? options.interactive ?? false) || blockOptions.mode !== 'static';
+        const interactive = (meta.interactive ?? options.interactive ?? true) || blockOptions.mode !== 'static';
         const extra = interactive ? [attribute('source', node.value), attribute('mode', blockOptions.mode),
           attribute('interval', blockOptions.interval), ...(boards ? [attribute('boards', boards)] : []),
           ...(animation ? [attribute('animation', animation)] : [])] : [];

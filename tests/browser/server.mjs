@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
 import { readFile, mkdir, rm } from 'node:fs/promises';
 import { build } from 'esbuild';
+import { compile } from '@mdx-js/mdx';
+import { remarkD2 } from '../../dist/d2/index.js';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { D2 } from '@d2lang/d2';
@@ -36,6 +38,17 @@ data['sequence-native'] = { ...sequenceProps, ...await renderDiagram(d2, { sourc
 const mixedSequence = `a -> b\nlayers: {sequence: {${sequenceSource}}; ordinary: {c -> d}}`;
 data['sequence-boards'] = { ...sequenceProps, mode: 'explorer', ...await renderDiagram(d2, { source: mixedSequence, salt: 'browser-sequence-boards', options: { sketch: false, mode: 'explorer' } }) };
 await d2.dispose();
+for (const [name, meta] of [['compiled-default', ''], ['compiled-static', 'interactive=false']]) {
+  let tree;
+  await compile({ value: `\`\`\`d2 ${meta}\nclient: Client\napi: API\nclient -> api: Request\n\`\`\``, path: 'defaults.mdx' }, {
+    remarkPlugins: [[remarkD2, { cacheDir: '.cache/browser-d2' }], () => result => { tree = result; }],
+  });
+  const node = tree.children[0];
+  data[name] = { emittedComponent: node.name, ...Object.fromEntries(node.attributes.map(({ name, value }) => {
+    const expression = value.data.estree.body[0].expression;
+    return [name, expression.type === 'Literal' ? expression.value : JSON.parse(expression.arguments[0].value)];
+  })) };
+}
 data.static = { id: 'demo', caption: 'Architecture overview', lightSvg: svg, darkSvg: svg.replace('#c4dbec', '#7195b1'), source: 'api -> db' };
 for (const [name, width, height] of [['wide', 2400, 600], ['tall', 600, 2400], ['small', 160, 80]]) {
   const previewSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#c4dbec"/><text x="20" y="40">${name} overview</text></svg>`;

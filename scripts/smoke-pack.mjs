@@ -108,7 +108,7 @@ for (const layout of ['elk', 'dagre', 'tala']) {
   const result = await compile({value: fence + 'd2 title="Packed package"\na -> b\n' + fence, path:'page.mdx'}, {
     remarkPlugins: [[remarkD2, { layout }]],
   });
-  assert.match(String(result), /D2Diagram/);
+  assert.match(String(result), /D2InteractiveDiagram/);
   assert.match(String(result), /<svg/);
   const body = fence + 'd2 title="Packed package"\na -> b\n' + fence;
   const perPage = await compile({value: '---\nd2Layout: ' + layout + '\n---\n\n' + body, path:'page.mdx'}, {
@@ -131,6 +131,11 @@ const nativeSequence = await compile({value: fence + 'd2 sequenceStyle=native\ns
   remarkPlugins: [remarkD2],
 });
 assert.doesNotMatch(String(nativeSequence), /data-d2-sequence/);
+const staticDiagram = await compile({value: fence + 'd2 interactive=false\na -> b\n' + fence, path:'static.mdx'}, {
+  remarkPlugins: [remarkD2],
+});
+assert.match(String(staticDiagram), /D2Diagram/);
+assert.doesNotMatch(String(staticDiagram), /D2InteractiveDiagram/);
 const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package',lightSvg:'<svg/>',darkSvg:'<svg/>'}));
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');

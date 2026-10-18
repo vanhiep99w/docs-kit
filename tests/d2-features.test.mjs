@@ -101,10 +101,11 @@ test('handles quoted layer names, descendants and folder-only roots', async () =
   assert.equal(result.boards[1].parent, 'layers."api.v1"');
 });
 
-test('opt-in MDX emits structured props without affecting the static default', async () => {
+test('plain D2 fences emit the interactive viewer by default; explicit static opt-outs remain available', async () => {
   const plain = await transform(fence('', 'a -> b'));
-  assert.equal(plain.tree.children[0].name, 'D2Diagram');
-  assert.ok(!('source' in plain.props));
+  assert.equal(plain.tree.children[0].name, 'D2InteractiveDiagram');
+  assert.equal(plain.props.source, 'a -> b');
+  assert.equal(plain.props.mode, 'static');
   for (const mode of ['steps', 'tabs', 'explorer', 'animation']) {
     const result = await transform(fence(`mode=${mode} interval=1000 sketch=false scale=1 padding=20 lightTheme=4 darkTheme=200`));
     assert.equal(result.tree.children[0].name, 'D2InteractiveDiagram');
@@ -115,7 +116,13 @@ test('opt-in MDX emits structured props without affecting the static default', a
     assert.doesNotMatch(result.compiled, /@d2lang|node:fs/);
   }
   assert.equal((await transform(fence('interactive', 'a -> b'))).tree.children[0].name, 'D2InteractiveDiagram');
+  const staticFence = await transform(fence('interactive=false', 'a -> b'));
+  assert.equal(staticFence.tree.children[0].name, 'D2Diagram');
+  assert.ok(!('source' in staticFence.props));
+  assert.equal((await transform(fence('', 'a -> b'), { interactive: false })).tree.children[0].name, 'D2Diagram');
   assert.equal((await transform(fence('interactive=false', 'a -> b'), { interactive: true })).tree.children[0].name, 'D2Diagram');
+  assert.equal((await transform(fence('interactive=true', 'a -> b'), { interactive: false })).tree.children[0].name, 'D2InteractiveDiagram');
+  assert.equal((await transform(fence('mode=steps interactive=false'), { interactive: false })).tree.children[0].name, 'D2InteractiveDiagram');
 });
 
 test('rejects invalid new options and duplicate fences with source locations', async () => {

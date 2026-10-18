@@ -31,7 +31,7 @@ async function transform(value, options = {}, data = {}, before = []) {
   return {
     tree,
     compiled: String(compiled),
-    diagrams: tree.children.filter((node) => node.name === 'D2Diagram').map(props),
+    diagrams: tree.children.filter((node) => ['D2Diagram', 'D2InteractiveDiagram'].includes(node.name)).map(props),
   };
 }
 
@@ -68,6 +68,7 @@ test('uses block > page > global > ELK and caches by the effective layout', asyn
   const elk = await transform(body, { layout: 'elk' });
   const dagre = await transform(body, { layout: 'dagre' });
   const tala = await transform(body, { layout: 'tala' });
+  assert.equal(defaults.diagrams.length, 2);
   assert.deepEqual(defaults.diagrams, elk.diagrams);
   assert.notEqual(elk.diagrams[0].lightSvg, dagre.diagrams[0].lightSvg);
   assert.notEqual(tala.diagrams[0].lightSvg, dagre.diagrams[0].lightSvg);
