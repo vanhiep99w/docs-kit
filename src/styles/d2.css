@@ -105,6 +105,8 @@
   font-size: 0.8125rem; line-height: 1.6; tab-size: 2;
 }
 .d2-fullscreen {
+  /* Host preflights reset the dialog's UA margin:auto; center explicitly in the viewport. */
+  position: fixed; inset: 0; margin: auto;
   width: calc(100vw - 2rem); max-width: none; height: 90dvh; max-height: 90dvh; box-sizing: border-box;
   padding: 0.5rem; border: 1px solid var(--d2-line);
   border-radius: 0.3rem; background: var(--d2-paper); color: var(--d2-ink);
