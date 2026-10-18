@@ -156,11 +156,12 @@ test('custom font bytes are forwarded to compilation and fingerprinted resources
   await assert.rejects(loadD2Resources({ fonts: { regular: 'font.woff' } }, undefined, root), /ttf/);
 });
 
-test('SSR has useful no-JS views and escaped source; interactive chunk stays lazy', async () => {
+test('SSR has useful no-JS views and escaped source; controls auto-load after hydration', async () => {
   const html = renderToStaticMarkup(createElement(D2InteractiveDiagram, { id: 'ssr', caption: 'Example', source: '<script>alert(1)</script>',
     lightSvg: '<svg/>', darkSvg: '<svg/>', boards: [{ id: '', label: 'Overview', kind: 'root', lightSvg: '<svg/>', darkSvg: '<svg/>' },
       { id: 'steps.next', label: 'Next step', kind: 'step', lightSvg: '<svg/>', darkSvg: '<svg/>' }] }));
-  assert.match(html, /Explore 2 views/); assert.match(html, /All views/); assert.match(html, /Next step/);
+  assert.doesNotMatch(html, /Explore/); assert.match(html, /aria-label="D2 source"/);
+  assert.match(html, /All views/); assert.match(html, /Next step/);
   assert.match(html, /&lt;script&gt;/); assert.doesNotMatch(html, /<script>/);
   const entry = await readFile(new URL('../dist/components/d2-interactive.js', import.meta.url), 'utf8');
   assert.match(entry, /^['"]use client['"]/); assert.match(entry, /lazy\(\(\) => import\('\.\/d2-viewer.js'\)\)/);
@@ -228,7 +229,8 @@ test('structured board props survive actual MDX execution and SSR', async () => 
   });
   const module = await run(String(code), { ...runtime, baseUrl: import.meta.url });
   const html = renderToStaticMarkup(createElement(module.default,{components:{D2InteractiveDiagram}}));
-  assert.match(html,/Explore 3 views/);
+  assert.doesNotMatch(html,/Explore/);
+  assert.match(html,/All views \(3\)/);
   assert.match(html,/All views/);
 });
 

@@ -2,41 +2,42 @@ import { test, expect } from '@playwright/test';
 
 async function explore(page, mode = 'static') {
   await page.goto(`/?case=${mode}`);
-  await page.getByRole('button', { name: /^Explore/ }).click();
   await expect(page.getByRole('group', { name: 'Diagram controls' })).toBeVisible();
 }
 
-test('loads viewer on demand, supports zoom/pan, copy, download and native modal focus', async ({ page, context }) => {
+test('auto-loads compact controls, supports zoom/pan, source and native fullscreen focus', async ({ page, context }) => {
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
   const requests = []; page.on('request', (request) => requests.push(request.url()));
   await page.goto('/');
-  const count = requests.filter((url) => url.endsWith('.js')).length;
-  await page.getByRole('button', { name: /^Explore/ }).click();
   await expect(page.getByRole('button', { name: 'Zoom in' })).toBeVisible();
-  expect(requests.filter((url) => url.endsWith('.js')).length).toBeGreaterThan(count);
+  await expect(page.getByRole('button', { name: /^Explore|^Expand/ })).toHaveCount(0);
+  expect(requests.filter((url) => url.endsWith('.js')).length).toBeGreaterThan(1);
+  const viewport = page.locator('.d2-viewport');
+  await viewport.focus(); await page.keyboard.press('0');
   expect(requests.some((url) => /wasm|d2\.wasm/.test(url))).toBe(false);
   await page.getByRole('button', { name: 'Zoom in' }).click();
-  await expect(page.getByRole('button', { name: 'Reset zoom' })).toHaveText('125%');
-  const viewport = page.locator('.d2-viewport');
+  await expect(page.locator('.d2-zoom-space')).toHaveCSS('width', '1500px');
   await viewport.focus(); await page.keyboard.press('-');
-  await expect(page.getByRole('button', { name: 'Reset zoom' })).toHaveText('100%');
+  await expect(page.locator('.d2-zoom-space')).toHaveCSS('width', '1200px');
   await page.getByRole('button', { name: 'Fit', exact: true }).click();
-  expect(await page.getByRole('button', { name: 'Reset zoom' }).textContent()).not.toBe('100%');
+  expect((await page.locator('.d2-zoom-space').boundingBox()).width).toBeLessThan(1200);
   await page.getByRole('button', { name: 'Zoom in' }).click();
   await page.getByRole('button', { name: 'Zoom in' }).click();
   const box = await viewport.boundingBox();
   await page.mouse.move(box.x + 500, box.y + 190); await page.mouse.down(); await page.mouse.move(box.x + 200, box.y + 190, { steps: 8 }); await page.mouse.up();
   expect(await viewport.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByLabel('D2 source', { exact: true }).click();
   await page.getByRole('button', { name: 'Copy D2' }).click();
   await expect(page.getByRole('status')).toContainText('copied');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('api -> db');
-  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'SVG ↓', exact: true }).click();
+  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Download SVG', exact: true }).click();
   expect((await download).suggestedFilename()).toBe('demo.svg');
-  await page.getByRole('button', { name: 'Expand' }).click();
+  await page.getByLabel('D2 source', { exact: true }).click();
+  await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Architecture overview' })).toBeVisible();
   await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Expand' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Fullscreen', exact: true })).toBeFocused();
   expect(errors).toEqual([]);
 });
 
@@ -87,7 +88,9 @@ test('reduced motion, dark theme and mobile layout remain readable', async ({ pa
   await page.setViewportSize({ width: 390, height: 844 });
   await explore(page, 'animation');
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeDisabled();
+  await page.getByLabel('D2 source', { exact: true }).click();
   await expect(page.getByRole('button', { name: 'Motion off' })).toBeDisabled();
+  await page.getByLabel('D2 source', { exact: true }).click();
   await page.evaluate(() => document.body.classList.add('dark'));
   await expect(page.locator('.d2-viewport .d2-diagram-dark')).toBeVisible();
   await expect(page.locator('.d2-viewport .d2-diagram-light')).toBeHidden();
@@ -101,7 +104,7 @@ test('all boards and source remain available without JavaScript', async ({ brows
   await page.goto('/?case=steps');
   await page.getByText('All views (3)', { exact: true }).click();
   await expect(page.locator('.d2-board-fallback')).toContainText('rollback');
-  await page.getByText('D2 source', { exact: true }).click();
+  await page.getByLabel('D2 source', { exact: true }).click();
   await expect(page.locator('pre')).toContainText('steps:');
   await context.close();
 });
@@ -110,7 +113,6 @@ test('all boards and source remain available without JavaScript', async ({ brows
 test('a failed viewer chunk leaves static boards and source usable', async ({ page }) => {
   await page.route('**/d2-viewer-*.js', (route) => route.abort());
   await page.goto('/?case=steps');
-  await page.getByRole('button', {name:/^Explore/}).click();
   await expect(page.getByRole('alert')).toContainText('static views are still available');
   await page.getByText('All views (3)',{exact:true}).click();
   await expect(page.locator('.d2-board-fallback')).toContainText('rollback');
@@ -118,7 +120,7 @@ test('a failed viewer chunk leaves static boards and source usable', async ({ pa
 
 test('source adapter preserves a heading anchor when opening source', async ({ page }) => {
   await page.goto('/#architecture');
-  await page.getByRole('button', {name:/^Explore/}).click();
+  await expect(page.getByRole('group', {name:'Diagram controls'})).toBeVisible();
   await page.locator('.d2-diagram-light a').click();
   await expect(page.locator('.source-drawer')).toBeVisible();
   expect(new URL(page.url()).hash).toBe('#architecture');

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import type { D2Board, D2InteractiveDiagramProps } from './d2-types.js';
 import { normalizeD2BoardLink } from './d2-navigation.js';
+import { D2Icon, D2IconButton, D2SourceMenu } from './d2-controls.js';
 
 function svgSize(svg: string) {
   const tag = svg.slice(0, svg.indexOf('>') + 1);
@@ -34,7 +35,6 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
   const go = useCallback((next: number) => {
     setPlaying(false);
     setIndex(Math.max(0, Math.min(views.length - 1, next)));
-    setZoom(1);
     if (viewport.current) { viewport.current.scrollTop = 0; viewport.current.scrollLeft = 0; }
   }, [views.length]);
 
@@ -76,7 +76,7 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
     return () => window.clearTimeout(timer);
   }, [status]);
 
-  function fit() {
+  const fit = useCallback(() => {
     const element = viewport.current;
     if (!element) return;
     const style = window.getComputedStyle(element);
@@ -89,9 +89,28 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
       ? maxHeight - (style.boxSizing === 'border-box'
         ? verticalPadding + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth) : 0)
       : element.clientHeight - verticalPadding;
-    setZoom(Math.max(0.1, Math.min(1, (element.clientWidth - horizontalPadding) / size.width, height / size.height)));
+    if (element.clientWidth <= horizontalPadding || height <= 0) return;
+    setZoom(Math.min(1, (element.clientWidth - horizontalPadding) / size.width, height / size.height));
     element.scrollTop = 0; element.scrollLeft = 0;
-  }
+  }, [size.width, size.height]);
+
+  // Refit on mount, board/fullscreen changes and container/window resizing.
+  // Observe width only: zooming changes canvas height and must not undo a user zoom.
+  useEffect(() => {
+    const element = viewport.current;
+    if (!element) return;
+    fit();
+    let width = element.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (element.clientWidth !== width) { width = element.clientWidth; fit(); }
+    });
+    observer.observe(element);
+    window.addEventListener('resize', fit);
+    return () => { observer.disconnect(); window.removeEventListener('resize', fit); };
+  }, [fit, id, board.id, expanded]);
+
+  const zoomIn = () => setZoom((value) => Math.min(4, value * 1.25));
+  const zoomOut = () => setZoom((value) => Math.max(Math.min(value, 0.01), value / 1.25));
   function closeExpanded() {
     setExpanded(false);
     window.requestAnimationFrame(() => expandButton.current?.focus());
@@ -119,8 +138,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
   }
   function keyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.key === '+' || event.key === '=') { event.preventDefault(); setZoom((value) => Math.min(4, value + 0.25)); }
-    if (event.key === '-') { event.preventDefault(); setZoom((value) => Math.max(0.1, value - 0.25)); }
+    if (event.key === '+' || event.key === '=') { event.preventDefault(); zoomIn(); }
+    if (event.key === '-') { event.preventDefault(); zoomOut(); }
     if (event.key === '0') { event.preventDefault(); setZoom(1); }
     if (sequential && ['ArrowRight', 'ArrowLeft'].includes(event.key)) { event.preventDefault(); go(index + (event.key === 'ArrowRight' ? 1 : -1)); }
   }
@@ -172,19 +191,28 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
 
   const content = <figure className={['d2-diagram', 'd2-viewer', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${prefix}-caption`}>
     <div className="d2-toolbar" role="group" aria-label="Diagram controls">
-      <div className="d2-toolbar-group">
-        <button type="button" onClick={fit}>Fit</button>
-        <button type="button" onClick={() => setZoom((value) => Math.max(0.1, value - 0.25))} disabled={zoom <= 0.1} aria-label="Zoom out">−</button>
-        <button type="button" onClick={() => setZoom(1)} aria-label="Reset zoom">{Math.round(zoom * 100)}%</button>
-        <button type="button" onClick={() => setZoom((value) => Math.min(4, value + 0.25))} disabled={zoom >= 4} aria-label="Zoom in">+</button>
-      </div>
-      <div className="d2-toolbar-group">
-        {source !== undefined && <button type="button" onClick={copy}>Copy D2</button>}
-        <button type="button" onClick={() => download()}>SVG ↓</button>
-        {animation && <button type="button" onClick={() => download(true)}>Animated SVG ↓</button>}
-        <button type="button" aria-pressed={!animationsPaused} onClick={() => setAnimationsPaused((paused) => !paused)} disabled={reducedMotion}>Motion {animationsPaused ? 'off' : 'on'}</button>
-        <button type="button" ref={expandButton} onClick={() => expanded ? closeExpanded() : setExpanded(true)} aria-expanded={expanded}>{expanded ? 'Close expanded view' : 'Expand ↗'}</button>
-      </div>
+      {source !== undefined ? <D2SourceMenu source={source}>
+        <D2IconButton label="Copy D2" icon="copy" onClick={copy} />
+        <D2IconButton label="Download SVG" icon="download" onClick={() => download()} />
+        {animation && <D2IconButton label="Download animated SVG" icon="download" onClick={() => download(true)} />}
+        <D2IconButton label={`Motion ${animationsPaused ? 'off' : 'on'}`} icon="motion" aria-pressed={!animationsPaused}
+          onClick={() => setAnimationsPaused((paused) => !paused)} disabled={reducedMotion} />
+      </D2SourceMenu> : <>
+        <D2IconButton label="Download SVG" icon="download" onClick={() => download()} />
+        {animation && <>
+          <D2IconButton label="Download animated SVG" icon="download" onClick={() => download(true)} />
+          <D2IconButton label={`Motion ${animationsPaused ? 'off' : 'on'}`} icon="motion" aria-pressed={!animationsPaused}
+            onClick={() => setAnimationsPaused((paused) => !paused)} disabled={reducedMotion} />
+        </>}
+      </>}
+      <D2IconButton label="Zoom out" icon="zoom-out" onClick={zoomOut} disabled={zoom <= 0.01} />
+      <D2IconButton label="Zoom in" icon="zoom-in" onClick={zoomIn} disabled={zoom >= 4} />
+      <D2IconButton label="Fit" icon="fit" onClick={fit} title={`Fit diagram (${Math.round(zoom * 100)}%)`} />
+      <button type="button" className="d2-icon-button" ref={expandButton}
+        aria-label={expanded ? 'Exit fullscreen' : 'Fullscreen'} title={expanded ? 'Exit fullscreen' : 'Fullscreen'}
+        onClick={() => expanded ? closeExpanded() : setExpanded(true)} aria-expanded={expanded}>
+        <D2Icon name={expanded ? 'close' : 'fullscreen'} />
+      </button>
     </div>
     {views.length > 1 && <>
       {sequential ? <div className="d2-stepper" role="group" aria-label="Diagram steps">
@@ -209,6 +237,7 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
       aria-labelledby={!sequential && mode !== 'explorer' && views.length > 1 ? `${prefix}-tab-${index}` : `${prefix}-caption`}
       aria-label={undefined} onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove}
       onPointerUp={pointerUp} onPointerCancel={() => { drag.current = null; }} onClick={boardLink}
+      aria-description="Drag to pan. Use + and - to zoom, 0 for native size."
       data-motion={animationsPaused ? 'paused' : 'running'}>
       <div className="d2-zoom-space" style={{ width: size.width * zoom, height: size.height * zoom }}>
         <div className="d2-zoom-content" style={{ width: size.width, height: size.height, transform: `scale(${zoom})` }}>
@@ -217,8 +246,7 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
         </div>
       </div>
     </div>
-    <p className="d2-viewer-status" role="status">{status || (reducedMotion ? 'Reduced motion enabled.' : 'Drag to pan · Focus diagram for + / − / 0 shortcuts')}</p>
-    {source !== undefined && <details className="d2-source-fallback"><summary>D2 source</summary><pre><code>{source}</code></pre></details>}
+    <span className="d2-sr-only" role="status">{status}</span>
     <figcaption id={`${prefix}-caption`}>{caption}</figcaption>
   </figure>;
   return expanded ? <dialog ref={dialog} className="d2-fullscreen" aria-label={caption}

@@ -139,7 +139,9 @@ const interactive = await compile({value: fence + 'd2 mode=steps\na: base\nsteps
 });
 assert.match(String(interactive), /D2InteractiveDiagram/);
 assert.match(String(interactive), /JSON.parse/);
-assert.match(renderToStaticMarkup(createElement(D2InteractiveDiagram, {id:'interactive',caption:'Steps',lightSvg:'<svg/>',darkSvg:'<svg/>',source:'a -> b'})), /Explore diagram/);
+const interactiveMarkup = renderToStaticMarkup(createElement(D2InteractiveDiagram, {id:'interactive',caption:'Steps',lightSvg:'<svg/>',darkSvg:'<svg/>',source:'a -> b'}));
+assert.match(interactiveMarkup, /aria-label="D2 source"/);
+assert.doesNotMatch(interactiveMarkup, /Explore diagram/);
 const terminalYAML = 'title: Packed terminal\ncontext: {kind: local}\nsteps: [{id: version, command: node --version, outputs: [{stream: stdout, text: example}]}]';
 const terminal = parseTerminalSession(terminalYAML);
 validateTerminalSession(terminal);

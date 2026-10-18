@@ -31,15 +31,19 @@
   --d2-paper: var(--color-fd-background, #18202b);
 }
 .d2-interactive :is(button, select) { font: inherit; color: inherit; }
-.d2-interactive .d2-diagram figcaption { color: var(--d2-muted); }
-/* Fit the pre-Explore overview without changing native-size server-only diagrams
+.d2-interactive .d2-diagram { margin: 0; }
+.d2-interactive .d2-diagram figcaption, .d2-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+/* Fit the SSR/loading overview without changing native-size server-only diagrams
    or the zoom canvas. CSS alone also covers no-JS and failed-viewer fallbacks. */
 .d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) {
   width: 100%; min-width: 0;
 }
 .d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) > svg {
   width: auto; height: auto; max-width: 100%;
-  max-height: var(--d2-preview-max-height, 65vh);
+  max-height: var(--d2-preview-max-height, 90vh);
 }
 .d2-interactive button {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
@@ -50,10 +54,12 @@
 .d2-interactive button:hover:not(:disabled) { background: color-mix(in srgb, currentColor 7%, transparent); }
 .d2-interactive button:disabled { opacity: 0.4; cursor: default; }
 .d2-interactive button[aria-pressed='true'] { border-color: var(--d2-line); background: color-mix(in srgb, currentColor 6%, transparent); }
-.d2-launch { display: flex; justify-content: end; border-block-end: 1px solid var(--d2-line); padding-block-end: 0.35rem; }
-.d2-launch button { color: var(--d2-muted); }
-.d2-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.35rem 1rem; border-block: 1px solid var(--d2-line); padding-block: 0.45rem; }
-.d2-toolbar-group { display: flex; align-items: center; flex-wrap: wrap; gap: 0.15rem; }
+.d2-toolbar, .d2-fallback-tools {
+  position: relative; display: flex; align-items: center; justify-content: end;
+  gap: 0.15rem; padding-block: 0.2rem; border-bottom: 1px solid var(--d2-line);
+}
+.d2-interactive .d2-icon-button { width: 2rem; height: 2rem; padding: 0; flex: 0 0 auto; }
+.d2-icon { display: block; width: 1.125rem; height: 1.125rem; flex: 0 0 auto; }
 .d2-stepper { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding-block: 0.85rem; border-block-end: 1px solid var(--d2-line); }
 .d2-step-label { flex: 1; min-width: 8rem; font-size: 0.875rem; font-weight: 600; }
 .d2-step-count { color: var(--d2-muted); font-size: 0.75rem; font-weight: 400; margin-inline-end: 0.65rem; font-variant-numeric: tabular-nums; }
@@ -63,7 +69,7 @@
 .d2-breadcrumb { padding-block: 0.75rem; font-size: 0.8125rem; }
 .d2-breadcrumb select { max-width: 100%; padding: 0.4rem; border: 1px solid var(--d2-line); border-radius: 0.25rem; background: var(--d2-paper); }
 .d2-viewport {
-  overflow: auto; max-height: 65vh; min-height: 8rem; padding: 0.75rem;
+  overflow: auto; max-height: var(--d2-viewport-max-height, 90vh); min-height: 8rem; padding: 0.5rem;
   overscroll-behavior: contain; cursor: grab; scrollbar-gutter: stable;
 }
 .d2-viewport:active { cursor: grabbing; }
@@ -74,31 +80,50 @@
 .d2-zoom-content svg { width: 100%; height: 100%; }
 .d2-viewport[data-motion='paused'] svg * { animation-play-state: paused !important; }
 .d2-interactive:not(:has(.d2-viewport)) svg * { animation-play-state: paused !important; }
-.d2-viewer-status { min-height: 1.25rem; margin: 0.5rem 0; color: var(--d2-muted); font-size: 0.75rem; }
 .d2-view-description { font-size: 0.875rem; margin-block: 0.65rem; }
-.d2-source-fallback, .d2-board-fallback { margin-block: 0.5rem; font-size: 0.8125rem; }
+.d2-board-fallback { margin-block: 0.5rem; font-size: 0.8125rem; }
 .d2-interactive summary { cursor: pointer; color: var(--d2-muted); padding-block: 0.5rem; }
-.d2-source-fallback pre { max-height: 24rem; overflow: auto; padding: 0.85rem; border: 1px solid var(--d2-line); font-size: 0.8125rem; line-height: 1.6; tab-size: 2; }
+.d2-source-menu > summary {
+  display: flex; align-items: center; justify-content: center; list-style: none;
+  width: 2rem; height: 2rem; padding: 0; border-radius: 0.25rem;
+}
+.d2-source-menu > summary::-webkit-details-marker { display: none; }
+.d2-source-menu > summary:hover { background: color-mix(in srgb, currentColor 7%, transparent); }
+.d2-source-panel {
+  position: absolute; z-index: 5; top: calc(100% + 0.25rem); right: 0;
+  width: min(36rem, calc(100vw - 3rem)); box-sizing: border-box;
+  border: 1px solid var(--d2-line); border-radius: 0.25rem;
+  background: var(--d2-paper); color: var(--d2-ink); padding: 0.5rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+}
+.d2-source-actions { display: flex; justify-content: end; gap: 0.15rem; margin-bottom: 0.25rem; }
+.d2-source-panel pre {
+  max-height: min(24rem, 50dvh); overflow: auto; margin: 0; padding: 0.5rem;
+  font-size: 0.8125rem; line-height: 1.6; tab-size: 2;
+}
 .d2-fullscreen {
-  width: calc(100vw - 2rem); max-width: none; height: calc(100dvh - 2rem); max-height: none;
-  padding: clamp(0.75rem, 2vw, 1.5rem); border: 1px solid var(--d2-line);
+  width: calc(100vw - 2rem); max-width: none; height: 90dvh; max-height: 90dvh; box-sizing: border-box;
+  padding: 0.5rem; border: 1px solid var(--d2-line);
   border-radius: 0.3rem; background: var(--d2-paper); color: var(--d2-ink);
 }
 .d2-fullscreen::backdrop { background: rgb(12 20 32 / 65%); }
-.d2-fullscreen .d2-viewer { margin: 0; }
-.d2-fullscreen .d2-viewport { max-height: calc(100dvh - 16rem); }
+.d2-fullscreen[open] { display: flex; }
+.d2-fullscreen .d2-viewer { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; margin: 0; }
+.d2-fullscreen :is(.d2-toolbar, .d2-stepper, .d2-tabs, .d2-breadcrumb) { flex-shrink: 0; }
+.d2-fullscreen .d2-viewport { flex: 1; min-height: 0; max-height: none; }
 .d2-source-links { display: contents; }
 @media (max-width: 480px) {
   .d2-interactive button { min-height: 2.5rem; }
   .d2-step-label { order: -1; flex-basis: 100%; }
   .d2-stepper { justify-content: space-between; }
-  .d2-fullscreen { width: 100vw; height: 100dvh; border: 0; border-radius: 0; padding: 0.65rem; }
+  .d2-interactive :is(.d2-icon-button, .d2-source-menu > summary) { width: 2.5rem; height: 2.5rem; }
+  .d2-fullscreen { width: calc(100vw - 1rem); border-radius: 0.25rem; padding: 0.35rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .d2-diagram svg * { animation: none !important; transition: none !important; }
 }
 @media print {
-  .d2-launch, .d2-toolbar, .d2-stepper, .d2-tabs, .d2-breadcrumb, .d2-viewer-status { display: none; }
+  .d2-toolbar, .d2-fallback-tools, .d2-stepper, .d2-tabs, .d2-breadcrumb { display: none; }
   .d2-diagram-scroll, .d2-viewport { overflow: visible; max-height: none; }
   .d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) > svg { max-height: none; }
 }

@@ -318,7 +318,7 @@ guard -> blocked: Không
 - Rectangle và diamond được đo nhãn bằng font thực tế rồi bố trí lại nếu ô quá nhỏ. Không dùng ước lượng theo số ký tự.
 - Caption của container, sequence message và nhãn trên mũi tên vẫn giữ vị trí theo ngữ nghĩa của D2.
 - Dùng luồng ngang, nhãn ngắn và xuống dòng hợp lý. Tách quy trình dài thành các giai đoạn thay vì thu nhỏ chữ đến mức khó đọc.
-- Diagram server-only cuộn ngang để giữ chữ rõ. Với `interactive`, preview tự fit chiều rộng và tối đa `65vh`; bấm Explore để zoom/pan đọc chi tiết. Có thể đổi giới hạn bằng `--d2-preview-max-height`; xem [hướng dẫn D2](./docs/d2.md#1-bật-tương-tác-khi-cần).
+- Diagram server-only cuộn ngang để giữ chữ rõ. Từ `0.9.3`, `interactive` mở sẵn với toolbar icon zoom/fit/fullscreen và tự fit tối đa `90vh`; source nằm trong panel nổi, không có hàng footer. Có thể đổi giới hạn bằng `--d2-viewport-max-height` (viewer) và `--d2-preview-max-height` (fallback); xem [hướng dẫn D2](./docs/d2.md#1-bật-tương-tác-khi-cần).
 - Giữ cây thư mục, log, payload và những ví dụ text theo vị trí ở dạng text khi phù hợp.
 
 **Ranh giới tin cậy:** chỉ compile MDX/D2 do người viết tài liệu đáng tin cậy quản lý trong repository. SVG được nhúng trực tiếp vào HTML; đây không phải sanitizer hay dịch vụ render input công khai. Không nhận D2 không tin cậy từ người dùng.
@@ -405,7 +405,7 @@ steps: {
 ```
 ````
 
-- `interactive`: toolbar fit/zoom/pan/expand, xem/copy D2, tải SVG.
+- `interactive`: mở sẵn, toolbar icon fit/zoom/fullscreen, pan; source/copy/tải SVG trong panel nổi.
 - `mode=steps`: bước trước/sau; `mode=tabs`: scenarios; `mode=explorer`: layers/drill-down.
 - `mode=animation`: phát có điều khiển và tải animated SVG. Không autoplay khi mở trang.
 - Source Explorer adapter mở implementation khi click node, không reload.
@@ -414,7 +414,7 @@ steps: {
 
 **[Hướng dẫn, API, ví dụ và giới hạn →](./docs/d2.md)** · **[Bộ mẫu D2 →](./examples/d2/)**
 
-Không thêm D2 CLI hoặc WASM vào browser. Viewer chỉ lazy-load khi bấm Explore. ELK algorithms nâng cao và export PNG/PDF/PPTX không nằm trong API này.
+Không thêm D2 CLI hoặc WASM vào browser. Chunk viewer tự tải sau hydration, không cần bấm Explore. ELK algorithms nâng cao và export PNG/PDF/PPTX không nằm trong API này.
 
 ## Worker pool và cache CI
 
@@ -480,7 +480,7 @@ Public entry points:
 
 - `@vanhiep99w/docs-kit/d2`: **build-time / Node.js**, không import trong client component.
 - `@vanhiep99w/docs-kit/components/d2`: React component + `D2DiagramProps`.
-- `@vanhiep99w/docs-kit/components/d2-interactive`: optional client launcher + lazy viewer.
+- `@vanhiep99w/docs-kit/components/d2-interactive`: optional client boundary + automatically loaded viewer.
 - `@vanhiep99w/docs-kit/styles/d2.css`: stylesheet cho static và viewer.
 
 Không có barrel export gom plugin và component. Khi thêm tính năng, tạo module/component/CSS và subpath export tương ứng; không cần tạo package mới ngay. Giữ default an toàn và thêm tests trước khi đưa component mới vào API công khai.
