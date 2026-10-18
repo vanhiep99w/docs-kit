@@ -17,7 +17,7 @@ const workspace = await mkdtemp(path.join(os.tmpdir(), 'docs-kit-tests-'));
 // relative to the installed module, not to process.cwd().
 process.chdir(workspace);
 after(async () => {
-  await Promise.all(['.cache/docs-kit/d2', 'custom-cache', 'portable-cache', 'layouts-cache'].map((directory) =>
+  await Promise.all(['.cache/docs-kit/d2', 'custom-cache', 'portable-cache', 'layouts-cache', 'scale-cache'].map((directory) =>
     shutdownPool({ cacheDir: path.join(workspace, directory), concurrency: 1 })));
   process.chdir(originalDirectory);
   await rm(workspace, { recursive: true, force: true });
@@ -57,27 +57,45 @@ test('renders from a foreign working directory with themed sketch SVGs', async (
   assert.match(result.lightSvg, /^<svg/);
   assert.match(result.darkSvg, /^<svg/);
   assert.notEqual(result.lightSvg, result.darkSvg);
-  assertScale(result.lightSvg, 0.8);
-  assertScale(result.darkSvg, 0.8);
+  assertScale(result.lightSvg, 1);
+  assertScale(result.darkSvg, 1);
   assert.match(result.lightSvg, /<pattern id="streaks-/);
   assert.match(result.lightSvg, /<rect\b[^>]*fill="transparent"/);
   assert.doesNotMatch(result.lightSvg, /prefers-color-scheme|<\?xml/);
   assert.doesNotMatch(compiled, /@terrastruct|@d2lang|child_process|labelLayout/);
 });
 
-test('direct renderer defaults to scale 0.8 and preserves explicit overrides', async () => {
+test('direct renderer defaults to scale 1 and preserves explicit overrides', async () => {
   const d2 = new D2();
   try {
     for (const scale of [undefined, 0.6]) {
       const result = await renderDiagram(d2, {
         source: 'a -> b', salt: 'scale-regression', options: { scale },
       });
-      assertScale(result.lightSvg, scale ?? 0.8);
-      assertScale(result.darkSvg, scale ?? 0.8);
+      assertScale(result.lightSvg, scale ?? 1);
+      assertScale(result.darkSvg, scale ?? 1);
     }
   } finally {
     await d2.dispose();
   }
+});
+
+test('default scale shares cache with explicit 1, not the previous 0.8', async () => {
+  const options = { cacheDir: './scale-cache' };
+  const legacy = props((await transform(fence, { ...options, scale: 0.8 })).tree.children[0]);
+  const native = props((await transform(fence, options)).tree.children[0]);
+  for (const theme of ['lightSvg', 'darkSvg']) {
+    assertScale(legacy[theme], 0.8);
+    assertScale(native[theme], 1);
+  }
+  assert.equal((await readdir(options.cacheDir)).filter((file) => file.endsWith('.json')).length, 2);
+  const explicit = props((await transform(fence, { ...options, scale: 1 })).tree.children[0]);
+  assert.deepEqual(explicit, native);
+  assert.equal((await readdir(options.cacheDir)).filter((file) => file.endsWith('.json')).length, 2);
+
+  const overridden = props((await transform('```d2 scale=0.6\na -> b\n```', { ...options, scale: 0.8 })).tree.children[0]);
+  assertScale(overridden.lightSvg, 0.6);
+  assertScale(overridden.darkSvg, 0.6);
 });
 
 test('reuses disk cache without rewriting it', async () => {

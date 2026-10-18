@@ -29,6 +29,7 @@ export interface RemarkD2Options extends D2ResourceOptions {
   sketch?: boolean;
   /** Default engine; overridden by page d2Layout and then fence layout. */
   layout?: D2Layout;
+  /** SVG render scale; defaults to 1 (native size). */
   scale?: number;
   padding?: number;
   themes?: { light?: number; dark?: number };
@@ -162,7 +163,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     darkOverrides: options.themeOverrides?.dark,
     sketch: options.sketch ?? true,
     layout: options.layout ?? 'elk',
-    scale: options.scale ?? 0.8,
+    scale: options.scale ?? 1,
     padding: options.padding ?? 12,
     lightTheme: options.themes?.light ?? 0,
     darkTheme: options.themes?.dark ?? 200,
