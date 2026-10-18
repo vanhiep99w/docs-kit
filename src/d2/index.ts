@@ -23,6 +23,8 @@ export interface RemarkD2Options extends D2ResourceOptions {
   interval?: number;
   maxBoards?: number;
   fitLabels?: 'auto' | 'off';
+  /** Readable sequence fragments by default; native retains D2's blended fills. */
+  sequenceStyle?: 'readable' | 'native';
   themeOverrides?: { light?: Record<string, string>; dark?: Record<string, string> };
   /** Relative to the consuming project's working directory. */
   cacheDir?: string;
@@ -46,6 +48,7 @@ interface RendererOptions {
   interval: number;
   maxBoards: number;
   fitLabels: 'auto' | 'off';
+  sequenceStyle: 'readable' | 'native';
   lightOverrides?: Record<string, string>;
   darkOverrides?: Record<string, string>;
   sketch: boolean;
@@ -130,11 +133,12 @@ interface FenceOptions {
   lightTheme?: number;
   darkTheme?: number;
   fitLabels?: 'auto' | 'off';
+  sequenceStyle?: 'readable' | 'native';
 }
 
 function fenceOptions(meta: string | null | undefined): FenceOptions {
   const result: Record<string, unknown> = {};
-  const known = new Set(['title', 'layout', 'interactive', 'mode', 'target', 'interval', 'sketch', 'scale', 'padding', 'lightTheme', 'darkTheme', 'fitLabels']);
+  const known = new Set(['title', 'layout', 'interactive', 'mode', 'target', 'interval', 'sketch', 'scale', 'padding', 'lightTheme', 'darkTheme', 'fitLabels', 'sequenceStyle']);
   const attributes = /(?:^|\s)([^\s=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s]*))?(?=\s|$)/g;
   for (const [, name, raw] of (meta ?? '').matchAll(attributes)) {
     if (!known.has(name)) continue;
@@ -159,6 +163,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
     interval: options.interval ?? 1500,
     maxBoards: options.maxBoards ?? 32,
     fitLabels: options.fitLabels ?? 'auto',
+    sequenceStyle: options.sequenceStyle ?? 'readable',
     lightOverrides: options.themeOverrides?.light,
     darkOverrides: options.themeOverrides?.dark,
     sketch: options.sketch ?? true,
@@ -180,6 +185,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
   }
   if (!['static', 'steps', 'tabs', 'explorer', 'animation'].includes(resolved.mode)) throw new Error('docs-kit D2: invalid mode.');
   if (!['auto', 'off'].includes(resolved.fitLabels)) throw new Error('docs-kit D2: fitLabels must be auto or off.');
+  if (!['readable', 'native'].includes(resolved.sequenceStyle)) throw new Error('docs-kit D2: sequenceStyle must be readable or native.');
   if (!Number.isInteger(resolved.interval) || resolved.interval < 250 || resolved.interval > 60000) throw new Error('docs-kit D2: interval must be 250–60000 ms.');
   if (!Number.isInteger(resolved.maxBoards) || resolved.maxBoards < 1 || resolved.maxBoards > 128) throw new Error('docs-kit D2: maxBoards must be 1–128.');
   if (resolved.target !== undefined && (typeof resolved.target !== 'string' || !resolved.target.trim() || resolved.target.includes('*'))) {

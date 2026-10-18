@@ -1,5 +1,6 @@
 import { createElement, useState } from 'react';
 import { D2InteractiveDiagram } from '../../src/components/d2-interactive.js';
+import { D2Diagram } from '../../src/components/d2.js';
 import { SourceExplorerProvider, D2SourceLinks } from '../../src/components/source-explorer/index.js';
 import type { D2InteractiveDiagramProps } from '../../src/components/d2-types.js';
 import { CodeWalkthrough, type CodeWalkthroughData } from '../../src/components/code-walkthrough.js';
@@ -19,7 +20,7 @@ function WalkthroughDemo({ data }: { data: WalkthroughCase }) {
   return data.provider ? <SourceExplorerProvider manifestUrl="/manifest.json">{content}</SourceExplorerProvider> : content;
 }
 
-export function App({ data }: { data: D2InteractiveDiagramProps | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } }) {
+export function App({ data }: { data: (D2InteractiveDiagramProps & { serverOnly?: boolean }) | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } }) {
   if ('walkthrough' in data) return <WalkthroughDemo data={data} />;
   if ('waterfall' in data) return <main><h1>Thời gian request</h1><p>Trace tĩnh dùng chung mốc thời gian; không kết nối backend.</p><SpanWaterfall data={data.waterfall} /></main>;
   if ('exchange' in data) return <main><h1>Request và response</h1><p>So sánh các tình huống độc lập, không gọi API thật.</p><ProtocolExchange data={data.exchange} /></main>;
@@ -28,6 +29,7 @@ export function App({ data }: { data: D2InteractiveDiagramProps | WalkthroughCas
     return data.provider ? <SourceExplorerProvider manifestUrl="/manifest.json">{content}</SourceExplorerProvider> : content;
   }
   if ('terminal' in data) return <main><h1>Phiên terminal minh họa</h1><p>Lệnh và kết quả được biên soạn; không có shell kết nối.</p><TerminalSession data={data.terminal} /></main>;
+  if (data.serverOnly) return <main><h1>Server-only sequence</h1><D2Diagram {...data} /></main>;
   return <SourceExplorerProvider manifestUrl="/manifest.json">
     <D2SourceLinks><main><h1>Architecture lab</h1><p>Read the flow, then explore the implementation.</p><D2InteractiveDiagram {...data} /></main></D2SourceLinks>
   </SourceExplorerProvider>;

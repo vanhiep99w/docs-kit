@@ -77,6 +77,20 @@
 }
 .d2-viewport:active { cursor: grabbing; }
 .d2-viewport a { cursor: pointer; }
+/* The renderer marks actual sequence SVGs, including nested diagrams/boards.
+   Non-sequence architecture/ER views retain their original layout and padding. */
+.d2-diagram-scroll:has(> :is(.d2-diagram-light, .d2-diagram-dark) > svg[data-d2-sequence]),
+.d2-canvas:has(.d2-zoom-content svg[data-d2-sequence]) {
+  border: 1px solid var(--d2-sequence-border-color, var(--d2-line, var(--color-fd-border, color-mix(in srgb, currentColor 25%, transparent))));
+  border-radius: 0.5rem;
+}
+.d2-diagram-scroll:has(> :is(.d2-diagram-light, .d2-diagram-dark) > svg[data-d2-sequence]) {
+  padding: var(--d2-sequence-static-padding, 1rem);
+}
+.d2-interactive .d2-diagram-scroll:has(> :is(.d2-diagram-light, .d2-diagram-dark) > svg[data-d2-sequence]),
+.d2-viewer:has(.d2-zoom-content svg[data-d2-sequence]) .d2-viewport {
+  padding: var(--d2-sequence-padding, 3rem 1rem 1.5rem);
+}
 .d2-zoom-space { position: relative; margin-inline: auto; }
 .d2-zoom-content { position: absolute; inset: 0 auto auto 0; transform-origin: top left; }
 .d2-zoom-content :is(.d2-diagram-light, .d2-diagram-dark) { width: 100%; min-width: 0; }

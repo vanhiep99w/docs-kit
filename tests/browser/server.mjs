@@ -28,6 +28,13 @@ for (const mode of ['steps', 'tabs', 'explorer', 'animation']) {
   const rendered = await renderDiagram(d2, { source, salt: 'browser-' + mode, options: { mode, interval: 300 } });
   data[mode] = { ...rendered, id: 'demo', caption: 'Transaction walkthrough', source, mode, interval: 300 };
 }
+const sequenceSource = await readFile(new URL('../../examples/d2/sequence-groups.d2', import.meta.url), 'utf8');
+const sequenceProps = { id: 'sequence', caption: 'Nested sequence frames', source: sequenceSource };
+data.sequence = { ...sequenceProps, ...await renderDiagram(d2, { source: sequenceSource, salt: 'browser-sequence', options: { sketch: false } }) };
+data['sequence-static'] = { ...data.sequence, serverOnly: true };
+data['sequence-native'] = { ...sequenceProps, ...await renderDiagram(d2, { source: sequenceSource, salt: 'browser-sequence-native', options: { sketch: false, sequenceStyle: 'native' } }) };
+const mixedSequence = `a -> b\nlayers: {sequence: {${sequenceSource}}; ordinary: {c -> d}}`;
+data['sequence-boards'] = { ...sequenceProps, mode: 'explorer', ...await renderDiagram(d2, { source: mixedSequence, salt: 'browser-sequence-boards', options: { sketch: false, mode: 'explorer' } }) };
 await d2.dispose();
 data.static = { id: 'demo', caption: 'Architecture overview', lightSvg: svg, darkSvg: svg.replace('#c4dbec', '#7195b1'), source: 'api -> db' };
 for (const [name, width, height] of [['wide', 2400, 600], ['tall', 600, 2400], ['small', 160, 80]]) {

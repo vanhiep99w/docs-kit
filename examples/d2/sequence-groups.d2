@@ -1,0 +1,22 @@
+# Branch labels are explanatory, not an executable control-flow DSL.
+shape: sequence_diagram
+client: Client
+edge: Edge cache
+service: Read service
+cache: Cache
+database: Database
+
+client -> edge: GET /items/42
+edge -> service: Cache miss
+service -> cache: GET item:42
+read: "alt — choose one branch" {
+  hit: "if: cache hit" {
+    cache -> service: Item {style.stroke-dash: 4}
+  }
+  miss: "else: cache miss" {
+    service -> database: SELECT item WHERE id = 42
+    database -> service: Item {style.stroke-dash: 4}
+    service -> cache: SET item:42
+  }
+}
+service -> client: 200 OK {style.stroke-dash: 4}

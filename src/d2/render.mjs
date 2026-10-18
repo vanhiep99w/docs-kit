@@ -24,15 +24,16 @@ function walkBoards(diagram, graph, visit, segments = [], kind = 'root', parent)
   }
 }
 
+function graphObjectFor(graph, shape) {
+  // Exported graph IDs are local; rendered shape IDs are absolute key paths.
+  const localID = targetParts(shape.id).at(-1);
+  return graph?.objects?.find((object) => object && (object.id_val === localID || object.id === localID) &&
+    Math.abs(object.box?.TopLeft?.x - shape.pos.x) < 1 && Math.abs(object.box?.TopLeft?.y - shape.pos.y) < 1 &&
+    Math.abs(object.box?.Width - shape.width) < 1 && Math.abs(object.box?.Height - shape.height) < 1);
+}
+
 function leafBoxes(diagram, graph) {
-  const objects = graph?.objects ?? [];
-  const objectFor = (shape) => {
-    // Exported graph IDs are local; rendered shape IDs are absolute key paths.
-    const localID = targetParts(shape.id).at(-1);
-    return objects.find((object) => object && (object.id_val === localID || object.id === localID) &&
-      Math.abs(object.box?.TopLeft?.x - shape.pos.x) < 1 && Math.abs(object.box?.TopLeft?.y - shape.pos.y) < 1 &&
-      Math.abs(object.box?.Width - shape.width) < 1 && Math.abs(object.box?.Height - shape.height) < 1);
-  };
+  const objectFor = (shape) => graphObjectFor(graph, shape);
   const sequences = diagram.shapes.filter((shape) => objectFor(shape)?.attributes?.shape?.value === 'sequence_diagram');
   // Sequence fragments share actor scope: ID prefixes cannot identify their children.
   if (graph?.root?.attributes?.shape?.value === 'sequence_diagram') return [];
@@ -121,9 +122,40 @@ function embedAssets(diagram, resources) {
   });
 }
 
+// D2 marks sequence fragments with blend=true; actors, notes, activation spans
+// and ordinary containers are not fragments. Retain explicit source/class styles.
+function sequencePresentation(diagram, graph) {
+  const frames = [];
+  const boards = new Map();
+  walkBoards(diagram, graph, (board, boardGraph, segments) => {
+    const groups = board.shapes.filter(shape => shape.blend);
+    boards.set(boardPath(segments), groups.length > 0 ||
+      boardGraph?.root?.attributes?.shape?.value === 'sequence_diagram' ||
+      boardGraph?.objects?.some(object => object.attributes?.shape?.value === 'sequence_diagram'));
+    for (const shape of groups) {
+      const object = graphObjectFor(boardGraph, shape);
+      if (!object) throw new Error(`Cannot resolve D2 sequence fragment: ${shape.id}`);
+      const style = object.attributes?.style ?? {};
+      if (!style.fill) shape.fill = 'transparent';
+      if (!style.strokeWidth) shape.strokeWidth = 2;
+      frames.push({ shape, style });
+    }
+  });
+  return { frames, boards };
+}
+
+function readableSequenceSvg(svg) {
+  // Embed the fix so downloads/static consumers do not depend on host CSS.
+  // Specificity beats D2's salted .blend rule without overriding inline author styles.
+  const styles = '<style>svg[data-d2-sequence] .shape.blend{mix-blend-mode:normal;opacity:1}' +
+    'svg[data-d2-sequence] .shape.blend>:is(rect,path){vector-effect:non-scaling-stroke}</style>';
+  return svg.replace(/^(<svg)\b([^>]*>)/, '$1 data-d2-sequence="true"$2' + styles);
+}
+
 export async function renderDiagram(d2, { source, salt, options = {}, resources = {} }) {
   const { diagram, graph, renderOptions, labelLayout } = await compileWithFittedLabels(d2, source, options, resources);
   embedAssets(diagram, resources);
+  const sequence = options.sequenceStyle === 'native' ? undefined : sequencePresentation(diagram, graph);
   const renderSettings = {
     ...renderOptions, darkThemeID: undefined, noXMLTag: true,
     sketch: renderOptions.sketch ?? options.sketch ?? true,
@@ -138,10 +170,18 @@ export async function renderDiagram(d2, { source, salt, options = {}, resources 
   const renderPair = async (target, suffix = '', extra = {}) => {
     const pair = {};
     for (const theme of ['light', 'dark']) {
-      pair[`${theme}Svg`] = (await d2.render(diagram, {
+      for (const { shape, style } of sequence?.frames ?? []) {
+        if (!style.stroke) shape.stroke = theme === 'dark' ? '#94a3b8' : '#64748b';
+      }
+      let svg = (await d2.render(diagram, {
         ...renderSettings, ...themes[theme], darkThemeOverrides: undefined, target,
         salt: `${salt}-${theme}${suffix}`, ...extra,
       })).replace(/^<\?xml[^>]*\?>\s*/, ''); // Animated SVGs in this SDK ignore noXMLTag.
+      const isSequence = target?.includes('*')
+        ? [...sequence?.boards?.values() ?? []].some(Boolean)
+        : sequence?.boards.get(target ?? '');
+      if (isSequence) svg = readableSequenceSvg(svg);
+      pair[`${theme}Svg`] = svg;
     }
     return pair;
   };
