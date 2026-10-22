@@ -1,4 +1,5 @@
 import { createElement, useState } from 'react';
+import { LiveDemo } from '../../src/components/live-demo.js';
 import { D2InteractiveDiagram } from '../../src/components/d2-interactive.js';
 import { D2Diagram } from '../../src/components/d2.js';
 import { SourceExplorerProvider, D2SourceLinks } from '../../src/components/source-explorer/index.js';
@@ -20,7 +21,14 @@ function WalkthroughDemo({ data }: { data: WalkthroughCase }) {
   return data.provider ? <SourceExplorerProvider manifestUrl="/manifest.json">{content}</SourceExplorerProvider> : content;
 }
 
-export function App({ data }: { data: (D2InteractiveDiagramProps & { serverOnly?: boolean; emittedComponent?: string }) | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } }) {
+function LiveDemoFixture() {
+  const [src, setSrc] = useState('/live-demo-document');
+  return <main><h1>Live demo fixture</h1><button onClick={() => setSrc('/live-demo-document?other=1')}>Đổi demo</button>
+    <LiveDemo src={src} title="Demo tương tác" sourceUrl="https://github.com/example/demo" height={440} /></main>;
+}
+
+export function App({ data }: { data: (D2InteractiveDiagramProps & { serverOnly?: boolean; emittedComponent?: string }) | WalkthroughCase | { terminal: TerminalSessionData } | { diff: PreparedCodeDiff; adapter?: boolean; provider?: boolean } | { exchange: PreparedProtocolExchange } | { waterfall: PreparedSpanWaterfall } | { liveDemo: true } }) {
+  if ('liveDemo' in data) return <LiveDemoFixture />;
   if ('walkthrough' in data) return <WalkthroughDemo data={data} />;
   if ('waterfall' in data) return <main><h1>Thời gian request</h1><p>Trace tĩnh dùng chung mốc thời gian; không kết nối backend.</p><SpanWaterfall data={data.waterfall} /></main>;
   if ('exchange' in data) return <main><h1>Request và response</h1><p>So sánh các tình huống độc lập, không gọi API thật.</p><ProtocolExchange data={data.exchange} /></main>;

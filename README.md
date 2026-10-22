@@ -2,7 +2,9 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản chuẩn bị phát hành 0.9.8:** D2 mặc định dùng scale **`0.85`** và bật sẵn viewer với zoom in/out, fit, fullscreen, source và tải SVG. Host cần đăng ký `D2InteractiveDiagram` cùng `D2Diagram`. Dùng `interactive=false` để giữ component server-only hoặc `scale=1` để render ở kích thước D2 gốc. Override đang có trong host vẫn được giữ. Chưa publish `0.9.8`.
+**Bản 0.10.0:** thêm [LiveDemo](./docs/live-demo.md), iframe tải theo yêu cầu, fallback mở tab mới và stylesheet độc lập.
+
+**Từ 0.9.8:** D2 mặc định dùng scale **`0.85`** và bật sẵn viewer với zoom in/out, fit, fullscreen, source và tải SVG. Host cần đăng ký `D2InteractiveDiagram` cùng `D2Diagram`. Dùng `interactive=false` để giữ component server-only hoặc `scale=1` để render ở kích thước D2 gốc. Override đang có trong host vẫn được giữ.
 
 Từ `0.9.7`, sequence có viền rõ, nền group trong suốt và padding phù hợp dùng chung cho mọi host. SVG tải xuống cũng giữ cách hiển thị này; style tác giả khai báo trong D2 vẫn được ưu tiên, hoặc chọn `sequenceStyle: 'native'` để dùng giao diện D2 cũ.
 
@@ -13,6 +15,7 @@ Từ `0.9.7`, sequence có viền rõ, nền group trong suốt và padding phù
 - [Yêu cầu](#yêu-cầu)
 - [Cài đặt](#cài-đặt)
 - [Tích hợp Fumadocs](#tích-hợp-fumadocs)
+- [Live Demo](#live-demo)
 - [Source Explorer](#source-explorer)
 - [Code Walkthrough](#code-walkthrough)
 - [Terminal Session](#terminal-session)
@@ -51,10 +54,10 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 
 ## Cài đặt
 
-**Cài từ npm sau khi `0.9.0` được publish:**
+**Cài từ npm:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.9.0
+npm install @vanhiep99w/docs-kit@0.10.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -142,6 +145,12 @@ Trong global CSS, sau stylesheet của Fumadocs:
 ```
 
 CSS chỉ tác động `.d2-diagram`, không sửa layout/sidebar của website. Light/dark theo class `.dark` hoặc `[data-theme='dark']` của website, không phụ thuộc riêng vào theme hệ điều hành. Các biến màu Fumadocs có fallback.
+
+## Live Demo
+
+Nhúng app thật từ một deployment riêng mà không kéo dependencies của app vào docs-kit. Đăng ký `LiveDemo` từ `@vanhiep99w/docs-kit/components/live-demo`, import `@vanhiep99w/docs-kit/styles/live-demo.css`, rồi dùng trực tiếp trong MDX. Không cần remark plugin. Iframe chỉ tải khi bấm **Chạy thử**; link mở riêng hoạt động cả khi tắt JavaScript.
+
+Xem [API, lifecycle và trust boundary](./docs/live-demo.md). Chỉ dùng với app tin cậy, ưu tiên origin khác với docs; component không phải editor hoặc môi trường chạy code tùy ý.
 
 ## Source Explorer
 

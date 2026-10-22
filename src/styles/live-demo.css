@@ -1,0 +1,42 @@
+.live-demo {
+  --live-demo-bg: var(--color-fd-background, #fafaf8);
+  --live-demo-fg: var(--color-fd-foreground, #202831);
+  --live-demo-muted: var(--color-fd-muted-foreground, #566270);
+  --live-demo-border: var(--color-fd-border, #dce1e5);
+  --live-demo-accent: var(--color-fd-primary, #2455af);
+  margin: 1.5rem 0;
+  border: 1px solid var(--live-demo-border);
+  border-radius: .5rem;
+  overflow: hidden;
+  background: var(--live-demo-bg);
+  color: var(--live-demo-fg);
+  font-family: inherit;
+}
+:where(.dark, [data-theme="dark"]) .live-demo {
+  --live-demo-bg: var(--color-fd-background, #171b21);
+  --live-demo-fg: var(--color-fd-foreground, #e3e8ed);
+  --live-demo-muted: var(--color-fd-muted-foreground, #a9b4bf);
+  --live-demo-border: var(--color-fd-border, #36404a);
+  --live-demo-accent: var(--color-fd-primary, #9dbbff);
+}
+.live-demo .live-demo-toolbar,
+.live-demo .live-demo-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .75rem; padding: .85rem 1rem;
+}
+.live-demo .live-demo-toolbar { border-bottom: 1px solid var(--live-demo-border); font-size: .85rem; }
+.live-demo .live-demo-title { font-weight: 600; }
+.live-demo .live-demo-links { display: inline-flex; flex-wrap: wrap; gap: 1rem; font-size: .75rem; }
+.live-demo a { color: var(--live-demo-accent); text-underline-offset: 3px; }
+.live-demo .live-demo-viewport { position: relative; min-width: 0; }
+.live-demo iframe { display: block; width: 100%; height: var(--live-demo-height); border: 0; }
+.live-demo .live-demo-placeholder { min-height: 200px; display: grid; justify-items: center; align-content: center; gap: 1rem; padding: 2rem 1rem; text-align: center; }
+.live-demo .live-demo-placeholder p { margin: 0; font-size: .85rem; }
+.live-demo button { font: inherit; font-size: .8rem; border: 1px solid var(--live-demo-border); border-radius: .35rem; padding: .4rem .75rem; color: var(--live-demo-accent); background: var(--live-demo-bg); cursor: pointer; }
+.live-demo button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.live-demo :is(button,a):focus-visible { outline: 2px solid var(--live-demo-accent); outline-offset: 3px; }
+.live-demo .live-demo-footer { border-top: 1px solid var(--live-demo-border); }
+.live-demo .live-demo-hint { color: var(--live-demo-muted); font-size: .75rem; margin: 0; }
+.live-demo .live-demo-footer p { flex: 1 1 220px; }
+.live-demo .live-demo-footer button { flex-shrink: 0; }
+.live-demo .live-demo-loading { position: absolute; z-index: 1; inset: 0 0 auto; padding: .4rem 1rem; margin: 0; font-size: .75rem; color: var(--live-demo-muted); background: var(--live-demo-bg); pointer-events: none; }

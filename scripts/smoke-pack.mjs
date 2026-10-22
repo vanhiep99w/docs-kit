@@ -19,6 +19,7 @@ try {
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
     'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
+    'dist/components/live-demo.js', 'dist/components/live-demo.d.ts', 'dist/styles/live-demo.css', 'docs/live-demo.md',
     'dist/components/d2-interactive.js', 'dist/components/d2-interactive.d.ts', 'dist/components/d2-viewer.js',
     'dist/components/d2-types.d.ts', 'dist/d2/resources.js', 'dist/d2/resources.d.ts',
     'docs/d2.md', 'examples/d2/transaction.d2', 'examples/d2/sequence-groups.d2',
@@ -80,6 +81,7 @@ import { fileURLToPath } from 'node:url';
 import { compile } from '@mdx-js/mdx';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
+import { LiveDemo } from '@vanhiep99w/docs-kit/components/live-demo';
 import { SourceExplorerProvider, SourceRef } from '@vanhiep99w/docs-kit/components/source-explorer';
 import { readSourceURL, writeSourceURL } from '@vanhiep99w/docs-kit/source-explorer';
 import { remarkD2 } from '@vanhiep99w/docs-kit/d2';
@@ -140,6 +142,10 @@ const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');
 assert.match(css, /\.d2-diagram/);
+const demoMarkup = renderToStaticMarkup(createElement(LiveDemo, {src:'https://demo.test/',title:'Packed demo'}));
+assert.match(demoMarkup, /Chạy thử/);
+assert.doesNotMatch(demoMarkup, /<iframe/);
+assert.match(await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/live-demo.css')), 'utf8'), /\.live-demo/);
 const sourceMarkup = renderToStaticMarkup(createElement(SourceExplorerProvider, null,
   createElement(SourceRef, {project:'demo',file:'src/main.tsx'}, 'Open source')));
 assert.match(sourceMarkup, /source-ref/);
