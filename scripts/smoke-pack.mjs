@@ -19,6 +19,10 @@ try {
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
     'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
+    'dist/example-explorer/index.js', 'dist/example-explorer/index.d.ts',
+    'dist/components/example-explorer/index.js', 'dist/components/example-explorer/provider.js',
+    'dist/components/example-explorer/dialog.js', 'dist/components/example-explorer/index.d.ts',
+    'dist/styles/example-explorer.css', 'docs/example-explorer.md',
     'dist/components/live-demo.js', 'dist/components/live-demo.d.ts', 'dist/styles/live-demo.css', 'docs/live-demo.md',
     'dist/components/d2-interactive.js', 'dist/components/d2-interactive.d.ts', 'dist/components/d2-viewer.js',
     'dist/components/d2-types.d.ts', 'dist/d2/resources.js', 'dist/d2/resources.d.ts',
@@ -81,6 +85,8 @@ import { fileURLToPath } from 'node:url';
 import { compile } from '@mdx-js/mdx';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
+import { ExampleExplorerProvider, ExampleRef } from '@vanhiep99w/docs-kit/components/example-explorer';
+import { validateExamples, readExampleURL, writeExampleURL } from '@vanhiep99w/docs-kit/example-explorer';
 import { LiveDemo } from '@vanhiep99w/docs-kit/components/live-demo';
 import { SourceExplorerProvider, SourceRef } from '@vanhiep99w/docs-kit/components/source-explorer';
 import { readSourceURL, writeSourceURL } from '@vanhiep99w/docs-kit/source-explorer';
@@ -142,6 +148,13 @@ const markup = renderToStaticMarkup(D2Diagram({id:'test',caption:'Packed package
 assert.match(markup, /test-caption/);
 const css = await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/d2.css')), 'utf8');
 assert.match(css, /\.d2-diagram/);
+const examples = [{id:'demo',title:'Demo',defaultVersion:'v1',versions:[{id:'v1',title:'v1',src:'https://demo.test/'}]}];
+validateExamples(examples);
+assert.equal(readExampleURL(writeExampleURL(new URL('https://docs.test/'), {example:'demo'})).example, 'demo');
+const exampleMarkup = renderToStaticMarkup(createElement(ExampleExplorerProvider,{examples},createElement(ExampleRef,{example:'demo'})));
+assert.match(exampleMarkup, /example-ref/);
+assert.doesNotMatch(exampleMarkup, /<iframe|<dialog/);
+assert.match(await readFile(new URL(import.meta.resolve('@vanhiep99w/docs-kit/styles/example-explorer.css')), 'utf8'), /example-dialog/);
 const demoMarkup = renderToStaticMarkup(createElement(LiveDemo, {src:'https://demo.test/',title:'Packed demo'}));
 assert.match(demoMarkup, /Chạy thử/);
 assert.doesNotMatch(demoMarkup, /<iframe/);

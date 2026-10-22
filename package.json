@@ -1,6 +1,6 @@
 {
   "name": "@vanhiep99w/docs-kit",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Reusable documentation components and build-time integrations for MDX and Fumadocs.",
   "type": "module",
   "license": "MIT",
@@ -127,7 +127,16 @@
       "types": "./dist/components/live-demo.d.ts",
       "default": "./dist/components/live-demo.js"
     },
-    "./styles/live-demo.css": "./dist/styles/live-demo.css"
+    "./styles/live-demo.css": "./dist/styles/live-demo.css",
+    "./example-explorer": {
+      "types": "./dist/example-explorer/index.d.ts",
+      "default": "./dist/example-explorer/index.js"
+    },
+    "./components/example-explorer": {
+      "types": "./dist/components/example-explorer/index.d.ts",
+      "default": "./dist/components/example-explorer/index.js"
+    },
+    "./styles/example-explorer.css": "./dist/styles/example-explorer.css"
   },
   "scripts": {
     "build": "node scripts/clean.mjs && tsc -p tsconfig.json && node scripts/copy-assets.mjs",

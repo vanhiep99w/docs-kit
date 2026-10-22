@@ -2,7 +2,9 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
-**Bản 0.10.0:** thêm [LiveDemo](./docs/live-demo.md), iframe tải theo yêu cầu, fallback mở tab mới và stylesheet độc lập.
+**Bản 0.11.0:** thêm [Example Explorer](./docs/example-explorer.md): nút Example mở modal, nhiều ví dụ/phiên bản trên một trang, launcher nổi và deep link; không chiếm khung lớn trong bài hay thu hẹp layout. LiveDemo cũ vẫn tương thích.
+
+**Từ 0.10.0:** thêm [LiveDemo](./docs/live-demo.md), iframe tải theo yêu cầu, fallback mở tab mới và stylesheet độc lập.
 
 **Từ 0.9.8:** D2 mặc định dùng scale **`0.85`** và bật sẵn viewer với zoom in/out, fit, fullscreen, source và tải SVG. Host cần đăng ký `D2InteractiveDiagram` cùng `D2Diagram`. Dùng `interactive=false` để giữ component server-only hoặc `scale=1` để render ở kích thước D2 gốc. Override đang có trong host vẫn được giữ.
 
@@ -15,6 +17,7 @@ Từ `0.9.7`, sequence có viền rõ, nền group trong suốt và padding phù
 - [Yêu cầu](#yêu-cầu)
 - [Cài đặt](#cài-đặt)
 - [Tích hợp Fumadocs](#tích-hợp-fumadocs)
+- [Example Explorer](#example-explorer)
 - [Live Demo](#live-demo)
 - [Source Explorer](#source-explorer)
 - [Code Walkthrough](#code-walkthrough)
@@ -57,7 +60,7 @@ Renderer chỉ chạy lúc build. Website static export không cần WASM hoặc
 **Cài từ npm:**
 
 ```bash
-npm install @vanhiep99w/docs-kit@0.10.0
+npm install @vanhiep99w/docs-kit@0.11.0
 ```
 
 Các cách dưới đây dành cho phát triển local hoặc kiểm tra bản chưa phát hành.
@@ -146,7 +149,15 @@ Trong global CSS, sau stylesheet của Fumadocs:
 
 CSS chỉ tác động `.d2-diagram`, không sửa layout/sidebar của website. Light/dark theo class `.dark` hoặc `[data-theme='dark']` của website, không phụ thuộc riêng vào theme hệ điều hành. Các biến màu Fumadocs có fallback.
 
+## Example Explorer
+
+Dùng `ExampleExplorerProvider` với registry app tin cậy, đăng ký `ExampleRef` trong MDX map và import `styles/example-explorer.css`. Mỗi reference là một link nhỏ; click mở modal có chọn ví dụ, phiên bản, tải lại, mở tab mới và đóng. Có thêm launcher **Example** phía trên nút Source code. Một trang có nhiều reference nhưng chỉ chạy một app trong dialog tại một thời điểm, không thu hẹp nội dung bài.
+
+Xem [API, nhiều phiên bản, URL và giới hạn iframe](./docs/example-explorer.md). Không cần remark plugin hay copy dependencies của demo vào site docs.
+
 ## Live Demo
+
+Khung inline tương thích từ 0.10.0. Để không chiếm diện tích trong bài, ưu tiên **Example Explorer** ở trên.
 
 Nhúng app thật từ một deployment riêng mà không kéo dependencies của app vào docs-kit. Đăng ký `LiveDemo` từ `@vanhiep99w/docs-kit/components/live-demo`, import `@vanhiep99w/docs-kit/styles/live-demo.css`, rồi dùng trực tiếp trong MDX. Không cần remark plugin. Iframe chỉ tải khi bấm **Chạy thử**; link mở riêng hoạt động cả khi tắt JavaScript.
 

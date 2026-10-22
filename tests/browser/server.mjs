@@ -25,7 +25,7 @@ api -> db: Read {style.animated: true}
 steps: { update: {db: "Uncommitted 0"}; rollback: {db: "Restored 10M"} }
 scenarios: { committed: {db: "Read committed"} }
 layers: {detail: {handler: Handler; handler -> storage; handler.link: _}}`;
-const data = { 'live-demo': { liveDemo: true } };
+const data = { 'live-demo': { liveDemo: true }, 'example-explorer': { exampleExplorer: true } };
 for (const mode of ['steps', 'tabs', 'explorer', 'animation']) {
   const rendered = await renderDiagram(d2, { source, salt: 'browser-' + mode, options: { mode, interval: 300 } });
   data[mode] = { ...rendered, id: 'demo', caption: 'Transaction walkthrough', source, mode, interval: 300 };
@@ -154,6 +154,7 @@ for (const [key, name] of [['waterfall', 'api-cache'], ['waterfall-parallel', 'p
   const mdx = await readFile(new URL('../../examples/span-waterfall/' + name + '.mdx', import.meta.url), 'utf8');
   data[key] = { waterfall: parseSpanWaterfallDescriptor(mdx.split('```span-waterfall\n')[1].split('```')[0]) };
 }
+const exampleCss = await readFile(new URL('../../dist/styles/example-explorer.css', import.meta.url), 'utf8');
 const liveDemoCss = await readFile(new URL('../../dist/styles/live-demo.css', import.meta.url), 'utf8');
 const waterfallCss = await readFile(new URL('../../dist/styles/span-waterfall.css', import.meta.url), 'utf8');
 const exchangeCss = await readFile(new URL('../../dist/styles/protocol-exchange.css', import.meta.url), 'utf8');
@@ -164,6 +165,12 @@ const css = await readFile(new URL('../../dist/styles/d2.css', import.meta.url),
 const sourceCss = await readFile(new URL('../../dist/styles/source-explorer.css', import.meta.url), 'utf8');
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  if (url.pathname === '/example-demo') {
+    const count = url.searchParams.get('version') === 'events' ? 10 : url.searchParams.get('version') === 'bus' ? 20 : 0;
+    res.setHeader('content-type', 'text/html');
+    res.end('<!doctype html><html lang="vi"><meta name="viewport" content="width=device-width,initial-scale=1"><h1>App fixture</h1><button id="count" onclick="this.textContent=Number(this.textContent)+1">' + count + '</button></html>');
+    return;
+  }
   if (url.pathname === '/live-demo-document') {
     res.setHeader('content-type', 'text/html');
     res.end('<!doctype html><html lang="vi"><meta name="viewport" content="width=device-width,initial-scale=1"><button id="count" onclick="this.textContent=Number(this.textContent)+1">0</button></html>');
@@ -182,6 +189,6 @@ const server = createServer(async (req, res) => {
   }
   const props = data[url.searchParams.get('case') ?? 'static'] ?? data.static;
   res.setHeader('content-type', 'text/html;charset=utf-8');
-  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + terminalCss + diffCss + exchangeCss + waterfallCss + walkthroughCss + liveDemoCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
+  res.end('<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:Georgia,serif;margin:0;background:#f8fafc;color:#243346}main{max-width:900px;margin:3rem auto;padding:1rem}body.dark{background:#18202b;color:#dce3ed}' + css + sourceCss + terminalCss + diffCss + exchangeCss + waterfallCss + walkthroughCss + liveDemoCss + exampleCss + '</style></head><body><div id="root">' + renderToString(createElement(App, { data: props })) + '</div><script id="data" type="application/json">' + JSON.stringify(props).replaceAll('<', '\\u003c') + '</script><script type="module" src="/client.js"></script></body></html>');
 });
 server.listen(4178, '127.0.0.1', () => console.log('Browser fixtures ready'));
