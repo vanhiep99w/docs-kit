@@ -38,10 +38,10 @@ const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 const transportErrors = new Set(['ENOENT', 'ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'D2_POOL_CLOSED']);
 const metadata = Promise.all([
   readFile(path.resolve(path.dirname(require.resolve('@d2lang/d2')), '../../package.json'), 'utf8'),
-  ...['render.mjs', 'pool-client.js', 'pool-server.mjs', 'pool-worker.mjs'].map((file) => readFile(asset(file), 'utf8')),
-]).then(([manifest, renderer, ...pool]) => {
+  ...['render.mjs', 'flow.js', 'pool-client.js', 'pool-server.mjs', 'pool-worker.mjs'].map((file) => readFile(asset(file), 'utf8')),
+]).then(([manifest, renderer, flow, ...pool]) => {
   const sdk = JSON.parse(manifest).version;
-  return { engine: hash(JSON.stringify([sdk, renderer])), pool: hash(JSON.stringify([sdk, renderer, ...pool])) };
+  return { engine: hash(JSON.stringify([sdk, renderer, flow])), pool: hash(JSON.stringify([sdk, renderer, flow, ...pool])) };
 });
 
 /** Stable across checkout locations; changes when the renderer/SDK changes. */

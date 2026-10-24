@@ -37,6 +37,39 @@ data['sequence-static'] = { ...data.sequence, serverOnly: true };
 data['sequence-native'] = { ...sequenceProps, ...await renderDiagram(d2, { source: sequenceSource, salt: 'browser-sequence-native', options: { sketch: false, sequenceStyle: 'native' } }) };
 const mixedSequence = `a -> b\nlayers: {sequence: {${sequenceSource}}; ordinary: {c -> d}}`;
 data['sequence-boards'] = { ...sequenceProps, mode: 'explorer', ...await renderDiagram(d2, { source: mixedSequence, salt: 'browser-sequence-boards', options: { sketch: false, mode: 'explorer' } }) };
+const flowSource = await readFile(new URL('../../examples/d2/request-flow.d2', import.meta.url), 'utf8');
+data.flow = { id: 'request-flow', caption: 'Request flow', source: flowSource, mode: 'flow', interval: 1600, autoplay: true, loop: true, loopDelay: 2000,
+  ...await renderDiagram(d2, { source: flowSource, salt: 'browser-flow', options: { mode: 'flow', layout: 'dagre' } }) };
+data['flow-fast'] = { ...data.flow, interval: 300, autoplay: false, loop: false };
+data['flow-autoplay'] = { ...data.flow, interval: 300, loop: false };
+data['flow-loop'] = { ...data.flow, interval: 300 };
+data['flow-loop-manual'] = { ...data['flow-loop'], autoplay: false };
+const scopeSource = flowSource + '\nmetrics: Metrics {link: "http://127.0.0.1:4178/?source=demo&file=src/main.ts"}\nhidden: Ghost {style.opacity: 0}\napi -> hidden: {style.opacity: 0}\n';
+data['flow-scope'] = { ...data.flow, source: scopeSource, autoplay: false, loop: false,
+  ...await renderDiagram(d2, { source: scopeSource, salt: 'browser-flow-scope', options: { mode: 'flow', layout: 'dagre' } }) };
+const nestedFlowSource = `# @flow
+# scenarios:
+#   - id: inner
+#     label: Inside service
+#     steps:
+#       - edge: service.(api -> database)[0]
+#         description: Request inside the service container.
+#   - id: outer
+#     label: Outside service
+#     steps:
+#       - edge: (client -> other)[0]
+#         description: Request uses an independent path.
+# @endflow
+direction: right
+service: { api -> database }
+client -> other
+`;
+data['flow-nested'] = { ...data.flow, source: nestedFlowSource, autoplay: false, loop: false,
+  ...await renderDiagram(d2, { source: nestedFlowSource, salt: 'browser-flow-nested', options: { mode: 'flow', layout: 'dagre' } }) };
+data['flow-native'] = { ...data.flow, interval: 300, autoplay: false, loop: false,
+  ...await renderDiagram(d2, { source: flowSource, salt: 'browser-flow-native', options: { mode: 'flow', layout: 'dagre', sketch: false } }) };
+data['flow-sketch'] = { ...data.flow, interval: 300, autoplay: false, loop: false,
+  ...await renderDiagram(d2, { source: flowSource, salt: 'browser-flow-sketch', options: { mode: 'flow' } }) };
 await d2.dispose();
 for (const [name, meta] of [['compiled-default', ''], ['compiled-static', 'interactive=false']]) {
   let tree;

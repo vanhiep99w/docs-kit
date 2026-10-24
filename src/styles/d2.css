@@ -22,6 +22,7 @@
   --d2-ink: var(--color-fd-foreground, #243346);
   --d2-muted: var(--color-fd-muted-foreground, #637083);
   --d2-paper: var(--color-fd-background, #f8fafc);
+  --d2-flow-accent: #2563eb;
   position: relative; color: var(--d2-ink); margin-block: 1.5rem;
 }
 :where(.dark, [data-theme='dark']) .d2-interactive {
@@ -29,6 +30,7 @@
   --d2-ink: var(--color-fd-foreground, #dce3ed);
   --d2-muted: var(--color-fd-muted-foreground, #a3afbf);
   --d2-paper: var(--color-fd-background, #18202b);
+  --d2-flow-accent: #93c5fd;
 }
 .d2-interactive :is(button, select) { font: inherit; color: inherit; }
 .d2-interactive .d2-diagram { margin: 0; }
@@ -59,8 +61,9 @@
 .d2-toolbar, .d2-fallback-tools {
   position: absolute; z-index: 2; top: 0.25rem; right: 0.25rem;
   display: flex; align-items: center; justify-content: end; gap: 0.15rem;
-  background: var(--d2-paper); border-radius: 0.25rem;
+  background: transparent; border-radius: 0.25rem; pointer-events: none;
 }
+.d2-toolbar > *, .d2-fallback-tools > * { pointer-events: auto; }
 .d2-interactive .d2-icon-button { width: 2rem; height: 2rem; padding: 0; flex: 0 0 auto; }
 .d2-icon { display: block; width: 1.125rem; height: 1.125rem; flex: 0 0 auto; }
 .d2-stepper { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; padding-block: 0.85rem; border-block-end: 1px solid var(--d2-line); }
@@ -130,7 +133,10 @@
 .d2-fullscreen .d2-viewer { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; margin: 0; }
 .d2-fullscreen :is(.d2-stepper, .d2-tabs, .d2-breadcrumb) { flex-shrink: 0; }
 .d2-fullscreen .d2-canvas { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.d2-fullscreen .d2-viewport { flex: 1; min-height: 0; max-height: none; overscroll-behavior: contain; }
+.d2-fullscreen .d2-viewport { display: flex; flex-direction: column; flex: 1; min-height: 0; max-height: none; overscroll-behavior: contain; }
+/* Auto margins center a fitted diagram, but collapse to zero when zoomed beyond
+   the viewport. Unlike justify-content:center, this keeps the top/left reachable. */
+.d2-fullscreen .d2-zoom-space { flex: 0 0 auto; margin-block: auto; }
 .d2-source-links { display: contents; }
 @media (max-width: 480px) {
   .d2-interactive button { min-height: 2.5rem; }
@@ -146,4 +152,54 @@
   .d2-toolbar, .d2-fallback-tools, .d2-stepper, .d2-tabs, .d2-breadcrumb { display: none; }
   .d2-diagram-scroll, .d2-viewport { overflow: visible; max-height: none; }
   .d2-interactive .d2-diagram-scroll > :is(.d2-diagram-light, .d2-diagram-dark) > svg { max-height: none; }
+}
+
+/* Request playback uses the D2 geometry; no canvas/editor or client layout engine. */
+.d2-flow-player { border-block-end: 1px solid var(--d2-line); padding-block: 0.375rem; }
+.d2-flow-controls { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.5rem 0.75rem; }
+.d2-flow-controls label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; }
+.d2-flow-controls select { max-width: 100%; min-height: 1.75rem; padding: 0.125rem 0.25rem; border: 1px solid var(--d2-line); border-radius: 0.25rem; background: var(--d2-paper); }
+.d2-flow-actions { display: inline-flex; align-items: center; flex: 0 0 auto; gap: 0.15rem; }
+.d2-toolbar-divider { width: 1px; height: 1.125rem; margin-inline: 0.35rem; background: var(--d2-line); pointer-events: none; }
+.d2-flow-speed select { appearance: none; width: 2.75rem; min-height: 2rem; padding: 0; border: 0; border-radius: 0.25rem; background: transparent; text-align: center; font-size: 0.8125rem; cursor: pointer; }
+.d2-flow-speed select:hover { background: color-mix(in srgb, currentColor 7%, transparent); }
+/* Keep the icons inside the canvas, but reserve a small safe area above the drawing. */
+.d2-canvas-flow .d2-toolbar { max-width: calc(100% - 0.5rem); flex-wrap: wrap; }
+.d2-canvas-flow .d2-viewport { padding-block-start: 3rem; }
+.d2-flow-note { color: var(--d2-muted); font-size: 0.75rem; }
+.d2-flow-current { display: flex; align-items: baseline; flex-wrap: wrap; min-width: 0; gap: 0.125rem 0.5rem; margin: 0; font-size: 0.8125rem; line-height: 1.5; overflow-wrap: anywhere; }
+.d2-flow-count { color: var(--d2-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.d2-flow-transcript { position: static; font-size: 0.8125rem; }
+.d2-flow-transcript .d2-source-panel { max-height: min(24rem, 50dvh); overflow: auto; }
+.d2-flow-list-title { margin: 0; padding: 0.25rem 0.5rem; color: var(--d2-muted); font-size: 0.75rem; }
+.d2-flow-transcript ol, .d2-flow-fallback ol { padding-inline-start: 1.5rem; }
+.d2-interactive .d2-flow-transcript button { display: inline; text-align: start; white-space: normal; }
+.d2-flow-transcript [aria-current='step'] { font-weight: 600; }
+.d2-fullscreen .d2-flow-player { flex-shrink: 0; max-height: 35dvh; overflow: auto; }
+.d2-viewport .d2-flow-track { fill: none; stroke: var(--d2-flow-accent); stroke-width: 4; pointer-events: none; }
+.d2-viewport .d2-flow-halo { fill: var(--d2-flow-accent); stroke: none; pointer-events: none; }
+.d2-viewport .d2-flow-token { fill: var(--d2-flow-accent); stroke: var(--d2-paper); stroke-width: 2; pointer-events: none; }
+.d2-viewport [data-d2-flow-node][data-d2-flow-active] .shape { stroke: var(--d2-flow-accent); }
+.d2-viewport [data-d2-flow-node][data-d2-flow-active] .shape[class*='stroke-'] { stroke-width: 3px !important; }
+.d2-viewport [data-d2-flow-node][data-d2-flow-active] .shape[class*='fill-'] { fill: color-mix(in srgb, var(--d2-flow-accent) 16%, var(--d2-paper)); }
+/* Keep labels readable while making the active route stand out from inactive connections. */
+.d2-viewport [data-d2-flow-edge]:not([data-d2-flow-current]) .connection { filter: opacity(0.45); }
+/* Scenario exclusion is visual only: preserve labels, source links and author opacity.
+   Filter opacity multiplies rather than overriding author opacity=0 on hidden components. */
+.d2-viewport [data-d2-flow-node][data-d2-flow-participates='false'] { filter: grayscale(1) opacity(0.35); }
+.d2-viewport [data-d2-flow-edge][data-d2-flow-participates='false'] { filter: grayscale(1) opacity(0.25); }
+.d2-viewport [data-d2-flow-edge][data-d2-flow-participates='false'] .connection { filter: none; }
+/* Recolor the original sketch strokes AND arrowhead fills, not just the smooth playback overlay. */
+.d2-viewport [data-d2-flow-current] .connection[class*='stroke-'] { stroke: var(--d2-flow-accent); }
+.d2-viewport [data-d2-flow-current] .connection[class*='fill-'] { fill: var(--d2-flow-accent); }
+@media (max-width: 480px) {
+  .d2-flow-speed select { min-height: 2.5rem; }
+  .d2-canvas-flow .d2-toolbar-divider { flex-basis: 100%; height: 0; margin: 0; }
+  .d2-canvas-flow .d2-viewport { padding-block-start: 6rem; }
+  .d2-flow-controls > label { max-width: 100%; }
+  .d2-flow-controls select { min-width: 0; }
+}
+@media print {
+  .d2-flow-controls { display: block; }
+  .d2-flow-controls > label, .d2-flow-transcript { display: none; }
 }

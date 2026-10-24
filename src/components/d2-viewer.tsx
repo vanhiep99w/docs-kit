@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import type { D2Board, D2InteractiveDiagramProps } from './d2-types.js';
 import { normalizeD2BoardLink } from './d2-navigation.js';
+import { D2FlowPlayer } from './d2-flow-player.js';
 import { D2Icon, D2IconButton, D2SourceMenu } from './d2-controls.js';
 
 function svgSize(svg: string) {
@@ -12,7 +13,7 @@ function svgSize(svg: string) {
   return { width: width || 800, height: height || 500 };
 }
 
-export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, boards, mode = 'static', interval = 1500, animation, className }: D2InteractiveDiagramProps) {
+export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, boards, mode = 'static', interval = 1500, animation, flow, autoplay = false, loop = false, loopDelay = 2000, className }: D2InteractiveDiagramProps) {
   const views: D2Board[] = boards?.length ? boards : [{ id: '', label: caption, kind: 'root', lightSvg, darkSvg }];
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
@@ -22,6 +23,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
   const [reducedMotion, setReducedMotion] = useState(false);
   const [animationsPaused, setAnimationsPaused] = useState(true);
   const viewport = useRef<HTMLDivElement>(null);
+  const flowAutoplayConsumed = useRef(false);
+  useEffect(() => { flowAutoplayConsumed.current = false; }, [id, flow]);
   const dialog = useRef<HTMLDialogElement>(null);
   const expandButton = useRef<HTMLButtonElement>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -63,7 +66,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
   useEffect(() => {
     if (expanded) {
       dialog.current?.showModal();
-      // Reading a diagram should not leave the page animating in the background.
+      // Pause board slideshows. A flow keeps its controller and moves the same
+      // playback into the dialog instead of leaving a second animation behind.
       setPlaying(false);
     }
   }, [expanded]);
@@ -189,7 +193,9 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
     ancestors.unshift(item); parent = item.parent;
   }
 
-  const controls = <div className="d2-toolbar" role="group" aria-label="Diagram controls">
+  const controls = (flowControls?: ReactNode) => <div className="d2-toolbar" role="group" aria-label="Diagram controls">
+      {flowControls}
+      {flowControls && <span className="d2-toolbar-divider" aria-hidden="true" />}
       {source !== undefined ? <D2SourceMenu source={source}>
         <D2IconButton label="Copy D2" icon="copy" onClick={copy} />
         <D2IconButton label="Download SVG" icon="download" onClick={() => download()} />
@@ -214,7 +220,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
       </button>
     </div>;
 
-  const content = <figure className={['d2-diagram', 'd2-viewer', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${prefix}-caption`}>
+  const renderContent = (flowHeader?: ReactNode, flowControls?: ReactNode) => <figure className={['d2-diagram', 'd2-viewer', 'not-prose', className].filter(Boolean).join(' ')} aria-labelledby={`${prefix}-caption`}>
+    {flowHeader}
     {views.length > 1 && <>
       {sequential ? <div className="d2-stepper" role="group" aria-label="Diagram steps">
         <button type="button" onClick={() => go(index - 1)} disabled={index === 0}>← Previous</button>
@@ -233,8 +240,8 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
       </div>}
     </>}
     {board.description && <p className="d2-view-description">{board.description}</p>}
-    <div className="d2-canvas">
-    {controls}
+    <div className={flowControls ? "d2-canvas d2-canvas-flow" : "d2-canvas"}>
+    {controls(flowControls)}
     <div id={`${prefix}-canvas`} className="d2-viewport" ref={viewport} tabIndex={0}
       role={!sequential && mode !== 'explorer' && views.length > 1 ? 'tabpanel' : 'region'}
       aria-labelledby={!sequential && mode !== 'explorer' && views.length > 1 ? `${prefix}-tab-${index}` : `${prefix}-caption`}
@@ -253,6 +260,14 @@ export default function D2Viewer({ id, caption, source, lightSvg, darkSvg, board
     <span className="d2-sr-only" role="status">{status}</span>
     <figcaption id={`${prefix}-caption`}>{caption}</figcaption>
   </figure>;
-  return expanded ? <dialog ref={dialog} className="d2-fullscreen" aria-label={caption}
-    onCancel={(event) => { event.preventDefault(); closeExpanded(); }} onClose={() => { if (expanded) closeExpanded(); }}>{content}</dialog> : content;
+  const present = (flowHeader?: ReactNode, flowControls?: ReactNode) => {
+    const content = renderContent(flowHeader, flowControls);
+    return expanded ? <dialog ref={dialog} className="d2-fullscreen" aria-label={caption}
+      onCancel={(event) => { event.preventDefault(); closeExpanded(); }} onClose={() => { if (expanded) closeExpanded(); }}>{content}</dialog> : content;
+  };
+  // Keep the flow controller above the changing figure/dialog boundary. Only its
+  // DOM presentation remounts; scenario, progress, speed and Play/Pause survive.
+  return mode === 'flow' && flow ? <D2FlowPlayer key={id} flow={flow} viewport={viewport} fullscreen={expanded}
+    reducedMotion={reducedMotion} interval={interval} autoplay={autoplay} loop={loop} loopDelay={loopDelay}
+    autoplayConsumed={flowAutoplayConsumed}>{present}</D2FlowPlayer> : present();
 }

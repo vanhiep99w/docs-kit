@@ -1,0 +1,53 @@
+# @flow
+# scenarios:
+#   - id: hit
+#     label: Cache hit
+#     steps:
+#       - edge: "(client -> gateway)[0]"
+#         description: Gateway nhận request và kiểm tra quyền truy cập.
+#       - edge: "(gateway -> api)[0]"
+#         description: Request hợp lệ được chuyển đến API.
+#       - edge: "(api -> cache)[0]"
+#         description: API tra cứu dữ liệu trong cache.
+#       - edge: "(cache -> api)[0]"
+#         description: Cache hit — dữ liệu đã có sẵn.
+#       - edge: "(api -> client)[0]"
+#         description: API trả kết quả, không đọc database.
+#   - id: miss
+#     label: Cache miss
+#     steps:
+#       - edge: "(client -> gateway)[0]"
+#         description: Gateway nhận request và kiểm tra quyền truy cập.
+#       - edge: "(gateway -> api)[0]"
+#         description: Gateway chuyển request đến API.
+#       - edge: "(api -> cache)[0]"
+#         description: API tra cứu dữ liệu trong cache.
+#       - edge: "(cache -> api)[0]"
+#         description: Cache miss — chưa có dữ liệu phù hợp.
+#       - edge: "(api -> database)[0]"
+#         description: API truy vấn database.
+#       - edge: "(database -> api)[0]"
+#         description: Database trả dữ liệu về API.
+#       - edge: "(api -> cache)[1]"
+#         description: API ghi dữ liệu vào cache cho request tiếp theo.
+#       - edge: "(cache -> api)[1]"
+#         description: Cache xác nhận đã lưu dữ liệu, API tiếp tục trả response.
+#       - edge: "(api -> client)[0]"
+#         description: API trả kết quả cho client.
+# @endflow
+direction: right
+client: Client
+gateway: Gateway
+api: API
+cache: Cache
+database: Database {shape: cylinder}
+
+client -> gateway: Request
+gateway -> api: Authorized
+api -> cache: Lookup
+cache -> api: Hit / miss
+api -> database: Query
+database -> api: Result
+api -> cache: Populate
+cache -> api: Stored
+api -> client: Response

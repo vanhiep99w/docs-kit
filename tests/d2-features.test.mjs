@@ -181,10 +181,11 @@ test('all shipped examples compile through the fitted renderer', async () => {
   const files = (await readdir(directory)).filter((name) => name.endsWith('.d2'));
   const fs = Object.fromEntries(await Promise.all(files.map(async (name) => [name, await readFile(new URL(name, directory), 'utf8')])));
   for (const name of files.filter((name) => name !== 'shared.d2')) {
-    const options = { mode: name === 'transaction.d2' ? 'steps' : name === 'scenarios.d2' ? 'tabs' : name === 'architecture.d2' ? 'explorer' : 'static' };
+    const options = { mode: name === 'transaction.d2' ? 'steps' : name === 'scenarios.d2' ? 'tabs' : name === 'architecture.d2' ? 'explorer' : name === 'request-flow.d2' ? 'flow' : 'static' };
     const result = await renderDiagram(d2, { source: fs[name], salt: name, options, resources: { fs, inputPath: name } });
     assert.match(result.lightSvg, /^<svg/);
-    if (options.mode !== 'static') assert.ok(result.boards.length > 1);
+    if (options.mode === 'flow') assert.equal(result.flow.scenarios.length, 2);
+    else if (options.mode !== 'static') assert.ok(result.boards.length > 1);
   }
 });
 

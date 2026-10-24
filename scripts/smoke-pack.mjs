@@ -17,7 +17,8 @@ try {
   const [packed] = JSON.parse(stdout);
   const names = new Set(packed.files.map((file) => file.path));
   for (const required of ['LICENSE', 'dist/d2/index.js', 'dist/d2/index.d.ts', 'dist/d2/render.mjs',
-    'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs',
+    'dist/d2/pool-client.js', 'dist/d2/pool-server.mjs', 'dist/d2/pool-worker.mjs', 'dist/d2/flow.js',
+    'dist/components/d2-flow-player.js', 'dist/components/d2-disclosure.js', 'examples/d2/request-flow.d2',
     'dist/components/d2.js', 'dist/components/d2.d.ts', 'dist/styles/d2.css',
     'dist/example-explorer/index.js', 'dist/example-explorer/index.d.ts',
     'dist/components/example-explorer/index.js', 'dist/components/example-explorer/provider.js',
@@ -129,6 +130,15 @@ for (const layout of ['elk', 'dagre', 'tala']) {
   });
   assert.equal(String(perBlock), String(result));
 }
+const flowExample = await readFile(new URL('./examples/d2/request-flow.d2', import.meta.resolve('@vanhiep99w/docs-kit/package.json')), 'utf8');
+const flowResult = await compile({ value: fence + 'd2 mode=flow autoplay=true loop=true loopDelay=2000\n' + flowExample + '\n' + fence, path: 'flow.mdx' }, {
+  remarkPlugins: [remarkD2],
+});
+assert.match(String(flowResult), /data-d2-flow-edge/);
+assert.match(String(flowResult), /Cache miss/);
+assert.ok(/autoplay:\s*JSON\.parse\("true"\)/.test(String(flowResult)), 'Packed flow includes autoplay=true');
+assert.ok(/loop:\s*JSON\.parse\("true"\)/.test(String(flowResult)), 'Packed flow includes loop=true');
+assert.ok(/loopDelay:\s*JSON\.parse\("2000"\)/.test(String(flowResult)), 'Packed flow includes loopDelay=2000');
 const sequence = await compile({value: fence + 'd2\nshape: sequence_diagram\na\nb\nfragment: {a -> b: Request}\n' + fence, path:'sequence.mdx'}, {
   remarkPlugins: [remarkD2],
 });

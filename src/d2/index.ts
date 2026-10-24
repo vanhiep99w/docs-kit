@@ -9,13 +9,19 @@ import { parseDocument } from 'yaml';
 import { visit } from 'unist-util-visit';
 import { getEngineFingerprint, renderWithPool } from './pool-client.js';
 import { loadD2Resources, type D2ResourceOptions, type D2Resources } from './resources.js';
-import type { D2Board, D2Mode } from '../components/d2-types.js';
-export type { D2Mode } from '../components/d2-types.js';
+import { isD2Flow } from './flow.js';
+import type { D2Flow, D2Board, D2Mode } from '../components/d2-types.js';
+export type { D2Mode, D2Flow, D2FlowStep } from '../components/d2-types.js';
 export type { D2ResourceOptions } from './resources.js';
 
 export type D2Layout = 'elk' | 'dagre' | 'tala';
 
 export interface RemarkD2Options extends D2ResourceOptions {
+  /** Opt-in autoplay for mode=flow; reduced motion and visibility are respected. */
+  autoplay?: boolean;
+  loop?: boolean;
+  /** Replay delay in ms for mode=flow; defaults to 2000. */
+  loopDelay?: number;
   /** Viewer controls default to true; false emits the server-only D2Diagram. */
   interactive?: boolean;
   mode?: D2Mode;
@@ -73,6 +79,7 @@ interface RenderedDiagram {
   labelLayout: BoxLabelLayout[];
   boards?: D2Board[];
   animation?: { lightSvg: string; darkSvg: string };
+  flow?: D2Flow;
 }
 
 const pending = new Map<string, Promise<RenderedDiagram>>();
@@ -94,6 +101,7 @@ function isRenderedDiagram(value: unknown): value is RenderedDiagram {
     (result.animation === undefined || result.animation !== null && typeof result.animation === 'object' &&
       typeof result.animation.lightSvg === 'string' && result.animation.lightSvg.startsWith('<svg') &&
       typeof result.animation.darkSvg === 'string' && result.animation.darkSvg.startsWith('<svg')) &&
+    (result.flow === undefined || isD2Flow(result.flow)) &&
     Array.isArray(result.labelLayout) && result.labelLayout.every((label) =>
       label !== null && typeof label === 'object' &&
       label.labelPosition === 'INSIDE_MIDDLE_CENTER' &&
@@ -122,6 +130,9 @@ function frontmatterLayout(value: unknown): D2Layout | undefined {
 
 interface FenceOptions {
   title?: string;
+  autoplay?: boolean;
+  loop?: boolean;
+  loopDelay?: number;
   layout?: D2Layout;
   interactive?: boolean;
   mode?: D2Mode;
@@ -138,17 +149,17 @@ interface FenceOptions {
 
 function fenceOptions(meta: string | null | undefined): FenceOptions {
   const result: Record<string, unknown> = {};
-  const known = new Set(['title', 'layout', 'interactive', 'mode', 'target', 'interval', 'sketch', 'scale', 'padding', 'lightTheme', 'darkTheme', 'fitLabels', 'sequenceStyle']);
+  const known = new Set(['title', 'layout', 'interactive', 'autoplay', 'loop', 'loopDelay', 'mode', 'target', 'interval', 'sketch', 'scale', 'padding', 'lightTheme', 'darkTheme', 'fitLabels', 'sequenceStyle']);
   const attributes = /(?:^|\s)([^\s=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s]*))?(?=\s|$)/g;
   for (const [, name, raw] of (meta ?? '').matchAll(attributes)) {
     if (!known.has(name)) continue;
     if (Object.hasOwn(result, name)) throw new Error(`docs-kit D2: duplicate fence ${name} option.`);
     const value = raw && /^("[^"]*"|'[^']*')$/.test(raw) ? raw.slice(1, -1) : raw;
     if (name === 'layout') result.layout = layoutOverride(value, 'fence layout');
-    else if (['interactive', 'sketch'].includes(name)) {
+    else if (['interactive', 'sketch', 'autoplay', 'loop'].includes(name)) {
       if (value !== undefined && value !== 'true' && value !== 'false') throw new Error(`docs-kit D2: fence ${name} must be true or false.`);
       result[name] = value !== 'false';
-    } else if (['interval', 'scale', 'padding', 'lightTheme', 'darkTheme'].includes(name)) {
+    } else if (['interval', 'loopDelay', 'scale', 'padding', 'lightTheme', 'darkTheme'].includes(name)) {
       if (!value?.trim()) throw new Error(`docs-kit D2: fence ${name} requires a number.`);
       result[name] = Number(value);
     } else result[name] = value ?? '';
@@ -183,7 +194,7 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
   if (![resolved.lightTheme, resolved.darkTheme].every((theme) => Number.isInteger(theme) && theme >= 0)) {
     throw new Error('docs-kit D2: theme IDs must be non-negative integers.');
   }
-  if (!['static', 'steps', 'tabs', 'explorer', 'animation'].includes(resolved.mode)) throw new Error('docs-kit D2: invalid mode.');
+  if (!['static', 'steps', 'tabs', 'explorer', 'animation', 'flow'].includes(resolved.mode)) throw new Error('docs-kit D2: invalid mode.');
   if (!['auto', 'off'].includes(resolved.fitLabels)) throw new Error('docs-kit D2: fitLabels must be auto or off.');
   if (!['readable', 'native'].includes(resolved.sequenceStyle)) throw new Error('docs-kit D2: sequenceStyle must be readable or native.');
   if (!Number.isInteger(resolved.interval) || resolved.interval < 250 || resolved.interval > 60000) throw new Error('docs-kit D2: interval must be 250–60000 ms.');
@@ -191,6 +202,9 @@ function resolveOptions(options: RemarkD2Options): RendererOptions {
   if (resolved.target !== undefined && (typeof resolved.target !== 'string' || !resolved.target.trim() || resolved.target.includes('*'))) {
     throw new Error('docs-kit D2: target must be a single non-empty board path (no wildcards).');
   }
+  if (options.loop !== undefined && typeof options.loop !== 'boolean') throw new Error('docs-kit D2: loop must be boolean.');
+  if (options.loopDelay !== undefined && (!Number.isInteger(options.loopDelay) || options.loopDelay < 250 || options.loopDelay > 60000)) throw new Error('docs-kit D2: loopDelay must be 250–60000 ms.');
+  if (options.autoplay !== undefined && typeof options.autoplay !== 'boolean') throw new Error('docs-kit D2: autoplay must be boolean.');
   if (options.interactive !== undefined && typeof options.interactive !== 'boolean') throw new Error('docs-kit D2: interactive must be boolean.');
   for (const palette of [resolved.lightOverrides, resolved.darkOverrides]) {
     if (palette !== undefined && (!palette || typeof palette !== 'object' || Array.isArray(palette) ||
@@ -219,7 +233,7 @@ async function render(
   const readCache = async (): Promise<RenderedDiagram | undefined> => {
     try {
       const value: unknown = JSON.parse(await readFile(cacheFile, 'utf8'));
-      if (isRenderedDiagram(value)) return value;
+      if (isRenderedDiagram(value) && (options.mode !== 'flow' || isD2Flow(value.flow))) return value;
     } catch (error) {
       if (!(error instanceof SyntaxError) && (error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
@@ -231,7 +245,7 @@ async function render(
     const value: unknown = await renderWithPool(key, { source, salt, options, resources }, {
       cacheDir, concurrency, idleTimeoutMs,
     });
-    if (!isRenderedDiagram(value)) throw new Error('D2 renderer returned invalid SVG or label layout.');
+    if (!isRenderedDiagram(value) || options.mode === 'flow' && !isD2Flow(value.flow)) throw new Error('D2 renderer returned invalid SVG or label layout.');
     const result = value;
     await mkdir(cacheDir, { recursive: true });
     const temporaryFile = `${cacheFile}.${randomUUID()}.tmp`;
@@ -328,11 +342,13 @@ export const remarkD2: Plugin<[RemarkD2Options?], Root> = function (options = {}
         const caption = meta.title?.trim() || defaultCaption;
         const blockOptions = resolveOptions({ ...options, ...meta, layout: meta.layout ?? pageLayout,
           themes: { light: meta.lightTheme ?? rendererOptions.lightTheme, dark: meta.darkTheme ?? rendererOptions.darkTheme } });
-        const { lightSvg, darkSvg, boards, animation } = await render(node.value, id, cacheDir, concurrency, blockOptions, idleTimeoutMs, resources);
+        const { lightSvg, darkSvg, boards, animation, flow } = await render(node.value, id, cacheDir, concurrency, blockOptions, idleTimeoutMs, resources);
         const interactive = (meta.interactive ?? options.interactive ?? true) || blockOptions.mode !== 'static';
         const extra = interactive ? [attribute('source', node.value), attribute('mode', blockOptions.mode),
           attribute('interval', blockOptions.interval), ...(boards ? [attribute('boards', boards)] : []),
-          ...(animation ? [attribute('animation', animation)] : [])] : [];
+          ...(animation ? [attribute('animation', animation)] : []),
+          ...(flow ? [attribute('flow', flow), attribute('autoplay', meta.autoplay ?? options.autoplay ?? false),
+            attribute('loop', meta.loop ?? options.loop ?? false), attribute('loopDelay', meta.loopDelay ?? options.loopDelay ?? 2000)] : [])] : [];
         replace({
           type: 'mdxJsxFlowElement',
           name: interactive ? 'D2InteractiveDiagram' : 'D2Diagram',

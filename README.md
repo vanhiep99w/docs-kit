@@ -2,6 +2,8 @@
 
 Bộ component và tích hợp build-time dùng chung cho các website tài liệu MDX/Fumadocs. D2, Source Explorer, Code Walkthrough, Terminal Session, Code Diff, Protocol Exchange và Span Waterfall có entry point riêng, không kéo build-time renderer/highlighter vào client bundle.
 
+**Bản 0.12.0:** thêm [D2 Request Flow](./docs/d2.md#request-flow-mô-phỏng-request-trên-một-sơ-đồ): playback request theo scenario, autoplay/loop, làm mờ nhánh không dùng, controls icon và giữ nguyên tiến trình khi chuyển fullscreen. Source panel tự đóng khi bấm ngoài/Escape. Phát hành npm vẫn thực hiện thủ công theo quy trình cuối trang.
+
 **Bản 0.11.0:** thêm [Example Explorer](./docs/example-explorer.md): nút Example mở modal, nhiều ví dụ/phiên bản trên một trang, launcher nổi và deep link; không chiếm khung lớn trong bài hay thu hẹp layout. LiveDemo cũ vẫn tương thích.
 
 **Từ 0.10.0:** thêm [LiveDemo](./docs/live-demo.md), iframe tải theo yêu cầu, fallback mở tab mới và stylesheet độc lập.
@@ -417,6 +419,8 @@ Override chỉ tác động page/block tương ứng; các page khác vẫn dùn
 Thêm `.cache/` vào `.gitignore` của website. Cache bao gồm source, vị trí tương đối trong project, phiên bản SDK/renderer và options. Đường dẫn checkout tuyệt đối không nằm trong cache key nên cache có thể dùng lại trên máy/CI khác. Lỗi cú pháp hiển thị file và vị trí fence, không bị giấu thành hình trống.
 
 ## D2 nâng cao
+
+**D2 Request Flow (0.12.0):** `d2 mode=flow` thêm playback request trên SVG D2: chọn kịch bản, Play/Pause, từng bước và đổi tốc độ; thêm `autoplay=true` để tự chạy khi vào viewport, `loop=true loopDelay=2000` để nghỉ 2 giây rồi lặp lại. Không gửi request thật. Xem [hướng dẫn Request flow](./docs/d2.md#request-flow-mô-phỏng-request-trên-một-sơ-đồ) và [`examples/d2/request-flow.d2`](./examples/d2/request-flow.d2). Chỉ nâng consumer sau khi xác nhận bản `0.12.0` đã có trên npm.
 
 Viewer mặc định có toolbar và tự tải chunk controls sau hydration, nhưng D2/WASM vẫn chỉ chạy lúc build. Luôn đăng ký cả hai component; `interactive=false` chọn component server-only:
 

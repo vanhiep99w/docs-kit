@@ -1,6 +1,7 @@
 import { D2 } from '@d2lang/d2';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { parseD2Flow, prepareD2Flow, extractD2FlowPaths, annotateD2FlowSvg } from './flow.js';
 
 const horizontalPadding = 24;
 const verticalPadding = 16;
@@ -153,6 +154,7 @@ function readableSequenceSvg(svg) {
 }
 
 export async function renderDiagram(d2, { source, salt, options = {}, resources = {} }) {
+  const flowDescriptor = options.mode === 'flow' ? parseD2Flow(source) : undefined;
   const { diagram, graph, renderOptions, labelLayout } = await compileWithFittedLabels(d2, source, options, resources);
   embedAssets(diagram, resources);
   const sequence = options.sequenceStyle === 'native' ? undefined : sequencePresentation(diagram, graph);
@@ -186,7 +188,24 @@ export async function renderDiagram(d2, { source, salt, options = {}, resources 
     return pair;
   };
   const result = { ...await renderPair(renderSettings.target), labelLayout };
-  if (options.mode && options.mode !== 'static') {
+  if (flowDescriptor) {
+    let selected;
+    walkBoards(diagram, graph, (board, _graph, segments) => {
+      if (boardPath(segments) === (renderSettings.target ?? '')) selected = board;
+    });
+    if (!selected || selected.isFolderOnly) throw new Error('D2 flow: target must be a renderable board.');
+    result.flow = prepareD2Flow(flowDescriptor, selected);
+    // Preserve the compiled positions, but ask D2 for the complete, unjittered route.
+    // Never infer a continuous route by cutting up sketch strokes.
+    const geometrySvg = await d2.render(diagram, {
+      ...renderSettings, ...themes.light, darkThemeOverrides: undefined,
+      sketch: false, salt: `${salt}-flow-geometry`,
+    });
+    const paths = extractD2FlowPaths(geometrySvg, result.flow);
+    result.lightSvg = annotateD2FlowSvg(result.lightSvg, result.flow, paths, selected);
+    result.darkSvg = annotateD2FlowSvg(result.darkSvg, result.flow, paths, selected);
+  }
+  if (options.mode && options.mode !== 'static' && options.mode !== 'flow') {
     const definitions = [];
     walkBoards(diagram, graph, (board, _graph, segments, kind, parent) => {
       if (board.isFolderOnly) return;
